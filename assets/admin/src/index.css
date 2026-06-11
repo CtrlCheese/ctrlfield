@@ -1,0 +1,344 @@
+@import "tailwindcss";
+
+/*
+ * All styles are scoped under .fieldforge-container to prevent any
+ * leakage into the surrounding WP admin stylesheet.
+ */
+
+[x-cloak] { display: none !important; }
+
+/* Seamless meta box — remove WP box chrome (border, header, padding) */
+.fieldforge-seamless.postbox {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+
+    .postbox-header { display: none; }
+    .inside         { padding: 0; margin: 0; }
+}
+
+.fieldforge-container {
+
+    /* ------------------------------------------------------------------ */
+    /* Layout                                                               */
+    /* ------------------------------------------------------------------ */
+
+    .ff-group-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 4px 0 8px;
+        align-items: flex-start;
+    }
+
+    .ff-group-title {
+        flex: 0 0 100%;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1d2327;
+        margin: 0 0 4px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #dcdcde;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Field width columns (->width(25|50|75|100))                         */
+    /* ------------------------------------------------------------------ */
+
+    .ff-field {
+        flex: 0 0 100%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    /* Column widths — account for the 16px gap between columns */
+    .ff-col-25  { flex: 0 0 calc(25%  - 12px); }
+    .ff-col-33  { flex: 0 0 calc(33%  - 11px); }
+    .ff-col-50  { flex: 0 0 calc(50%  - 8px);  }
+    .ff-col-75  { flex: 0 0 calc(75%  - 4px);  }
+    .ff-col-100 { flex: 0 0 100%; }
+
+    /* ------------------------------------------------------------------ */
+    /* Label placement: left (two-column inline layout)                    */
+    /* ------------------------------------------------------------------ */
+
+    &.ff-label-left .ff-field {
+        flex-direction: row;
+        align-items: baseline;
+        gap: 12px;
+    }
+
+    &.ff-label-left .ff-label {
+        flex: 0 0 160px;
+        min-width: 160px;
+        padding-top: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #3c434a;
+    }
+
+    &.ff-label-left .ff-field > :last-child {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Label                                                                */
+    /* ------------------------------------------------------------------ */
+
+    .ff-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #3c434a;
+    }
+
+    .ff-required {
+        color: #d63638;
+        margin-left: 2px;
+    }
+
+    /* Instructions text */
+    .ff-instructions {
+        display: block;
+        font-size: 12px;
+        color: #787c82;
+        font-weight: 400;
+        margin-top: 2px;
+        line-height: 1.4;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Inputs                                                               */
+    /* ------------------------------------------------------------------ */
+
+    .ff-input {
+        width: 100%;
+        max-width: 480px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #2c3338;
+        background: #fff;
+        border: 1px solid #8c8f94;
+        border-radius: 3px;
+        padding: 6px 10px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,.07);
+        transition: border-color 0.1s;
+
+        &:focus {
+            border-color: #2271b1;
+            box-shadow: 0 0 0 1px #2271b1;
+            outline: none;
+        }
+    }
+
+    .ff-input--textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .ff-input--select {
+        padding-right: 32px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238c8f94' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 16px;
+    }
+
+    .ff-input--number {
+        max-width: 160px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Checkboxes & Radios                                                  */
+    /* ------------------------------------------------------------------ */
+
+    .ff-checkboxes,
+    .ff-radios {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .ff-checkbox-label,
+    .ff-radio-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .ff-checkbox,
+    .ff-radio {
+        width: 16px;
+        height: 16px;
+        accent-color: #2271b1;
+        cursor: pointer;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Image / File fields                                                  */
+    /* ------------------------------------------------------------------ */
+
+    .ff-image-field,
+    .ff-file-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .ff-image-preview {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .ff-image-thumb {
+        max-width: 120px;
+        max-height: 120px;
+        border: 1px solid #dcdcde;
+        border-radius: 3px;
+        object-fit: cover;
+    }
+
+    .ff-file-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #50575e;
+        word-break: break-all;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* WYSIWYG                                                              */
+    /* ------------------------------------------------------------------ */
+
+    .ff-wysiwyg-wrap {
+        width: 100%;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Group (nested)                                                       */
+    /* ------------------------------------------------------------------ */
+
+    .ff-group {
+        border: 1px solid #dcdcde;
+        border-radius: 3px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: #f9f9f9;
+    }
+
+    .ff-field--inline {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+
+        .ff-label { min-width: 120px; }
+        .ff-input  { flex: 1; }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Repeater                                                             */
+    /* ------------------------------------------------------------------ */
+
+    .ff-repeater {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .ff-repeater-row {
+        border: 1px solid #dcdcde;
+        border-radius: 3px;
+        padding: 12px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        position: relative;
+    }
+
+    .ff-repeater-actions {
+        display: flex;
+        gap: 4px;
+        align-self: flex-end;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Buttons                                                              */
+    /* ------------------------------------------------------------------ */
+
+    .ff-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        line-height: 1;
+        padding: 5px 10px;
+        border: 1px solid #8c8f94;
+        border-radius: 3px;
+        background: #f6f7f7;
+        color: #2c3338;
+        cursor: pointer;
+        transition: background 0.1s, border-color 0.1s;
+        white-space: nowrap;
+
+        &:hover:not(:disabled) {
+            background: #f0f0f1;
+            border-color: #787c82;
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    }
+
+    .ff-btn--upload {
+        background: #2271b1;
+        color: #fff;
+        border-color: #2271b1;
+
+        &:hover:not(:disabled) {
+            background: #135e96;
+            border-color: #135e96;
+        }
+    }
+
+    .ff-btn--add {
+        align-self: flex-start;
+        background: #fff;
+        color: #2271b1;
+        border-color: #2271b1;
+
+        &:hover {
+            background: #f0f6fc;
+        }
+    }
+
+    .ff-btn--remove {
+        color: #d63638;
+        border-color: #d63638;
+        background: #fff;
+        padding: 4px 8px;
+
+        &:hover {
+            background: #fcf0f1;
+        }
+    }
+
+    .ff-btn--up,
+    .ff-btn--down {
+        padding: 4px 8px;
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,20 @@
+parameters:
+    level: 8
+    paths:
+        - src
+
+    excludePaths:
+        # WP wrappers — thin delegation classes, covered by WP Integration tests (Cycle 11).
+        - src/Storage/Drivers/WpPostMetaDriver.php
+        - src/Storage/Drivers/WpOptionsDriver.php
+        - src/Core/Security/NonceValidator.php
+        - src/Core/Security/CapabilityChecker.php
+        # WP integration entry points — reference WP runtime functions and WP drivers.
+        - src/Core/Pipeline/SavePipeline.php
+        - src/Integrations/CLI/Commands/MigrateCommand.php
+        - src/Admin/MetaBox/MetaBoxServiceProvider.php
+        - src/Admin/QuickEdit/QuickEditServiceProvider.php
+        - src/Admin/QuickEdit/QuickEditRenderer.php
+        - src/Integrations/Blade/helpers.php
+        - src/Integrations/REST/FieldsController.php
+        - src/Rest/FieldValueController.php

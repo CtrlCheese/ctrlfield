@@ -1,0 +1,36 @@
+# Dependencies
+/vendor/
+node_modules/
+
+# Build outputs
+assets/gutenberg/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs & debug
+*.log
+wp-content/debug.log
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# PHPStan cache
+.phpstan.cache/
+
+# Test artifacts
+.phpunit.cache/
+.phpunit.result.cache
+/coverage/
+
+# Schema directory (wp-env dev schemas — not part of the plugin)
+/schema/

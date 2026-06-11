@@ -1,0 +1,172 @@
+<?php
+
+declare(strict_types=1);
+
+namespace FieldForge\Tests\Unit\Fields\Renderers;
+
+use FieldForge\Fields\Field;
+use FieldForge\Fields\Renderers\CheckboxRenderer;
+use FieldForge\Fields\Renderers\EmailRenderer;
+use FieldForge\Fields\Renderers\GroupRenderer;
+use FieldForge\Fields\Renderers\ImageRenderer;
+use FieldForge\Fields\Renderers\NumberRenderer;
+use FieldForge\Fields\Renderers\RadioRenderer;
+use FieldForge\Fields\Renderers\RepeaterRenderer;
+use FieldForge\Fields\Renderers\SelectRenderer;
+use FieldForge\Fields\Renderers\TextareaRenderer;
+use FieldForge\Fields\Renderers\TextRenderer;
+use FieldForge\Fields\Renderers\UrlRenderer;
+use PHPUnit\Framework\TestCase;
+
+class RenderersTest extends TestCase
+{
+    public function test_text_renderer_outputs_x_model(): void
+    {
+        $html = (new TextRenderer())->render(
+            Field::text('client_name')->label('Client'),
+            "adminState['client_name']"
+        );
+
+        // Single quotes in Alpine expressions must NOT be entity-encoded.
+        $this->assertStringContainsString("x-model=\"adminState['client_name']\"", $html);
+        $this->assertStringContainsString('type="text"', $html);
+        $this->assertStringContainsString('id="ff-client_name"', $html);
+    }
+
+    public function test_textarea_renderer(): void
+    {
+        $html = (new TextareaRenderer())->render(
+            Field::textarea('bio'),
+            "adminState['bio']"
+        );
+
+        $this->assertStringContainsString('<textarea', $html);
+        $this->assertStringContainsString('x-model=', $html);
+    }
+
+    public function test_number_renderer_uses_x_model_number(): void
+    {
+        $html = (new NumberRenderer())->render(
+            Field::number('qty'),
+            "adminState['qty']"
+        );
+
+        $this->assertStringContainsString('x-model.number=', $html);
+        $this->assertStringContainsString('type="number"', $html);
+    }
+
+    public function test_email_renderer(): void
+    {
+        $html = (new EmailRenderer())->render(Field::email('email'), "adminState['email']");
+        $this->assertStringContainsString('type="email"', $html);
+    }
+
+    public function test_url_renderer(): void
+    {
+        $html = (new UrlRenderer())->render(Field::url('website'), "adminState['website']");
+        $this->assertStringContainsString('type="url"', $html);
+    }
+
+    public function test_select_renderer_outputs_options(): void
+    {
+        $html = (new SelectRenderer())->render(
+            Field::select('status')->options(['active' => 'Active', 'inactive' => 'Inactive']),
+            "adminState['status']"
+        );
+
+        $this->assertStringContainsString('<select', $html);
+        $this->assertStringContainsString('<option value="active">Active</option>', $html);
+        $this->assertStringContainsString('<option value="inactive">Inactive</option>', $html);
+        $this->assertStringContainsString('x-model=', $html);
+    }
+
+    public function test_checkbox_renderer_outputs_each_option(): void
+    {
+        $html = (new CheckboxRenderer())->render(
+            Field::checkbox('tags')->options(['php' => 'PHP', 'js' => 'JavaScript']),
+            "adminState['tags']"
+        );
+
+        $this->assertStringContainsString('type="checkbox"', $html);
+        $this->assertStringContainsString('value="php"', $html);
+        $this->assertStringContainsString('value="js"', $html);
+        $this->assertStringContainsString('PHP', $html);
+        $this->assertStringContainsString('JavaScript', $html);
+    }
+
+    public function test_radio_renderer_outputs_each_option(): void
+    {
+        $html = (new RadioRenderer())->render(
+            Field::radio('size')->options(['sm' => 'Small', 'lg' => 'Large']),
+            "adminState['size']"
+        );
+
+        $this->assertStringContainsString('type="radio"', $html);
+        $this->assertStringContainsString('value="sm"', $html);
+        $this->assertStringContainsString('value="lg"', $html);
+    }
+
+    public function test_image_renderer_outputs_media_button(): void
+    {
+        $html = (new ImageRenderer())->render(Field::image('photo'), "adminState['photo']");
+
+        $this->assertStringContainsString('openMediaLibrary', $html);
+        $this->assertStringContainsString('x-model=', $html);
+        $this->assertStringContainsString('ff-image-field', $html);
+    }
+
+    public function test_group_renderer_renders_sub_fields(): void
+    {
+        $html = (new GroupRenderer())->render(
+            Field::object('info')->fields([
+                Field::text('first_name')->label('First Name'),
+                Field::text('last_name')->label('Last Name'),
+            ]),
+            "adminState['info']"
+        );
+
+        $this->assertStringContainsString('ff-group', $html);
+        $this->assertStringContainsString("adminState['info']['first_name']", $html);
+        $this->assertStringContainsString("adminState['info']['last_name']", $html);
+        $this->assertStringContainsString('First Name', $html);
+    }
+
+    public function test_repeater_renderer_outputs_x_for_template(): void
+    {
+        $html = (new RepeaterRenderer())->render(
+            Field::repeater('members')->fields([
+                Field::text('name')->label('Name'),
+            ]),
+            "adminState['members']"
+        );
+
+        $this->assertStringContainsString('<template x-for=', $html);
+        // Single quotes in Alpine expressions must survive unencoded.
+        $this->assertStringContainsString("x-model=\"row['name']\"", $html);
+        $this->assertStringContainsString('addRow(', $html);
+        $this->assertStringContainsString('removeRow(', $html);
+        $this->assertStringContainsString('moveRowUp(', $html);
+        $this->assertStringContainsString('moveRowDown(', $html);
+        $this->assertStringContainsString('+ Add Row', $html);
+    }
+
+    public function test_repeater_empty_row_json_is_valid(): void
+    {
+        $html = (new RepeaterRenderer())->render(
+            Field::repeater('items')->fields([
+                Field::text('title'),
+                Field::number('qty'),
+            ]),
+            "adminState['items']"
+        );
+
+        // Extract the JSON from addRow('items', {...})
+        preg_match('/addRow\(\'items\',\s*([^)]+)\)/', $html, $matches);
+        $this->assertNotEmpty($matches, 'Could not find addRow call in output');
+
+        $decoded = json_decode(html_entity_decode($matches[1]), true);
+        $this->assertIsArray($decoded);
+        $this->assertArrayHasKey('title', $decoded);
+        $this->assertArrayHasKey('qty', $decoded);
+    }
+}

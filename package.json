@@ -1,0 +1,26 @@
+{
+  "name": "fieldforge",
+  "private": true,
+  "scripts": {
+    "build":          "npm run build:admin && npm run build:gutenberg",
+    "build:admin":    "vite build && npx @tailwindcss/cli -i assets/admin/src/index.css -o assets/admin/fieldforge.css --minify",
+    "build:gutenberg":"wp-scripts build assets/gutenberg/index.js --output-path=assets/gutenberg/dist",
+    "dev:admin":      "concurrently \"vite build --watch\" \"npx @tailwindcss/cli -i assets/admin/src/index.css -o assets/admin/fieldforge.css --watch\"",
+    "dev:gutenberg":  "wp-scripts start assets/gutenberg/index.js --output-path=assets/gutenberg/dist",
+    "test:js":        "vitest run",
+    "test:js:watch":  "vitest",
+    "test:e2e":       "playwright test",
+    "test:e2e:ui":    "playwright test --ui"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.9"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "vitest": "^2.0.0",
+    "@tailwindcss/vite": "^4.1.10",
+    "@wordpress/scripts": "^30.0.0",
+    "tailwindcss": "^4.1.10",
+    "vite": "^6.3.5"
+  }
+}

@@ -1,0 +1,38 @@
+{
+    "name": "fieldforge/fieldforge",
+    "description": "Enterprise-grade code-first schema engine for WordPress custom fields, CPTs, and taxonomies.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2",
+        "psr/container": "^2.0",
+        "illuminate/view": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0|^12.0",
+        "phpstan/phpstan": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FieldForge\\": "src/"
+        },
+        "files": [
+            "src/Integrations/Blade/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FieldForge\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "platform": {
+            "php": "8.2"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

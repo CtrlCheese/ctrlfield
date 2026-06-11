@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/Unit/bootstrap.php"
+         colors="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+        <exclude>
+            <!-- WP-runtime-only code excluded from unit coverage -->
+            <directory>src/Integrations/WordPress</directory>
+            <directory>src/Admin/MetaBox</directory>
+            <directory>src/Admin/Gutenberg</directory>
+            <directory>src/Integrations/CLI/Commands</directory>
+        </exclude>
+    </source>
+
+    <!--
+        Coverage requires pcov or Xdebug.
+        Install pcov:   pecl install pcov  (then add extension=pcov.so to php.ini)
+        Run coverage:   vendor/bin/phpunit - -coverage-html coverage/
+    -->
+</phpunit>

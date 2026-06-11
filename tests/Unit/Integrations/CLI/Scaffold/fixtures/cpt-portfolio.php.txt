@@ -1,0 +1,27 @@
+<?php
+/**
+ * FieldForge — CPT Registration: portfolio
+ * Generated: DATE
+ * Edit freely. This file is the source of truth.
+ */
+
+declare(strict_types=1);
+
+use FieldForge\Builder\CPT;
+use FieldForge\Fields\Field;
+
+CPT::make('portfolio')
+    ->label('Portfolio', 'Projects')
+    ->supports(['title', 'editor', 'thumbnail'])
+    ->register();
+
+Field::group('portfolio_fields')
+    ->title('Portfolio Fields')
+    ->where('post_type', '==', 'portfolio')
+    ->fields([
+        Field::text('client_name')
+            ->label('Client'),
+        Field::number('budget')
+            ->label('Budget'),
+    ])
+    ->register();
