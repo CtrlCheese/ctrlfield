@@ -24,6 +24,7 @@ use FieldForge\Fields\Types\SelectField;
 use FieldForge\Fields\Types\TextareaField;
 use FieldForge\Fields\Types\TextField;
 use FieldForge\Fields\Types\TimeField;
+use FieldForge\Fields\Types\TrueFalseField;
 use FieldForge\Fields\Types\UrlField;
 use FieldForge\Fields\Types\WysiwygField;
 
@@ -180,5 +181,14 @@ final class Field
     public static function computed(string $key, \Closure $callback): ComputedField
     {
         return new ComputedField($key, $callback);
+    }
+
+    /**
+     * Boolean toggle — stores 1 (on) or 0 (off).
+     * Renders as a CSS toggle switch in the admin UI.
+     */
+    public static function trueFalse(string $key): TrueFalseField
+    {
+        return new TrueFalseField($key);
     }
 }

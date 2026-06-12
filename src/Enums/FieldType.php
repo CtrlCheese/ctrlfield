@@ -38,4 +38,6 @@ enum FieldType: string
     case CLONE            = 'clone';
     // Computed fields (A-10)
     case COMPUTED         = 'computed';
+    // Simple boolean toggle (A-extra)
+    case TRUE_FALSE       = 'true_false';
 }

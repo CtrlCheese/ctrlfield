@@ -84,7 +84,8 @@ class SanitizationStage implements StageInterface
             FieldType::GALLERY,
             FieldType::MAP,
             FieldType::CLONE    => is_array($value) ? $value : [],
-            FieldType::COMPUTED => $value, // passthrough — value set by ComputedFieldsStage
+            FieldType::COMPUTED   => $value, // passthrough — value set by ComputedFieldsStage
+            FieldType::TRUE_FALSE => (int)(bool) $value, // stores 1 or 0
             FieldType::DATE     => (new DateSanitizer())->sanitize($value),
             FieldType::TIME     => (new TimeSanitizer())->sanitize($value),
             FieldType::DATETIME => (new DateTimeSanitizer())->sanitize($value),

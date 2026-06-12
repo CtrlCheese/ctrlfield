@@ -13,6 +13,7 @@ use FieldForge\Fields\Renderers\LinkRenderer;
 use FieldForge\Fields\Renderers\OembedRenderer;
 use FieldForge\Fields\Renderers\RangeRenderer;
 use FieldForge\Fields\Renderers\TimeRenderer;
+use FieldForge\Fields\Renderers\TrueFalseRenderer;
 
 /**
  * Maps FieldType enum values to their renderer instances.
@@ -45,7 +46,8 @@ final class RendererRegistry
             FieldType::COLOR->value    => new ColorRenderer(),
             FieldType::LINK->value     => new LinkRenderer(),
             FieldType::RANGE->value    => new RangeRenderer(),
-            FieldType::OEMBED->value   => new OembedRenderer(),
+            FieldType::OEMBED->value      => new OembedRenderer(),
+            FieldType::TRUE_FALSE->value  => new TrueFalseRenderer(),
         ];
     }
 
