@@ -13,6 +13,7 @@ namespace FieldForge\Integrations\REST;
  * Routes:
  *   GET /wp-json/fieldforge/v1/search/posts?post_type=portfolio&search=acme&per_page=20&page=1
  *   GET /wp-json/fieldforge/v1/search/terms?taxonomy=category&search=design&per_page=20&hide_empty=1
+ *   GET /wp-json/fieldforge/v1/search/users?search=john&roles=editor,author&per_page=20
  */
 final class SearchController
 {
@@ -41,6 +42,17 @@ final class SearchController
                 'search'     => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
                 'per_page'   => ['required' => false, 'type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 100],
                 'hide_empty' => ['required' => false, 'type' => 'boolean', 'default' => false],
+            ],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/search/users', [
+            'methods'             => 'GET',
+            'callback'            => [$this, 'searchUsers'],
+            'permission_callback' => [$this, 'canSearchUsers'],
+            'args'                => [
+                'search'   => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
+                'roles'    => ['required' => false, 'type' => 'string', 'default' => ''],
+                'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 100],
             ],
         ]);
     }
@@ -153,5 +165,53 @@ final class SearchController
             'results' => $results,
             'total'   => is_wp_error($total) ? count($results) : (int) $total,
         ], 200);
+    }
+
+    /** @return bool|\WP_Error */
+    public function canSearchUsers(\WP_REST_Request $request): bool|\WP_Error
+    {
+        if (! is_user_logged_in()) {
+            return new \WP_Error('rest_not_logged_in', 'Authentication required.', ['status' => 401]);
+        }
+
+        if (! current_user_can('list_users')) {
+            return new \WP_Error('rest_forbidden', 'Insufficient permissions.', ['status' => 403]);
+        }
+
+        return true;
+    }
+
+    public function searchUsers(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $search  = (string) $request->get_param('search');
+        $rolesRaw = (string) $request->get_param('roles');
+        $perPage = min(100, max(1, (int) $request->get_param('per_page')));
+
+        $args = [
+            'number'  => $perPage,
+            'search'  => '*' . $search . '*',
+            'fields'  => 'all',
+            'orderby' => 'display_name',
+            'order'   => 'ASC',
+        ];
+
+        if ($rolesRaw !== '') {
+            $roles        = array_filter(array_map('sanitize_key', explode(',', $rolesRaw)));
+            $args['role__in'] = array_values($roles);
+        }
+
+        $users   = get_users($args);
+        $results = [];
+
+        foreach ($users as $user) {
+            $results[] = [
+                'id'           => $user->ID,
+                'display_name' => $user->display_name,
+                'email'        => $user->user_email,
+                'avatar_url'   => get_avatar_url($user->ID, ['size' => 24]),
+            ];
+        }
+
+        return new \WP_REST_Response(['results' => $results, 'total' => count($results)], 200);
     }
 }

@@ -93,6 +93,22 @@ class SanitizationStage implements StageInterface
             FieldType::LINK     => (new LinkSanitizer())->sanitize($value),
             FieldType::RANGE    => (new RangeSanitizer())->sanitize($value),
             FieldType::OEMBED   => (new OembedSanitizer())->sanitize($value),
+            // C-3: Button Group — single string value
+            FieldType::BUTTON_GROUP => self::sanitizeText((string) $value),
+            // C-4: User — single int or array of ints
+            FieldType::USER => is_array($value)
+                ? array_map(static fn(mixed $v) => (int) $v, $value)
+                : (int) $value,
+            // C-5: Icon — string like "dashicons-admin-home"
+            FieldType::ICON => self::sanitizeText((string) $value),
+            // C-6: Code — preserve code characters, prevent XSS
+            FieldType::CODE => function_exists('wp_kses_post') ? wp_kses_post((string) $value) : (string) $value,
+            // C-1 / C-2: UI-only fields — never appear in payload, passthrough
+            FieldType::TAB,
+            FieldType::ACCORDION,
+            FieldType::ACCORDION_END,
+            FieldType::MESSAGE,
+            FieldType::SEPARATOR => $value,
         };
     }
 

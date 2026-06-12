@@ -50,6 +50,14 @@ abstract class FieldDefinition implements FieldInterface
     /** @var list<FieldNotificationConfig> */
     protected array $notifications = [];
 
+    // Webhook on change (D-1)
+    /** @var list<array{url:string,toValue:string,secret:string,payload:list<string>}> */
+    protected array $webhookConfigs = [];
+
+    // Advanced permissions (D-4) — role → 'edit'|'read'|'hidden'
+    /** @var array<string, string> */
+    protected array $permissions = [];
+
     private const VALID_WIDTHS = [25, 50, 75, 100];
 
     public function __construct(protected string $key) {}
@@ -391,6 +399,90 @@ abstract class FieldDefinition implements FieldInterface
     public function getNotifications(): array
     {
         return $this->notifications;
+    }
+
+    // -------------------------------------------------------------------------
+    // Webhook on change (D-1)
+    // -------------------------------------------------------------------------
+
+    /**
+     * POST to an external URL when this field changes value.
+     *
+     * @param list<string> $payload Keys to include: 'post_id','field_key','old_value','new_value','post_title','date'
+     */
+    public function webhookOnChange(
+        string $url,
+        string $toValue = '',
+        string $secret  = '',
+        array  $payload = ['post_id', 'field_key', 'old_value', 'new_value', 'post_title', 'date'],
+    ): static {
+        $this->webhookConfigs[] = compact('url', 'toValue', 'secret', 'payload');
+        return $this;
+    }
+
+    /** @return list<array{url:string,toValue:string,secret:string,payload:list<string>}> */
+    public function getWebhookConfigs(): array
+    {
+        return $this->webhookConfigs;
+    }
+
+    // -------------------------------------------------------------------------
+    // Advanced permissions (D-4)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Per-role field access. Role not listed = defaults to 'edit'.
+     *
+     * @param array<string, 'edit'|'read'|'hidden'> $permissions
+     */
+    public function permissions(array $permissions): static
+    {
+        $this->permissions = $permissions;
+        return $this;
+    }
+
+    /** @return array<string, string> */
+    public function getPermissions(): array
+    {
+        return $this->permissions;
+    }
+
+    /**
+     * Returns the effective permission for the current user.
+     * Falls back to 'edit' when the user's role is not listed.
+     */
+    public function currentUserPermission(): string
+    {
+        if (empty($this->permissions)) {
+            return 'edit';
+        }
+
+        if (! function_exists('wp_get_current_user')) {
+            return 'edit';
+        }
+
+        $user = wp_get_current_user();
+
+        foreach ($this->permissions as $role => $perm) {
+            if (in_array($role, (array) $user->roles, true)) {
+                return $perm;
+            }
+        }
+
+        return 'edit';
+    }
+
+    // -------------------------------------------------------------------------
+    // UI-only marker (C-1, C-2)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns true for fields that are purely UI organisers (Tab, Accordion, Message, Separator).
+     * UI-only fields are never included in the fieldforge_payload and are not stored.
+     */
+    public function isUiOnly(): bool
+    {
+        return false;
     }
 
     /**

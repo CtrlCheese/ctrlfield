@@ -6,14 +6,23 @@ namespace FieldForge\Fields\Renderers;
 
 use FieldForge\Enums\FieldType;
 use FieldForge\Fields\Contracts\RendererInterface;
+use FieldForge\Fields\Renderers\AccordionEndRenderer;
+use FieldForge\Fields\Renderers\AccordionRenderer;
+use FieldForge\Fields\Renderers\ButtonGroupRenderer;
+use FieldForge\Fields\Renderers\CodeRenderer;
 use FieldForge\Fields\Renderers\ColorRenderer;
 use FieldForge\Fields\Renderers\DateRenderer;
 use FieldForge\Fields\Renderers\DateTimeRenderer;
+use FieldForge\Fields\Renderers\IconRenderer;
 use FieldForge\Fields\Renderers\LinkRenderer;
+use FieldForge\Fields\Renderers\MessageRenderer;
 use FieldForge\Fields\Renderers\OembedRenderer;
 use FieldForge\Fields\Renderers\RangeRenderer;
+use FieldForge\Fields\Renderers\SeparatorRenderer;
+use FieldForge\Fields\Renderers\TabRenderer;
 use FieldForge\Fields\Renderers\TimeRenderer;
 use FieldForge\Fields\Renderers\TrueFalseRenderer;
+use FieldForge\Fields\Renderers\UserRenderer;
 
 /**
  * Maps FieldType enum values to their renderer instances.
@@ -46,8 +55,23 @@ final class RendererRegistry
             FieldType::COLOR->value    => new ColorRenderer(),
             FieldType::LINK->value     => new LinkRenderer(),
             FieldType::RANGE->value    => new RangeRenderer(),
-            FieldType::OEMBED->value      => new OembedRenderer(),
-            FieldType::TRUE_FALSE->value  => new TrueFalseRenderer(),
+            FieldType::OEMBED->value        => new OembedRenderer(),
+            FieldType::TRUE_FALSE->value    => new TrueFalseRenderer(),
+            // C-1: Tab + Accordion
+            FieldType::TAB->value           => new TabRenderer(),
+            FieldType::ACCORDION->value     => new AccordionRenderer(),
+            FieldType::ACCORDION_END->value => new AccordionEndRenderer(),
+            // C-2: Message + Separator
+            FieldType::MESSAGE->value       => new MessageRenderer(),
+            FieldType::SEPARATOR->value     => new SeparatorRenderer(),
+            // C-3: Button Group
+            FieldType::BUTTON_GROUP->value  => new ButtonGroupRenderer(),
+            // C-4: User
+            FieldType::USER->value          => new UserRenderer(),
+            // C-5: Icon
+            FieldType::ICON->value          => new IconRenderer(),
+            // C-6: Code
+            FieldType::CODE->value          => new CodeRenderer(),
         ];
     }
 

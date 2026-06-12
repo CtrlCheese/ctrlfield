@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace FieldForge\Admin\MetaBox;
 
 use FieldForge\Builder\FieldGroup;
+use FieldForge\Enums\FieldType;
 use FieldForge\Fields\FieldDefinition;
 use FieldForge\Fields\Renderers\RendererRegistry;
 use FieldForge\Fields\Types\GroupField;
+use FieldForge\Fields\Types\TabField;
 use FieldForge\Storage\Drivers\WpPostMetaDriver;
 use FieldForge\Storage\PostMetaAdapter;
 
@@ -50,9 +52,16 @@ class MetaBoxRenderer
             <?php wp_nonce_field('fieldforge_save', '_fieldforge_nonce'); ?>
 
             <div class="ff-group-section">
-                <?php foreach ($group->getFields() as $field): ?>
-                    <?php $this->renderField($field, $labelPlacement, $instrPlacement); ?>
-                <?php endforeach; ?>
+                <?php
+                $tabInfo = $this->extractTabSections($group->getFields());
+                if ($tabInfo['hasTabs']) {
+                    $this->renderGroupWithTabs($groupKey, $tabInfo, $labelPlacement, $instrPlacement);
+                } else {
+                    foreach ($group->getFields() as $field) {
+                        $this->renderField($field, $labelPlacement, $instrPlacement);
+                    }
+                }
+                ?>
             </div>
 
             <input type="hidden"
@@ -115,6 +124,17 @@ class MetaBoxRenderer
         string $labelPlacement,
         string $instrPlacement,
     ): void {
+        // UI-only fields bypass the standard label/input wrapper.
+        // Tab fields are handled entirely by renderGroupWithTabs() — skip here.
+        if ($field->isUiOnly()) {
+            if ($field->getType() === FieldType::TAB) {
+                return;
+            }
+            $renderer = RendererRegistry::resolve($field->getType());
+            echo $renderer->render($field, ''); // phpcs:ignore WordPress.Security.EscapeOutput
+            return;
+        }
+
         $key          = $field->getKey();
         $definition   = $field->getDefinition();
         $label        = $definition['label'] ?: $key;
@@ -148,6 +168,94 @@ class MetaBoxRenderer
     }
 
     // -------------------------------------------------------------------------
+    // Tab grouping
+    // -------------------------------------------------------------------------
+
+    /**
+     * Analyses a flat list of fields and separates them into tab sections.
+     *
+     * @param  FieldDefinition[] $fields
+     * @return array{hasTabs: bool, beforeTabs: list<FieldDefinition>, sections: list<array{key: string, label: string, fields: list<FieldDefinition>}>}
+     */
+    private function extractTabSections(array $fields): array
+    {
+        $hasTabs   = false;
+        $beforeTabs = [];
+        $sections  = [];
+
+        $currentSection = null;
+
+        foreach ($fields as $field) {
+            if ($field instanceof TabField) {
+                $hasTabs = true;
+                $def     = $field->getDefinition();
+                $currentSection = [
+                    'key'    => $field->getKey(),
+                    'label'  => $def['label'] ?: $field->getKey(),
+                    'fields' => [],
+                ];
+                $sections[] = &$currentSection;
+                unset($currentSection); // break the reference; $sections keeps it
+                $currentSection = &$sections[count($sections) - 1];
+            } elseif ($currentSection !== null) {
+                $currentSection['fields'][] = $field;
+            } else {
+                $beforeTabs[] = $field;
+            }
+        }
+
+        return [
+            'hasTabs'    => $hasTabs,
+            'beforeTabs' => $beforeTabs,
+            'sections'   => $sections,
+        ];
+    }
+
+    /**
+     * Renders fields that contain at least one tab divider.
+     *
+     * @param array{hasTabs: bool, beforeTabs: list<FieldDefinition>, sections: list<array{key: string, label: string, fields: list<FieldDefinition>}>} $tabInfo
+     */
+    private function renderGroupWithTabs(
+        string $groupKey,
+        array  $tabInfo,
+        string $labelPlacement,
+        string $instrPlacement,
+    ): void {
+        $sections    = $tabInfo['sections'];
+        $beforeTabs  = $tabInfo['beforeTabs'];
+        $firstTabKey = ! empty($sections) ? esc_js($sections[0]['key']) : '';
+        $escapedGroup = esc_js($groupKey);
+
+        ?>
+        <div class="ff-tabs">
+            <div class="ff-tabs-nav">
+                <?php foreach ($sections as $section): ?>
+                    <button type="button" class="ff-tab-btn"
+                        :class="{'is-active': (activeTabs['<?= $escapedGroup ?>'] ?? '<?= esc_js($sections[0]['key']) ?>') === '<?= esc_js($section['key']) ?>'}"
+                        @click="activeTabs['<?= $escapedGroup ?>'] = '<?= esc_js($section['key']) ?>'">
+                        <?= esc_html($section['label']) ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+
+            <?php foreach ($beforeTabs as $field): ?>
+                <?php $this->renderField($field, $labelPlacement, $instrPlacement); ?>
+            <?php endforeach; ?>
+
+            <?php foreach ($sections as $section): ?>
+                <div class="ff-tab-panel"
+                     x-show="(activeTabs['<?= $escapedGroup ?>'] ?? '<?= esc_js($sections[0]['key']) ?>') === '<?= esc_js($section['key']) ?>'">
+                    <?php foreach ($section['fields'] as $field): ?>
+                        <?php $this->renderField($field, $labelPlacement, $instrPlacement); ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
@@ -162,6 +270,10 @@ class MetaBoxRenderer
 
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
+                // UI-only fields are never stored — skip them.
+                if ($field->isUiOnly()) {
+                    continue;
+                }
                 $values[$field->getKey()] = $this->valueFor($field, $stored);
             }
         }

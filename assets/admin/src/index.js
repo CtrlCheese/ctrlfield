@@ -15,6 +15,18 @@ document.addEventListener('alpine:init', () => {
         /** Cache of attachment URLs fetched from WP (id → url). */
         attachmentUrls: {},
 
+        /** Active tab per group — keyed by group key, value is active tab key. */
+        activeTabs: {},
+
+        /** User search results per field key. */
+        userResults: {},
+
+        /** Cache of selected user display names. */
+        selectedUserLabels: {},
+
+        /** Icon picker search query. */
+        iconSearch: '',
+
         // -------------------------------------------------------------------
         // Lifecycle
         // -------------------------------------------------------------------
@@ -28,7 +40,10 @@ document.addEventListener('alpine:init', () => {
             this.attachmentUrls = phData.attachments ?? {};
 
             // WYSIWYG bridge is initialised after the DOM + TinyMCE are ready.
-            this.$nextTick(() => this.initWysiwygs());
+            this.$nextTick(() => {
+                this.initWysiwygs();
+                this.initCodeEditors();
+            });
         },
 
         // -------------------------------------------------------------------
@@ -166,6 +181,103 @@ document.addEventListener('alpine:init', () => {
                 // where TinyMCE never initialises (e.g. quick-edit context).
                 setTimeout(() => clearInterval(tryBind), 10_000);
             });
+        },
+
+        // -------------------------------------------------------------------
+        // Code Editor (CodeMirror)
+        // -------------------------------------------------------------------
+
+        /**
+         * Initialises CodeMirror on all [data-fieldforge-code] wrappers.
+         * Called in init() after the DOM is ready.
+         */
+        initCodeEditors() {
+            this.$el.querySelectorAll('[data-fieldforge-code]').forEach(wrap => {
+                const fieldKey = wrap.dataset.fieldforgeCode;
+                const textarea = wrap.querySelector('textarea');
+                if (!textarea || typeof wp === 'undefined' || !wp.CodeMirror) return;
+
+                const cm = wp.CodeMirror.fromTextArea(textarea, {
+                    mode:          wrap.dataset.language || 'text',
+                    lineNumbers:   true,
+                    lineWrapping:  wrap.dataset.wrapLines === 'true',
+                    indentUnit:    4,
+                    tabSize:       4,
+                    indentWithTabs: false,
+                    theme:         'default',
+                });
+
+                // Sync CodeMirror → adminState
+                cm.on('change', () => {
+                    this.adminState[fieldKey] = cm.getValue();
+                });
+
+                // Sync stored value → CodeMirror
+                const stored = this.adminState[fieldKey];
+                if (stored && cm.getValue() !== stored) {
+                    cm.setValue(stored);
+                }
+            });
+        },
+
+        // -------------------------------------------------------------------
+        // User Field — AJAX search
+        // -------------------------------------------------------------------
+
+        /**
+         * Search WordPress users via the FieldForge REST endpoint.
+         * Debounced via Alpine's @input.debounce modifier in the rendered HTML.
+         *
+         * @param {string}   query    Search string (min 2 chars).
+         * @param {string}   fieldKey Key of the UserField.
+         * @param {string[]} roles    Optional role filter.
+         */
+        async searchUsers(query, fieldKey, roles) {
+            if (query.length < 2) {
+                this.userResults[fieldKey] = [];
+                return;
+            }
+
+            const phData = window.fieldforgeData ?? {};
+            const params = new URLSearchParams({ search: query, per_page: 20 });
+
+            if (Array.isArray(roles) && roles.length > 0) {
+                params.set('roles', roles.join(','));
+            }
+
+            try {
+                const res = await fetch(
+                    `${phData.restUrl ?? ''}fieldforge/v1/search/users?${params}`,
+                    { headers: { 'X-WP-Nonce': phData.restNonce ?? '' } },
+                );
+                const data = await res.json();
+                this.userResults[fieldKey] = data.results ?? [];
+            } catch (e) {
+                this.userResults[fieldKey] = [];
+            }
+        },
+
+        /**
+         * Selects a user result and updates adminState.
+         *
+         * @param {string}  fieldKey  Key of the UserField.
+         * @param {object}  user      User object from the REST API.
+         * @param {boolean} multiple  Whether the field accepts multiple users.
+         */
+        selectUser(fieldKey, user, multiple) {
+            if (multiple) {
+                if (!Array.isArray(this.adminState[fieldKey])) {
+                    this.adminState[fieldKey] = [];
+                }
+                if (!this.adminState[fieldKey].includes(user.id)) {
+                    this.adminState[fieldKey].push(user.id);
+                    this.selectedUserLabels[fieldKey + '_' + user.id] = user.display_name;
+                }
+            } else {
+                this.adminState[fieldKey]        = user.id;
+                this.selectedUserLabels[fieldKey] = user.display_name;
+            }
+            this.userResults[fieldKey] = [];
         },
     }));
 });

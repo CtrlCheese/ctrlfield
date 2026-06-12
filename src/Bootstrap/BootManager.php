@@ -63,6 +63,7 @@ class BootManager
             \FieldForge\Admin\NavMenu\NavMenuServiceProvider::class,
             \FieldForge\Admin\Dashboard\DashboardWidgetServiceProvider::class,
             \FieldForge\Admin\Inspector\InspectorServiceProvider::class,
+            \FieldForge\Admin\SiteHealth\SiteHealthServiceProvider::class,
             \FieldForge\Integrations\Blade\ViewServiceProvider::class,
             \FieldForge\Integrations\REST\RestServiceProvider::class,
             \FieldForge\Integrations\CLI\CliServiceProvider::class,

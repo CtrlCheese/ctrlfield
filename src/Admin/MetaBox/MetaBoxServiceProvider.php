@@ -86,13 +86,19 @@ class MetaBoxServiceProvider extends ServiceProvider
 
         // Pass attachment URLs and nonces to Alpine
         wp_localize_script('fieldforge-admin', 'fieldforgeData', [
-            'attachments'  => $this->resolveAttachmentUrls(),
-            'oembedNonce'  => wp_create_nonce('fieldforge_oembed'),
-            'ajaxUrl'      => admin_url('admin-ajax.php'),
+            'attachments' => $this->resolveAttachmentUrls(),
+            'oembedNonce' => wp_create_nonce('fieldforge_oembed'),
+            'ajaxUrl'     => admin_url('admin-ajax.php'),
+            'restUrl'     => rest_url(),
+            'restNonce'   => wp_create_nonce('wp_rest'),
         ]);
 
         // WP media library — needed for image/file fields
         wp_enqueue_media();
+
+        // CodeMirror — needed for code editor fields
+        wp_enqueue_script('wp-codemirror');
+        wp_enqueue_style('wp-codemirror');
     }
 
     public function onSavePost(int $postId): void

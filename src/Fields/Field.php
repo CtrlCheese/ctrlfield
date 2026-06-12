@@ -5,15 +5,21 @@ declare(strict_types=1);
 namespace FieldForge\Fields;
 
 use FieldForge\Builder\FieldGroup;
+use FieldForge\Fields\Types\AccordionEndField;
+use FieldForge\Fields\Types\AccordionField;
+use FieldForge\Fields\Types\ButtonGroupField;
 use FieldForge\Fields\Types\CheckboxField;
+use FieldForge\Fields\Types\CodeField;
 use FieldForge\Fields\Types\ColorField;
 use FieldForge\Fields\Types\DateField;
 use FieldForge\Fields\Types\DateTimeField;
 use FieldForge\Fields\Types\EmailField;
 use FieldForge\Fields\Types\FileField;
 use FieldForge\Fields\Types\GroupField;
+use FieldForge\Fields\Types\IconField;
 use FieldForge\Fields\Types\ImageField;
 use FieldForge\Fields\Types\LinkField;
+use FieldForge\Fields\Types\MessageField;
 use FieldForge\Fields\Types\NumberField;
 use FieldForge\Fields\Types\ComputedField;
 use FieldForge\Fields\Types\OembedField;
@@ -21,11 +27,14 @@ use FieldForge\Fields\Types\RadioField;
 use FieldForge\Fields\Types\RangeField;
 use FieldForge\Fields\Types\RepeaterField;
 use FieldForge\Fields\Types\SelectField;
+use FieldForge\Fields\Types\SeparatorField;
+use FieldForge\Fields\Types\TabField;
 use FieldForge\Fields\Types\TextareaField;
 use FieldForge\Fields\Types\TextField;
 use FieldForge\Fields\Types\TimeField;
 use FieldForge\Fields\Types\TrueFalseField;
 use FieldForge\Fields\Types\UrlField;
+use FieldForge\Fields\Types\UserField;
 use FieldForge\Fields\Types\WysiwygField;
 
 /**
@@ -190,5 +199,103 @@ final class Field
     public static function trueFalse(string $key): TrueFalseField
     {
         return new TrueFalseField($key);
+    }
+
+    // -------------------------------------------------------------------------
+    // C-1: Tab + Accordion
+    // -------------------------------------------------------------------------
+
+    /**
+     * Creates a tab divider. Tabs within the same field group are grouped
+     * automatically by MetaBoxRenderer. The key becomes the tab's identifier.
+     */
+    public static function tab(string $key): TabField
+    {
+        return new TabField($key);
+    }
+
+    /**
+     * Opens an accordion section. Must be paired with accordionEnd().
+     */
+    public static function accordion(string $key): AccordionField
+    {
+        return new AccordionField($key);
+    }
+
+    /**
+     * Closes the nearest open accordion section.
+     */
+    public static function accordionEnd(string $key): AccordionEndField
+    {
+        return new AccordionEndField($key);
+    }
+
+    // -------------------------------------------------------------------------
+    // C-2: Message + Separator
+    // -------------------------------------------------------------------------
+
+    /**
+     * A read-only informational message rendered in the meta box.
+     * Use content() to set the HTML and type() to control the style (info/warning/error/success).
+     */
+    public static function message(string $key): MessageField
+    {
+        return new MessageField($key);
+    }
+
+    /**
+     * A horizontal rule between fields.
+     */
+    public static function separator(string $key): SeparatorField
+    {
+        return new SeparatorField($key);
+    }
+
+    // -------------------------------------------------------------------------
+    // C-3: Button Group
+    // -------------------------------------------------------------------------
+
+    /**
+     * A set of mutually-exclusive toggle buttons (radio group).
+     */
+    public static function buttonGroup(string $key): ButtonGroupField
+    {
+        return new ButtonGroupField($key);
+    }
+
+    // -------------------------------------------------------------------------
+    // C-4: User
+    // -------------------------------------------------------------------------
+
+    /**
+     * Select one or more WordPress users via live search.
+     */
+    public static function user(string $key): UserField
+    {
+        return new UserField($key);
+    }
+
+    // -------------------------------------------------------------------------
+    // C-5: Icon Picker
+    // -------------------------------------------------------------------------
+
+    /**
+     * A Dashicons icon picker with modal search.
+     */
+    public static function icon(string $key): IconField
+    {
+        return new IconField($key);
+    }
+
+    // -------------------------------------------------------------------------
+    // C-6: Code Editor
+    // -------------------------------------------------------------------------
+
+    /**
+     * A CodeMirror-backed code editor field.
+     */
+    public static function code(string $key): CodeField
+    {
+        return new CodeField($key);
     }
 }

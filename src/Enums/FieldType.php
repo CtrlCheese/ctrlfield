@@ -40,4 +40,15 @@ enum FieldType: string
     case COMPUTED         = 'computed';
     // Simple boolean toggle (A-extra)
     case TRUE_FALSE       = 'true_false';
+    // UI-only organiser fields (C-1, C-2)
+    case TAB              = 'tab';
+    case ACCORDION        = 'accordion';
+    case ACCORDION_END    = 'accordion_end';
+    case MESSAGE          = 'message';
+    case SEPARATOR        = 'separator';
+    // Data fields (C-3, C-4, C-5, C-6)
+    case BUTTON_GROUP     = 'button_group';
+    case USER             = 'user';
+    case ICON             = 'icon';
+    case CODE             = 'code';
 }
