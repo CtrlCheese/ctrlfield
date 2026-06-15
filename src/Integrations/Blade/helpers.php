@@ -183,3 +183,54 @@ if (! function_exists('fieldforge_load_components')) {
         \FieldForge\Schema\SchemaLoader::loadComponentsDirectory($componentsDir, $fieldsFile);
     }
 }
+
+// ── Component rendering helpers ───────────────────────────────────────────────
+// Engine-agnostic helpers for rendering flexible-content components from PHP
+// templates. These wrap ComponentRenderer so themes don't need to import it.
+
+if (! function_exists('fieldforge_render_component')) {
+    /**
+     * Renders a flexible-content section array and echoes the result.
+     *
+     * The $section array must contain a '_layout' key that matches a registered
+     * component key.
+     *
+     * Usage (PHP template):
+     *   <?php foreach (fieldforge_get('page_builder') as $section): ?>
+     *       <?php fieldforge_render_component($section); ?>
+     *   <?php endforeach; ?>
+     *
+     * @param array<string, mixed> $section
+     */
+    function fieldforge_render_component(array $section): void
+    {
+        echo \FieldForge\Components\ComponentRenderer::render($section);
+    }
+}
+
+if (! function_exists('fieldforge_render_component_string')) {
+    /**
+     * Renders a flexible-content section array and returns the HTML string.
+     *
+     * @param array<string, mixed> $section
+     */
+    function fieldforge_render_component_string(array $section): string
+    {
+        return \FieldForge\Components\ComponentRenderer::render($section);
+    }
+}
+
+if (! function_exists('fieldforge_render')) {
+    /**
+     * Renders a named component with explicit data and echoes the result.
+     *
+     * Usage (PHP template):
+     *   <?php fieldforge_render('hero', ['headline' => 'Welcome']); ?>
+     *
+     * @param array<string, mixed> $data
+     */
+    function fieldforge_render(string $componentName, array $data = []): void
+    {
+        echo \FieldForge\Components\ComponentRenderer::renderByName($componentName, $data);
+    }
+}

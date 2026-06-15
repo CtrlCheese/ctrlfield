@@ -91,6 +91,28 @@ final class TimberServiceProvider extends ServiceProvider
             },
         ));
 
+        // ff_component(section) — renders a flexible-content section array.
+        // Equivalent to @ffSection in Blade.
+        // Usage: {{ ff_component(section)|raw }}
+        $twig->addFunction(new \Twig\TwigFunction(
+            'ff_component',
+            static function (array $section): string {
+                return \FieldForge\Components\ComponentRenderer::render($section);
+            },
+            ['is_safe' => ['html']],
+        ));
+
+        // ff_render('name', data) — renders a named component with explicit data.
+        // Equivalent to @ffComponent in Blade.
+        // Usage: {{ ff_render('hero', {'headline': 'Welcome'})|raw }}
+        $twig->addFunction(new \Twig\TwigFunction(
+            'ff_render',
+            static function (string $name, array $data = []): string {
+                return \FieldForge\Components\ComponentRenderer::renderByName($name, $data);
+            },
+            ['is_safe' => ['html']],
+        ));
+
         return $twig;
     }
 }

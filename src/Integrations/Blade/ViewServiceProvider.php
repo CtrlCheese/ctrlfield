@@ -36,6 +36,25 @@ class ViewServiceProvider extends ServiceProvider
         $compiler->directive('repeater',   [RepeaterDirective::class, 'compile']);
         $compiler->directive('endrepeater', fn() => RepeaterDirective::compileEnd());
 
+        // @ffSection($section) — renders a flexible-content section array.
+        // Usage: @ffSection($section)
+        $compiler->directive('ffSection', static function (string $expression): string {
+            return "<?php echo \\FieldForge\\Components\\ComponentRenderer::render({$expression}); ?>";
+        });
+
+        // @ffComponent('key', $data) — renders a named component with explicit data.
+        // Usage: @ffComponent('hero', ['headline' => 'Welcome'])
+        $compiler->directive('ffComponent', static function (string $expression): string {
+            // expression arrives without the outer parens, e.g.: 'hero', ['key' => 'val']
+            // Split on the first comma to separate name from data argument.
+            [$name, $data] = array_pad(
+                array_map('trim', explode(',', $expression, 2)),
+                2,
+                '[]',
+            );
+            return "<?php echo \\FieldForge\\Components\\ComponentRenderer::renderByName({$name}, {$data}); ?>";
+        });
+
         self::$compiler = $compiler;
 
         if (function_exists('do_action')) {
