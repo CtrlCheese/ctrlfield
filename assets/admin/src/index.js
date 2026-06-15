@@ -279,6 +279,132 @@ document.addEventListener('alpine:init', () => {
             }
             this.userResults[fieldKey] = [];
         },
+
+        // -------------------------------------------------------------------
+        // FlexibleContent (Pro) — state managed here in the parent component
+        // so all directives in the renderer HTML share the same scope.
+        // -------------------------------------------------------------------
+
+        /** { 'fieldKey__idx': bool } — true = expanded */
+        flexExpandedRows: {},
+        /** { 'fieldKey': bool } — picker modal visibility */
+        flexPickerOpen:   {},
+        /** { 'fieldKey': string } — live search query */
+        flexPickerSearch:   {},
+        /** { 'fieldKey': string } — active category tab */
+        flexPickerCategory: {},
+
+        toggleFlexRow(key, idx) {
+            const k = `${key}__${idx}`;
+            this.flexExpandedRows[k] = !(this.flexExpandedRows[k] ?? true);
+        },
+        isFlexRowExpanded(key, idx) {
+            return this.flexExpandedRows[`${key}__${idx}`] ?? true;
+        },
+        expandAllFlexRows(key) {
+            (this.adminState[key] ?? []).forEach((_, i) => {
+                this.flexExpandedRows[`${key}__${i}`] = true;
+            });
+        },
+        collapseAllFlexRows(key) {
+            (this.adminState[key] ?? []).forEach((_, i) => {
+                this.flexExpandedRows[`${key}__${i}`] = false;
+            });
+        },
+
+        openFlexPicker(key) {
+            this.flexPickerOpen[key]    = true;
+            this.flexPickerSearch[key]  = '';
+            this.$nextTick(() => {
+                document.querySelector(`[data-ff-picker="${key}"] .ff-picker-search`)?.focus();
+            });
+        },
+        closeFlexPicker(key) {
+            this.flexPickerOpen[key]   = false;
+            this.flexPickerSearch[key] = '';
+        },
+        isFlexPickerOpen(key) {
+            return !!this.flexPickerOpen[key];
+        },
+
+        setFlexPickerSearch(key, val) {
+            this.flexPickerSearch[key] = val;
+        },
+        getFlexPickerSearch(key) {
+            return this.flexPickerSearch[key] ?? '';
+        },
+        setFlexPickerCategory(key, cat) {
+            this.flexPickerCategory[key] = cat;
+        },
+        getFlexPickerCategory(key) {
+            return this.flexPickerCategory[key] ?? 'all';
+        },
+
+        getFlexPickerCategories(layouts) {
+            const cats = [...new Set(
+                layouts.map(l => l.category).filter(c => c && c !== 'general')
+            )];
+            return cats.sort();
+        },
+        getFlexPickerFiltered(key, layouts) {
+            const search = (this.flexPickerSearch[key] ?? '').toLowerCase();
+            const cat    = this.flexPickerCategory[key] ?? 'all';
+            return layouts.filter(l => {
+                const matchSearch = !search
+                    || l.label.toLowerCase().includes(search)
+                    || (l.description || '').toLowerCase().includes(search);
+                const matchCat = cat === 'all' || l.category === cat;
+                return matchSearch && matchCat;
+            });
+        },
+
+        addFlexLayout(key, layoutKey) {
+            if (!Array.isArray(this.adminState[key])) {
+                this.adminState[key] = [];
+            }
+            const newIdx = this.adminState[key].length;
+            this.adminState[key].push({ _layout: layoutKey });
+            this.flexExpandedRows[`${key}__${newIdx}`] = true;
+            this.closeFlexPicker(key);
+        },
+        removeFlexRow(key, idx) {
+            if (!window.confirm('Remove this section?')) return;
+            this.adminState[key].splice(idx, 1);
+            // Re-index expanded state
+            const rebuilt = {};
+            (this.adminState[key] ?? []).forEach((_, i) => {
+                const srcKey = i >= idx ? `${key}__${i + 1}` : `${key}__${i}`;
+                rebuilt[`${key}__${i}`] = this.flexExpandedRows[srcKey] ?? true;
+            });
+            Object.keys(this.flexExpandedRows)
+                .filter(k => k.startsWith(`${key}__`))
+                .forEach(k => delete this.flexExpandedRows[k]);
+            Object.assign(this.flexExpandedRows, rebuilt);
+        },
+        moveFlexRowUp(key, idx) {
+            if (idx <= 0) return;
+            const arr = this.adminState[key];
+            [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+            [
+                this.flexExpandedRows[`${key}__${idx - 1}`],
+                this.flexExpandedRows[`${key}__${idx}`],
+            ] = [
+                this.flexExpandedRows[`${key}__${idx}`],
+                this.flexExpandedRows[`${key}__${idx - 1}`],
+            ];
+        },
+        moveFlexRowDown(key, idx) {
+            const arr = this.adminState[key];
+            if (idx >= arr.length - 1) return;
+            [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+            [
+                this.flexExpandedRows[`${key}__${idx}`],
+                this.flexExpandedRows[`${key}__${idx + 1}`],
+            ] = [
+                this.flexExpandedRows[`${key}__${idx + 1}`],
+                this.flexExpandedRows[`${key}__${idx}`],
+            ];
+        },
     }));
 });
 
