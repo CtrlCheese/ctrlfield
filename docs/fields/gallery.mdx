@@ -1,0 +1,69 @@
+# Gallery
+
+*(FieldForge Pro)*
+
+A multi-image picker with drag-to-reorder. Stores an array of attachment IDs.
+
+---
+
+## PHP API
+
+```php
+Field::gallery(string $key): GalleryField   // Pro
+```
+
+### Type-specific methods
+
+```php
+->returnFormat(string $format): static
+```
+
+| Format | Returns |
+|---|---|
+| `'id'` (default) | `int[]` — array of attachment IDs |
+| `'url'` | `string[]` — array of image URLs |
+| `'array'` | `array[]` — array of `['id', 'url', 'width', 'height', 'alt']` |
+
+```php
+->minImages(int $n): static
+->maxImages(int $n): static
+```
+
+---
+
+## Storage
+
+```json
+{ "screenshots": [12, 34, 56] }
+```
+
+---
+
+## Example
+
+```php
+Field::gallery('screenshots')
+    ->label('Screenshots')
+    ->returnFormat('array')
+    ->minImages(1)
+    ->maxImages(8),
+```
+
+---
+
+## Template usage
+
+```blade
+@foreach(fieldforge_get('screenshots') as $img)
+    <img src="{{ $img['url'] }}" alt="{{ $img['alt'] }}"
+         width="{{ $img['width'] }}" height="{{ $img['height'] }}">
+@endforeach
+```
+
+With `returnFormat('url')`:
+
+```blade
+@foreach(fieldforge_get('screenshots') as $url)
+    <img src="{{ $url }}" alt="Screenshot">
+@endforeach
+```

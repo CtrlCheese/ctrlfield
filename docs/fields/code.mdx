@@ -1,0 +1,70 @@
+# Code
+
+A CodeMirror-backed code editor with syntax highlighting.
+
+---
+
+## PHP API
+
+```php
+Field::code(string $key): CodeField
+```
+
+### Type-specific methods
+
+```php
+->language(string $lang): static
+```
+Programming language for syntax highlighting. Default: `'text'`. Common values: `'php'`, `'javascript'`, `'css'`, `'html'`, `'json'`, `'bash'`.
+
+```php
+->rows(int $rows): static
+```
+Editor height in lines. Default: `10`.
+
+```php
+->wrapLines(bool $wrap = true): static
+```
+Wrap long lines. Default: `false`.
+
+---
+
+## Storage
+
+Stored as a string. Sanitized with `wp_kses_post()` (strips `<script>` and unsafe tags while preserving code characters like `<`, `>`, `&`).
+
+---
+
+## Example
+
+```php
+Field::code('custom_css')
+    ->label('Custom CSS')
+    ->language('css')
+    ->rows(15),
+
+Field::code('template_snippet')
+    ->label('PHP Snippet')
+    ->language('php')
+    ->wrapLines(),
+```
+
+---
+
+## Template usage
+
+To display code in a `<pre>` block:
+
+```blade
+<pre><code class="language-{{ 'php' }}">{{ fieldforge_get('template_snippet') }}</code></pre>
+```
+
+To execute PHP stored in the field (use with extreme caution):
+
+```php
+// Only do this if code comes from a trusted admin — never from public input
+$code = fieldforge_get('custom_script');
+if ($code) {
+    eval($code);
+}
+```

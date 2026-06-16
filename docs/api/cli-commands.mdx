@@ -1,0 +1,136 @@
+# WP-CLI Commands
+
+FieldForge extends WP-CLI with commands for schema management, data migration, and inspection.
+
+All commands require WP-CLI 2.x and FieldForge Core active.
+
+---
+
+## `wp fieldforge migrate`
+
+Migrates existing post meta to the current schema version. Run this after adding fields to a group.
+
+```bash
+wp fieldforge migrate --post-type=portfolio
+wp fieldforge migrate --post-type=portfolio --dry-run
+wp fieldforge migrate --post-type=portfolio --batch=50
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--post-type` | required | Post type to migrate |
+| `--dry-run` | false | Show what would change without writing |
+| `--batch` | 100 | Posts per batch (reduces memory usage) |
+
+---
+
+## `wp fieldforge export`
+
+Exports field values for all posts of a post type to a CSV file.
+
+```bash
+wp fieldforge export --post-type=portfolio > portfolio.csv
+wp fieldforge export --post-type=portfolio --file=exports/portfolio.csv
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--post-type` | required | Post type to export |
+| `--file` | stdout | Output file path |
+| `--include-drafts` | false | Include draft posts |
+
+**Output format:** CSV with a header row. Complex fields (group, repeater) are JSON-encoded in their column.
+
+---
+
+## `wp fieldforge import`
+
+Imports field values from a CSV file.
+
+```bash
+wp fieldforge import portfolio.csv --post-type=portfolio
+wp fieldforge import portfolio.csv --post-type=portfolio --update-existing
+wp fieldforge import portfolio.csv --post-type=portfolio --create-missing --dry-run
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--post-type` | required | Post type context |
+| `--update-existing` | false | Update posts with a matching `post_id` |
+| `--create-missing` | false | Create new posts for rows with `post_id=0` |
+| `--dry-run` | false | Report stats without writing |
+
+---
+
+## `wp fieldforge validate`
+
+Validates all registered schemas for duplicate keys, invalid conditions, and missing required options.
+
+```bash
+wp fieldforge validate
+wp fieldforge validate --post-type=portfolio
+```
+
+---
+
+## `wp fieldforge scaffold`
+
+Generates a PHP schema file stub for a new field group.
+
+```bash
+wp fieldforge scaffold my_group --post-type=portfolio --output=fieldforge/my-group.php
+```
+
+Generates:
+
+```php
+<?php
+
+use FieldForge\Fields\Field;
+
+Field::group('my_group')
+    ->title('My Group')
+    ->where('post_type', '==', 'portfolio')
+    ->fields([
+        // add your fields here
+    ])
+    ->register();
+```
+
+---
+
+## `wp fieldforge export-schema` (Pro)
+
+Exports a registered field group definition as a portable JSON schema.
+
+```bash
+wp fieldforge export-schema portfolio_details
+wp fieldforge export-schema portfolio_details > schema.json
+```
+
+---
+
+## `wp fieldforge import-schema` (Pro)
+
+Generates a PHP field group registration file from a JSON schema.
+
+```bash
+wp fieldforge import-schema schema.json
+wp fieldforge import-schema schema.json --write=fieldforge/portfolio.php
+wp fieldforge import-schema schema.json --write=fieldforge/portfolio.php --force
+```
+
+| Flag | Description |
+|---|---|
+| `--write=<path>` | Write the generated PHP to a file instead of stdout |
+| `--force` | Overwrite the output file if it already exists |
+
+---
+
+## `wp fieldforge generate-schema` (Pro)
+
+Introspects an existing database and generates a schema file from the stored field structure. Useful for migrating from ACF or Carbon Fields.
+
+```bash
+wp fieldforge generate-schema --post-type=portfolio --output=fieldforge/portfolio.php
+```

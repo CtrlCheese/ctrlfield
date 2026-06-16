@@ -1,0 +1,50 @@
+# Accordion
+
+A UI-only collapsible section that groups related fields. Must be paired with an implicit end marker (the next Tab or end of group).
+
+---
+
+## PHP API
+
+```php
+Field::accordion(string $key): AccordionField
+```
+
+### Type-specific methods
+
+```php
+->open(bool $open = true): static
+```
+Whether the accordion starts expanded. Default: `true`.
+
+---
+
+## Storage
+
+UI-only — never stored.
+
+---
+
+## Example
+
+```php
+Field::accordion('advanced_options')
+    ->label('Advanced Options')
+    ->open(false), // collapsed by default
+
+    Field::select('cache_strategy')
+        ->label('Cache Strategy')
+        ->options(['none' => 'None', 'aggressive' => 'Aggressive']),
+
+    Field::trueFalse('lazy_load')
+        ->label('Lazy Load Images'),
+
+// Next Tab or end of fields closes the accordion
+```
+
+---
+
+## Notes
+
+- Fields placed after `accordion()` and before the next `tab()` (or end of fields) are inside the accordion.
+- The accordion is collapsed/expanded client-side with Alpine.js — no page reload.

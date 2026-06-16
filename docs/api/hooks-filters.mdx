@@ -1,0 +1,137 @@
+# Hooks & Filters
+
+All FieldForge action and filter hooks, in the order they fire.
+
+---
+
+## Pipeline hooks
+
+### `fieldforge/before_save`
+
+Fires before the save pipeline processes a post's fields.
+
+```php
+add_action('fieldforge/before_save', function (int $postId, array $rawPost): void {
+    // $rawPost is the raw $_POST data
+}, 10, 2);
+```
+
+### `fieldforge/after_save`
+
+Fires after all fields have been persisted.
+
+```php
+add_action('fieldforge/after_save', function (int $postId, array $fields): void {
+    // $fields is the sanitized+persisted field map
+}, 10, 2);
+```
+
+### `fieldforge/pipeline/input_fields`
+
+Filter the incoming field payload before the pipeline validates and sanitizes it. Use to enforce field-level permissions or strip fields programmatically.
+
+```php
+add_filter('fieldforge/pipeline/input_fields', function (array $fields, int $postId): array {
+    unset($fields['internal_notes']); // always strip this key
+    return $fields;
+}, 10, 2);
+```
+
+---
+
+## Component hooks
+
+### `fieldforge/component_registered`
+
+Fires once per component after `ComponentRegistry::discover()` registers it.
+
+```php
+add_action('fieldforge/component_registered', function (
+    string $key,
+    \FieldForge\Components\ComponentDefinition $def,
+): void {
+    // log or extend component metadata
+}, 10, 2);
+```
+
+### `fieldforge/components_loaded`
+
+Fires once after all components have been discovered.
+
+```php
+add_action('fieldforge/components_loaded', function (): void {
+    // safe to query ComponentRegistry::all() here
+});
+```
+
+---
+
+## Component render filters
+
+### `fieldforge/component_data/{key}`
+
+Filters the section data array before rendering a specific component. `{key}` is the component's layout key.
+
+```php
+add_filter('fieldforge/component_data/hero', function (array $data): array {
+    $data['computed_cta'] = get_option('site_cta_fallback');
+    return $data;
+});
+```
+
+### `fieldforge/component_data`
+
+Same as above but fires for every component. Receives the data and key.
+
+```php
+add_filter('fieldforge/component_data', function (array $data, string $key): array {
+    return $data;
+}, 10, 2);
+```
+
+### `fieldforge/component_render/{key}`
+
+Filters the rendered HTML of a specific component after rendering.
+
+```php
+add_filter('fieldforge/component_render/cta', function (string $html, array $data): string {
+    return '<div class="section-wrapper">' . $html . '</div>';
+}, 10, 2);
+```
+
+---
+
+## FlexibleContent filter
+
+### `fieldforge/flexible_content/layouts`
+
+Filters the resolved layout list before a FlexibleContent field registers itself.
+
+```php
+add_filter('fieldforge/flexible_content/layouts', function (
+    array $layouts,
+    string $fieldKey,
+): array {
+    // Remove a layout for non-admin users
+    if (! current_user_can('manage_options')) {
+        unset($layouts['advanced_grid']);
+    }
+    return $layouts;
+}, 10, 2);
+```
+
+---
+
+## Blade hooks
+
+### `fieldforge/blade_ready`
+
+Fires when the Blade compiler is ready. Use to register custom Blade directives.
+
+```php
+add_action('fieldforge/blade_ready', function (\Illuminate\View\Compilers\BladeCompiler $compiler): void {
+    $compiler->directive('uppercase', function (string $expr): string {
+        return "<?php echo strtoupper($expr); ?>";
+    });
+});
+```

@@ -1,0 +1,60 @@
+# Link
+
+A URL + title + target link picker. Stored as a structured array.
+
+---
+
+## PHP API
+
+```php
+Field::link(string $key): LinkField
+```
+
+### Type-specific methods
+
+```php
+->showTarget(bool $show = true): static
+```
+Show the "Open in new tab" checkbox. Default: `true`.
+
+---
+
+## Storage
+
+```json
+{
+  "cta": {
+    "url":    "https://example.com",
+    "title":  "Learn More",
+    "target": "_blank"
+  }
+}
+```
+
+`target` is `'_blank'` or `''`.
+
+---
+
+## Example
+
+```php
+Field::link('cta_button')
+    ->label('CTA Button')
+    ->showTarget(true),
+```
+
+---
+
+## Template usage
+
+```blade
+@php $link = fieldforge_get('cta_button') @endphp
+
+@if(!empty($link['url']))
+    <a href="{{ $link['url'] }}"
+       target="{{ $link['target'] ?? '' }}"
+       rel="{{ $link['target'] === '_blank' ? 'noopener noreferrer' : '' }}">
+        {{ $link['title'] ?? 'Learn More' }}
+    </a>
+@endif
+```

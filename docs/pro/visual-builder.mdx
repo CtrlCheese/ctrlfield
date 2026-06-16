@@ -1,0 +1,57 @@
+# Visual Builder
+
+*(FieldForge Pro)*
+
+A drag-and-drop interface in the WP admin that generates PHP schema files from a visual form. Designed for developers who prefer a GUI for initial schema setup.
+
+---
+
+## Access
+
+**WP Admin → FieldForge → Visual Builder**
+
+---
+
+## Workflow
+
+1. Click **New Group**
+2. Set the group title, post type condition, and other settings
+3. Drag field types from the palette into the canvas
+4. Configure each field (label, options, conditions)
+5. Click **Export PHP** — copies the generated code to your clipboard
+6. Paste into a schema file in your theme
+
+---
+
+## What it generates
+
+The builder outputs standard FieldForge PHP — no proprietary format, no lock-in:
+
+```php
+Field::group('portfolio_details')
+    ->title('Portfolio Details')
+    ->where('post_type', '==', 'portfolio')
+    ->fields([
+        Field::text('client_name')
+            ->label('Client Name')
+            ->required()
+            ->setIndex(true),
+        Field::select('project_type')
+            ->label('Project Type')
+            ->options([
+                'web'   => 'Web',
+                'brand' => 'Brand',
+            ]),
+    ])
+    ->register();
+```
+
+You own the generated code. The visual builder is a code generator, not a runtime dependency.
+
+---
+
+## Notes
+
+- The Visual Builder does not save schema to the database — it only generates PHP code.
+- Schema changes require you to copy the generated code to a file and reload it with `fieldforge_load_schemas()`.
+- The builder supports all Core field types. Pro field types (Gallery, Map, Relationship, etc.) are available in the Pro palette.

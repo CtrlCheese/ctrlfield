@@ -1,0 +1,108 @@
+# Field Presets
+
+`FieldPresets` is a registry for reusable field snippets. Register a factory once; call it anywhere in your schema files.
+
+---
+
+## Register a preset
+
+```php
+use FieldForge\Fields\Field;
+use FieldForge\Fields\FieldPresets;
+
+// In functions.php or a shared config file — BEFORE schema files are loaded
+add_action('init', function () {
+    FieldPresets::register('theme', fn () =>
+        Field::select('theme')
+            ->label('Theme')
+            ->options(['light' => 'Light', 'dark' => 'Dark'])
+            ->default('light')
+    );
+
+    FieldPresets::register('spacing', fn () =>
+        Field::select('spacing')
+            ->label('Spacing')
+            ->options(['none' => 'None', 'sm' => 'Small', 'lg' => 'Large'])
+    );
+}, 1); // Priority 1 — before schema load at priority 5
+```
+
+---
+
+## Use a preset
+
+```php
+// Via magic static (recommended)
+Field::group('hero_section')
+    ->where('post_type', '==', 'page')
+    ->fields([
+        Field::text('headline')->label('Headline'),
+        FieldPresets::theme(),    // returns a fresh SelectField each time
+        FieldPresets::spacing(),
+    ])
+    ->register();
+```
+
+```php
+// Via explicit get()
+$themeField = FieldPresets::get('theme');
+```
+
+Every call returns a **new independent instance** of the field. Mutating one instance (e.g., calling `->label('Override')`) does not affect other uses.
+
+---
+
+## API reference
+
+```php
+FieldPresets::register(string $name, \Closure $factory): void
+```
+Registers a named factory. The closure receives no arguments and must return a `FieldDefinition`.
+
+```php
+FieldPresets::get(string $name): FieldDefinition
+```
+Returns a new instance. Throws `PresetNotFoundException` if `$name` is not registered.
+
+```php
+FieldPresets::has(string $name): bool
+```
+Returns `true` if the preset is registered.
+
+```php
+FieldPresets::keys(): string[]
+```
+Returns the names of all registered presets.
+
+```php
+FieldPresets::reset(): void
+```
+Clears all presets. Intended for use in tests only.
+
+---
+
+## Example: theme options preset library
+
+```php
+// Theme preset library — register once, use in every component
+FieldPresets::register('theme', fn () =>
+    Field::select('theme')->options(['light' => 'Light', 'dark' => 'Dark'])->default('light')
+);
+
+FieldPresets::register('heading_level', fn () =>
+    Field::select('heading_level')->options(['h1' => 'H1', 'h2' => 'H2', 'h3' => 'H3'])->default('h2')
+);
+
+FieldPresets::register('text_align', fn () =>
+    Field::select('text_align')->options(['left' => 'Left', 'center' => 'Center', 'right' => 'Right'])
+);
+
+// In any component's fields.php
+return FlexLayout::make('hero')
+    ->fields([
+        Field::text('headline'),
+        FieldPresets::heading_level(),
+        FieldPresets::text_align(),
+        FieldPresets::theme(),
+    ]);
+```

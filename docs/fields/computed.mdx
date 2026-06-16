@@ -1,0 +1,74 @@
+# Computed
+
+A read-only field whose value is derived from other fields at save time.
+
+---
+
+## PHP API
+
+```php
+Field::computed(string $key, \Closure $callback): ComputedField
+```
+
+The `$callback` receives the full sanitized field map and must return the computed value.
+
+```php
+->setIndex(bool $index = true): static
+```
+Write the computed value to a separate index meta row (for `WP_Query` searches).
+
+---
+
+## Storage
+
+Computed values are written to the same JSON blob as regular fields, after the sanitization stage.
+
+```json
+{ "price": 100, "tax_rate": 20, "total_price": 120 }
+```
+
+If `->setIndex(true)` is set, the value is also written to `_fieldforge_idx_total_price`.
+
+---
+
+## Example
+
+```php
+Field::number('price')->label('Price (€)'),
+Field::number('tax_rate')->label('Tax Rate (%)'),
+
+Field::computed('total_price', function (array $fields): float {
+    return ($fields['price'] ?? 0) * (1 + ($fields['tax_rate'] ?? 0) / 100);
+})->setIndex(true),
+```
+
+**Full name from parts:**
+
+```php
+Field::text('first_name')->label('First Name'),
+Field::text('last_name')->label('Last Name'),
+
+Field::computed('full_name', function (array $fields): string {
+    return trim(($fields['first_name'] ?? '') . ' ' . ($fields['last_name'] ?? ''));
+})->setIndex(true),
+```
+
+---
+
+## Template usage
+
+Computed fields are read exactly like regular fields:
+
+```blade
+{{ fieldforge_get('total_price') }}    {{-- 120 --}}
+{{ fieldforge_get('full_name') }}      {{-- "Alice Smith" --}}
+```
+
+---
+
+## Notes
+
+- The callback fires after `SanitizationStage`, so `$fields` contains clean, coerced values.
+- Computed fields are never shown in the admin UI (they have no input).
+- If the callback throws, the pipeline raises a `PipelineException` and the save is aborted.
+- The callback is not called at read time — only on save. The stored value is returned as-is.

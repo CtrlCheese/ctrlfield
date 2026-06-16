@@ -1,0 +1,59 @@
+# Button Group
+
+A set of buttons where clicking one selects it. Functionally equivalent to a Radio field but with a visual button UI.
+
+---
+
+## PHP API
+
+```php
+Field::buttonGroup(string $key): ButtonGroupField
+```
+
+### Type-specific methods
+
+```php
+->options(array $options): static
+```
+Associative `value => label` array.
+
+```php
+->allowNull(bool $allow = true): static
+```
+Allow deselecting the current value. Default: `false`.
+
+---
+
+## Storage
+
+Stored as a string (the selected value).
+
+```json
+{ "layout_size": "md" }
+```
+
+---
+
+## Example
+
+```php
+Field::buttonGroup('layout_size')
+    ->label('Size')
+    ->options(['sm' => 'S', 'md' => 'M', 'lg' => 'L', 'xl' => 'XL'])
+    ->default('md'),
+
+Field::buttonGroup('text_align')
+    ->label('Text Alignment')
+    ->options(['left' => 'Left', 'center' => 'Center', 'right' => 'Right'])
+    ->allowNull(),
+```
+
+---
+
+## Template usage
+
+```blade
+<div class="size-{{ fieldforge_get('layout_size') }}">
+    ...
+</div>
+```

@@ -1,0 +1,53 @@
+# Tab
+
+A UI-only divider that groups fields into labelled tabs within a meta box.
+
+---
+
+## PHP API
+
+```php
+Field::tab(string $key): TabField
+```
+
+No type-specific methods. The `key` is used as the tab identifier; the `label` is the tab title.
+
+---
+
+## Storage
+
+UI-only — never stored. Tab fields are stripped from the save pipeline payload.
+
+---
+
+## Example
+
+```php
+Field::group('portfolio_details')
+    ->where('post_type', '==', 'portfolio')
+    ->fields([
+
+        Field::tab('main')->label('Main'),
+            Field::text('client_name')->label('Client'),
+            Field::date('launch_date')->label('Launch Date'),
+
+        Field::tab('media')->label('Media'),
+            Field::image('hero_image')->label('Hero Image'),
+            Field::gallery('screenshots')->label('Screenshots'),
+
+        Field::tab('seo')->label('SEO'),
+            Field::text('meta_title')->label('Meta Title'),
+            Field::textarea('meta_description')->label('Meta Description'),
+
+    ])
+    ->register();
+```
+
+Fields between two `tab()` calls belong to the first tab. Fields after the last tab call belong to that tab.
+
+---
+
+## Notes
+
+- Tab fields are purely visual — they have no value and are not included in REST API responses.
+- A Tab must have a `->label()` for the tab title to be readable.

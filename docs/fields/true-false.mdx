@@ -1,0 +1,70 @@
+# True / False
+
+A toggle switch. Stores `1` (true) or `0` (false).
+
+---
+
+## PHP API
+
+```php
+Field::trueFalse(string $key): TrueFalseField
+```
+
+### Type-specific methods
+
+```php
+->trueLabel(string $label): static
+```
+Label displayed for the "on" state. Default: `'Yes'`.
+
+```php
+->falseLabel(string $label): static
+```
+Label displayed for the "off" state. Default: `'No'`.
+
+```php
+->message(string $text): static
+```
+Optional descriptive text rendered next to the toggle.
+
+---
+
+## Storage
+
+Stored as `1` or `0` (integer).
+
+```json
+{ "is_featured": 1 }
+```
+
+---
+
+## Example
+
+```php
+Field::trueFalse('is_featured')
+    ->label('Featured')
+    ->trueLabel('Yes, feature this')
+    ->falseLabel('No')
+    ->message('Featured posts appear on the homepage.'),
+
+Field::trueFalse('maintenance_mode')
+    ->label('Maintenance Mode')
+    ->message('Enable to show a maintenance page to visitors.'),
+```
+
+---
+
+## Template usage
+
+```blade
+@if(fieldforge_get('is_featured'))
+    <span class="badge">Featured</span>
+@endif
+```
+
+```php
+if (fieldforge_get('is_featured')) {
+    // show featured badge
+}
+```

@@ -1,0 +1,132 @@
+# REST API
+
+FieldForge registers REST endpoints for reading and writing field data. Fields must have `->showInRest(true)` to appear in REST responses.
+
+**Namespace:** `fieldforge/v1`
+
+---
+
+## Post fields
+
+### `GET /wp-json/fieldforge/v1/post/{id}`
+
+Returns field values for a post.
+
+**Authentication:** Requires a valid WP authentication method (cookie + nonce, application password, or JWT).
+
+**Response:**
+
+```json
+{
+    "post_id": 42,
+    "fields": {
+        "client_name": "Acme Corp",
+        "project_type": "web",
+        "launch_date": "2026-06-01",
+        "hero_image": 155
+    }
+}
+```
+
+### `PUT /wp-json/fieldforge/v1/post/{id}`
+
+Updates field values for a post. The request body is a JSON object of field key → value pairs.
+
+**Request:**
+
+```json
+{
+    "client_name": "New Client",
+    "project_type": "brand"
+}
+```
+
+**Response:** Same as GET, reflecting the updated values.
+
+---
+
+## User meta
+
+### `GET /wp-json/fieldforge/v1/user/{id}`
+### `PUT /wp-json/fieldforge/v1/user/{id}`
+
+Same structure as post endpoints. Requires `edit_user` capability for other users.
+
+---
+
+## Term meta
+
+### `GET /wp-json/fieldforge/v1/term/{id}`
+### `PUT /wp-json/fieldforge/v1/term/{id}`
+
+Requires the taxonomy-specific `edit_terms` capability.
+
+---
+
+## Search endpoints
+
+### `GET /wp-json/fieldforge/v1/search/posts`
+
+AJAX post search used by the Post Object and Relationship fields.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `search` | string | Search term |
+| `post_type` | string | Post type to search (must be a registered public type) |
+| `per_page` | int | Max results (1–100, default 20) |
+
+### `GET /wp-json/fieldforge/v1/search/terms`
+
+AJAX term search used by the Taxonomy Term field.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `search` | string | Search term |
+| `taxonomy` | string | Taxonomy slug |
+| `per_page` | int | Max results (default 20) |
+
+### `GET /wp-json/fieldforge/v1/search/users`
+
+AJAX user search used by the User field.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `search` | string | Search term |
+| `roles` | string | Comma-separated role slugs to filter |
+| `per_page` | int | Max results (default 20) |
+
+---
+
+## Expose a field via REST
+
+```php
+Field::text('client_name')
+    ->label('Client Name')
+    ->showInRest(true),  // ← this makes it appear in /v1/post/{id}
+```
+
+Fields without `showInRest(true)` are never included in REST responses, regardless of authentication.
+
+---
+
+## Authentication examples
+
+**Using an Application Password:**
+
+```bash
+curl -X GET \
+  https://example.com/wp-json/fieldforge/v1/post/42 \
+  -u "username:application-password"
+```
+
+**Using cookie auth + nonce (JavaScript):**
+
+```js
+const response = await fetch('/wp-json/fieldforge/v1/post/42', {
+    headers: {
+        'X-WP-Nonce': wpApiSettings.nonce,
+    },
+});
+const data = await response.json();
+console.log(data.fields.client_name);
+```

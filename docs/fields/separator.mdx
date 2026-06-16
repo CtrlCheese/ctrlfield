@@ -1,0 +1,39 @@
+# Separator
+
+A UI-only horizontal rule that visually divides fields within a meta box.
+
+---
+
+## PHP API
+
+```php
+Field::separator(string $key): SeparatorField
+```
+
+No type-specific methods.
+
+---
+
+## Storage
+
+UI-only — never stored.
+
+---
+
+## Example
+
+```php
+Field::text('client_name')->label('Client Name'),
+Field::date('launch_date')->label('Launch Date'),
+
+Field::separator('divider_1'),
+
+Field::image('hero_image')->label('Hero Image'),
+Field::wysiwyg('description')->label('Description'),
+```
+
+---
+
+## Notes
+
+The `key` must be unique within the group but has no functional purpose.

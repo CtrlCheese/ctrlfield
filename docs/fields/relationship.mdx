@@ -1,0 +1,55 @@
+# Relationship
+
+*(FieldForge Pro)*
+
+A multi-select post picker that stores an ordered array of post IDs. Supports drag-to-reorder.
+
+---
+
+## PHP API
+
+```php
+Field::relationship(string $key): RelationshipField  // Pro
+```
+
+### Type-specific methods
+
+```php
+->postType(string|array $types): static
+->minPosts(int $n): static
+->maxPosts(int $n): static
+->returnFormat(string $format): static  // 'id' or 'object'
+```
+
+---
+
+## Storage
+
+```json
+{ "team_members": [3, 7, 12] }
+```
+
+---
+
+## Example
+
+```php
+Field::relationship('team_members')
+    ->label('Team Members')
+    ->postType('team-member')
+    ->minPosts(1)
+    ->maxPosts(6)
+    ->returnFormat('object'),
+```
+
+---
+
+## Template usage
+
+```blade
+@foreach(fieldforge_get('team_members') as $member)
+    <div>
+        <a href="{{ get_permalink($member->ID) }}">{{ $member->post_title }}</a>
+    </div>
+@endforeach
+```

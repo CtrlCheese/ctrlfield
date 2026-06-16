@@ -1,0 +1,93 @@
+# Auto-Discover
+
+Auto-discover is the mechanism by which `FlexibleContentField` automatically populates its layouts from all components registered in `ComponentRegistry`.
+
+---
+
+## How it works
+
+```
+ComponentRegistry::discover('/components/')
+        ↓
+Registers hero, cta, features, ... as ComponentDefinition objects
+
+FlexibleContentField::autoDiscover()
+        ↓
+Reads ComponentRegistry::all() at registration time
+Loads each component's fields.php to get its FlexLayout
+Merges with any manually provided layouts
+```
+
+---
+
+## Enabling auto-discover
+
+```php
+$flex = (new \FieldForgePro\Fields\FlexibleContentField('page_builder'))
+    ->autoDiscover()    // ← enables
+    ->buttonLabel('Add Section');
+```
+
+Optionally filter the discovered layouts:
+
+```php
+->autoDiscover(function (array $layouts): array {
+    // Remove any layout in the 'legacy' category
+    return array_filter($layouts, fn ($l) => $l->getCategory() !== 'legacy');
+})
+```
+
+The filter callback receives and must return `FlexLayout[]`.
+
+---
+
+## Order of resolution
+
+1. `ComponentRegistry::all()` returns components in discovery order
+2. Each component's `fields.php` is loaded to get its `FlexLayout`
+3. Components that throw during `fields.php` load are silently skipped
+4. Manually added layouts (via `->layouts([...])`) are merged, with manual layouts **winning** on key collision
+
+---
+
+## Typical setup
+
+```php
+// functions.php
+
+add_action('init', function () {
+    // 1. Register field presets
+    fieldforge_load_schemas(get_template_directory() . '/fieldforge/presets.php');
+
+    // 2. Discover components
+    \FieldForge\Components\ComponentRegistry::discover(
+        get_template_directory() . '/components/'
+    );
+
+    // 3. Register page builder field group (reads ComponentRegistry)
+    fieldforge_load_schemas(get_template_directory() . '/fieldforge/page-builder.php');
+}, 5);
+```
+
+```php
+// fieldforge/page-builder.php
+use FieldForgePro\Fields\FlexibleContentField;
+use FieldForge\Builder\FieldGroup;
+
+$flex = (new FlexibleContentField('page_builder'))
+    ->label('Page Sections')
+    ->buttonLabel('Add Section')
+    ->autoDiscover();
+
+FieldGroup::make('page_content')
+    ->where('post_type', '==', 'page')
+    ->fields([$flex])
+    ->register();
+```
+
+---
+
+## Notes
+
+- `autoDiscover()` reads the registry at the time `register()` is called. Components discovered after that point are not included.
+- Priority 5 for the `init` hook ensures schemas load before the default priority 10.

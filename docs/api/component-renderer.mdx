@@ -1,0 +1,117 @@
+# ComponentRenderer
+
+`ComponentRenderer` resolves and renders a component template. It is the engine behind `@ffSection`, `ff_component()`, and `fieldforge_render_component()`.
+
+---
+
+## How templates are resolved
+
+For each component, FieldForge looks for a template in this priority order:
+
+| Priority | File | Engine |
+|---|---|---|
+| 1 | `index.blade.php` | Blade (via ViewServiceProvider) |
+| 2 | `index.twig` | Twig (via Timber) |
+| 3 | `index.php` | Plain PHP with `extract()` |
+
+The template path is resolved once at `ComponentRegistry::discover()` time and cached in `ComponentDefinition::$templatePath`.
+
+---
+
+## Data filter pipeline
+
+Before the template receives data, two filters are applied:
+
+```
+$data → fieldforge/component_data/{key} → fieldforge/component_data → template
+```
+
+After rendering, one filter is applied:
+
+```
+$html → fieldforge/component_render/{key} → caller
+```
+
+---
+
+## Static API
+
+```php
+ComponentRenderer::render(array $section): string
+```
+Renders a flexible-content section. `$section` must have a `'_layout'` key matching a registered component. Returns `''` if the component is not registered or has no template.
+
+```php
+ComponentRenderer::renderByName(string $name, array $data = []): string
+```
+Renders a named component with explicit data. Useful outside of a flexible-content loop.
+
+---
+
+## Usage in templates
+
+**Blade:**
+
+```blade
+{{-- Renders each section using its registered component template --}}
+@foreach(fieldforge_get('page_builder') as $section)
+    @ffSection($section)
+@endforeach
+
+{{-- Or render a named component directly --}}
+@ffRender('cta', ['headline' => 'Sign Up Today'])
+```
+
+**Twig:**
+
+```twig
+{% for section in fieldforge_get('page_builder') %}
+    {{ ff_component(section)|raw }}
+{% endfor %}
+```
+
+**PHP:**
+
+```php
+foreach (fieldforge_get('page_builder') as $section) {
+    fieldforge_render_component($section);
+}
+
+// Or with explicit data
+fieldforge_render('cta', ['headline' => 'Sign Up']);
+```
+
+---
+
+## Writing a component template
+
+When FieldForge renders a component, it extracts the section data so all field values are available as local variables:
+
+```blade
+{{-- components/hero/index.blade.php --}}
+<section class="hero theme-{{ $theme ?? 'light' }}">
+    <{{ $heading_level ?? 'h1' }}>{{ $headline }}</{{ $heading_level ?? 'h1' }}>
+    @if(!empty($subtext))
+        <p class="hero-subtext">{{ $subtext }}</p>
+    @endif
+    @if(!empty($cta['url']))
+        <a href="{{ $cta['url'] }}" class="btn">{{ $cta['title'] }}</a>
+    @endif
+</section>
+```
+
+The `_layout` key is available as `$_layout` but is rarely needed in templates.
+
+---
+
+## Optional component files
+
+| File | Purpose |
+|---|---|
+| `fields.php` | Required — defines the FlexLayout and its sub-fields |
+| `index.blade.php` | Blade template |
+| `index.twig` | Twig template |
+| `index.php` | PHP template |
+| `functions.php` | Auto-loaded — register filters, data transforms |
+| `script.js` | Lazy-loaded frontend script |
+| `screenshot.png` | Thumbnail shown in the component picker |

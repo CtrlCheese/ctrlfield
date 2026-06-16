@@ -1,0 +1,72 @@
+# Post Object
+
+*(FieldForge Pro)*
+
+A post picker with AJAX search. Stores one or more post IDs.
+
+---
+
+## PHP API
+
+```php
+Field::postObject(string $key): PostObjectField  // Pro
+```
+
+### Type-specific methods
+
+```php
+->postType(string|array $types): static
+```
+Restrict search to specific post type(s).
+
+```php
+->multiple(bool $m = true): static
+```
+Allow selecting multiple posts.
+
+```php
+->returnFormat(string $format): static
+```
+
+| Format | Returns |
+|---|---|
+| `'id'` (default) | `int` or `int[]` |
+| `'object'` | `\WP_Post` or `\WP_Post[]` |
+
+---
+
+## Storage
+
+```json
+{ "related_case": 42 }
+{ "related_posts": [12, 34, 56] }
+```
+
+---
+
+## Example
+
+```php
+Field::postObject('related_case')
+    ->label('Related Case Study')
+    ->postType('case-study')
+    ->returnFormat('object'),
+
+Field::postObject('related_posts')
+    ->label('Related Posts')
+    ->postType(['post', 'article'])
+    ->multiple()
+    ->returnFormat('object'),
+```
+
+---
+
+## Template usage
+
+```blade
+@php $post = fieldforge_get('related_case') @endphp
+
+@if($post)
+    <a href="{{ get_permalink($post->ID) }}">{{ $post->post_title }}</a>
+@endif
+```

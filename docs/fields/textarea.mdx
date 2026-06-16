@@ -1,0 +1,43 @@
+# Textarea
+
+A multi-line plain-text area.
+
+---
+
+## PHP API
+
+```php
+Field::textarea(string $key): TextareaField
+```
+
+Inherits all common fluent methods. No type-specific methods.
+
+---
+
+## Storage
+
+Stored as a plain string. Sanitized with `sanitize_textarea_field()`.
+
+---
+
+## Example
+
+```php
+Field::textarea('bio')
+    ->label('Biography')
+    ->placeholder('Write a short biography...')
+    ->instructions('Maximum 200 words.')
+    ->width(100),
+```
+
+---
+
+## Template usage
+
+```blade
+{!! nl2br(e(fieldforge_get('bio'))) !!}
+```
+
+```php
+echo nl2br(esc_html(fieldforge_get('bio')));
+```

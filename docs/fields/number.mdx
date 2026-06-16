@@ -1,0 +1,42 @@
+# Number
+
+A numeric input. Stored as-is (int or float depending on submitted value).
+
+---
+
+## PHP API
+
+```php
+Field::number(string $key): NumberField
+```
+
+Inherits all common fluent methods. No type-specific methods.
+
+---
+
+## Storage
+
+Stored as a numeric value (int or float). The TypeCoercionStage casts to numeric via PHP's type juggling.
+
+---
+
+## Example
+
+```php
+Field::number('year')
+    ->label('Year')
+    ->default(date('Y'))
+    ->setIndex(true),
+```
+
+---
+
+## Template usage
+
+```blade
+{{ fieldforge_get('year') }}
+```
+
+```php
+$year = (int) fieldforge_get('year');
+```

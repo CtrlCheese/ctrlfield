@@ -1,0 +1,64 @@
+# oEmbed
+
+A URL field with live preview of embeddable content (YouTube, Vimeo, Twitter, etc.).
+
+---
+
+## PHP API
+
+```php
+Field::oembed(string $key): OembedField
+```
+
+### Type-specific methods
+
+```php
+->previewWidth(int $px): static   // Default: 480
+->previewHeight(int $px): static  // Default: 270
+```
+
+---
+
+## Storage
+
+Stored as the raw URL string.
+
+```json
+{ "promo_video": "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
+```
+
+---
+
+## Example
+
+```php
+Field::oembed('promo_video')
+    ->label('Promo Video')
+    ->previewWidth(640)
+    ->previewHeight(360),
+```
+
+---
+
+## Template usage
+
+Use WordPress's `wp_oembed_get()` to render the embed:
+
+```blade
+@php
+    $url  = fieldforge_get('promo_video');
+    $html = $url ? wp_oembed_get($url, ['width' => 800]) : '';
+@endphp
+
+@if($html)
+    <div class="video-embed">{!! $html !!}</div>
+@endif
+```
+
+```php
+$url  = fieldforge_get('promo_video');
+$html = $url ? wp_oembed_get($url) : '';
+if ($html) {
+    echo wp_kses_post($html);
+}
+```

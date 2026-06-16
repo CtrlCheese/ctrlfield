@@ -1,0 +1,57 @@
+# Text
+
+A single-line text input.
+
+---
+
+## PHP API
+
+```php
+Field::text(string $key): TextField
+```
+
+Inherits all [common fluent methods](#common-methods).
+
+No type-specific fluent methods.
+
+---
+
+## Storage
+
+Stored as a plain string in the JSON blob.
+
+```json
+{ "client_name": "Acme Corp" }
+```
+
+Sanitized with `sanitize_text_field()` before storage — strips tags, trims whitespace.
+
+---
+
+## Example
+
+```php
+Field::text('client_name')
+    ->label('Client Name')
+    ->placeholder('Enter client name')
+    ->required()
+    ->setIndex(true)
+    ->adminColumn(true)
+    ->adminColumnSortable(true),
+```
+
+---
+
+## Template usage
+
+```blade
+{{ fieldforge_get('client_name') }}
+```
+
+```php
+<?= esc_html(fieldforge_get('client_name')) ?>
+```
+
+```twig
+{{ fieldforge_get('client_name') }}
+```

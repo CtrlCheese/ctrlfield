@@ -1,0 +1,91 @@
+# Webhook on Change
+
+Fire an outbound HTTP webhook when a specific field value changes on post save.
+
+---
+
+## Setup
+
+```php
+Field::select('order_status')
+    ->label('Order Status')
+    ->options(['pending' => 'Pending', 'paid' => 'Paid', 'shipped' => 'Shipped'])
+    ->webhookOnChange(
+        url:     'https://api.example.com/order-status-changed',
+        toValue: 'paid',    // only fire when the new value is 'paid'
+        secret:  'your-secret-key',  // for HMAC signature verification
+    ),
+```
+
+---
+
+## `webhookOnChange()` signature
+
+```php
+->webhookOnChange(
+    string $url,
+    string $toValue  = '',    // if set, only fire when new value === $toValue
+    string $secret   = '',    // HMAC-SHA256 signing key
+    array  $payload  = ['post_id', 'field_key', 'old_value', 'new_value', 'post_title', 'date'],
+): static
+```
+
+A field can have multiple `webhookOnChange()` calls (one per URL):
+
+```php
+Field::select('status')
+    ->webhookOnChange('https://crm.example.com/webhook', toValue: 'active')
+    ->webhookOnChange('https://slack.example.com/webhook', toValue: 'cancelled'),
+```
+
+---
+
+## Payload
+
+The default payload includes all of:
+
+```json
+{
+    "post_id":    42,
+    "field_key":  "order_status",
+    "old_value":  "pending",
+    "new_value":  "paid",
+    "post_title": "Order #1042",
+    "date":       "2026-06-01T14:30:00+00:00"
+}
+```
+
+To send only specific keys:
+
+```php
+->webhookOnChange('https://example.com/hook', payload: ['post_id', 'new_value'])
+```
+
+---
+
+## HMAC signature verification
+
+When `$secret` is set, FieldForge adds a `X-FieldForge-Signature` header:
+
+```
+X-FieldForge-Signature: sha256=<hmac-sha256-of-body>
+```
+
+Verify it on the receiving end:
+
+```php
+$body      = file_get_contents('php://input');
+$signature = $_SERVER['HTTP_X_FIELDFORGE_SIGNATURE'] ?? '';
+$expected  = 'sha256=' . hash_hmac('sha256', $body, 'your-secret-key');
+
+if (! hash_equals($expected, $signature)) {
+    http_response_code(401);
+    exit('Invalid signature');
+}
+```
+
+---
+
+## Non-blocking
+
+Webhooks use `wp_remote_post()` with `blocking: false`. The save request is not delayed — FieldForge does not wait for a response.

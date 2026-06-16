@@ -1,0 +1,135 @@
+# ComponentRegistry
+
+Auto-discovers and registers page components from a directory. This is the foundation of FieldForge's page-builder system.
+
+---
+
+## Setup
+
+```php
+// functions.php
+add_action('init', function () {
+    \FieldForge\Components\ComponentRegistry::discover(
+        get_template_directory() . '/components/'
+    );
+}, 5);
+```
+
+---
+
+## Component directory structure
+
+A component is any subdirectory that contains a `fields.php` file:
+
+```
+components/
+├── hero/
+│   ├── fields.php          ← REQUIRED — returns FlexLayout
+│   ├── index.blade.php     ← optional — Blade template
+│   ├── index.twig          ← optional — Twig template
+│   ├── index.php           ← optional — PHP template
+│   ├── functions.php       ← optional — auto-loaded, register filters
+│   ├── script.js           ← optional — lazy-loaded JS
+│   └── screenshot.png      ← optional — shown in the picker modal
+├── features/
+│   └── fields.php
+└── cta/
+    └── fields.php
+```
+
+---
+
+## `fields.php` contract
+
+Each component's `fields.php` must return a `FlexLayout` instance:
+
+```php
+// components/hero/fields.php
+use FieldForgePro\Fields\FlexLayout;
+use FieldForge\Fields\Field;
+use FieldForge\Fields\FieldPresets;
+
+return FlexLayout::make('hero')
+    ->label('Hero Banner')
+    ->icon('cover-image')
+    ->category('layout')
+    ->description('Full-width hero with headline, subtext and CTA.')
+    ->fields([
+        Field::text('headline')->label('Headline')->required(),
+        Field::textarea('subtext')->label('Subtext'),
+        Field::image('background')->returnFormat('array'),
+        Field::link('cta')->label('CTA Button'),
+        FieldPresets::theme(),
+    ]);
+```
+
+Alternatively, return an array of `FieldDefinition` instances. The layout key and label are derived from the directory name:
+
+```php
+// components/simple/fields.php
+return [
+    Field::text('title')->label('Title'),
+    Field::textarea('body')->label('Body'),
+];
+```
+
+---
+
+## `functions.php` — component data transforms
+
+`functions.php` is auto-loaded immediately after the component is registered. Use it to register data filters:
+
+```php
+// components/hero/functions.php
+add_filter('fieldforge/component_data/hero', function (array $data): array {
+    // Merge in computed or global values
+    $data['site_name'] = get_bloginfo('name');
+    return $data;
+});
+```
+
+---
+
+## API
+
+```php
+ComponentRegistry::discover(string $basePath, string $fieldsFile = 'fields.php'): void
+ComponentRegistry::get(string $key): ?ComponentDefinition
+ComponentRegistry::has(string $key): bool
+ComponentRegistry::all(): array<string, ComponentDefinition>
+ComponentRegistry::getPath(string $key): ?string
+ComponentRegistry::getTemplatePath(string $key): ?string
+ComponentRegistry::reset(): void  // tests only
+```
+
+---
+
+## Template priority
+
+| Priority | Extension | Engine |
+|---|---|---|
+| 1st | `index.blade.php` | Blade |
+| 2nd | `index.twig` | Twig via Timber |
+| 3rd | `index.php` | PHP with extract() |
+
+---
+
+## Rendering in templates
+
+```blade
+@foreach(fieldforge_get('page_builder') as $section)
+    @ffSection($section)
+@endforeach
+```
+
+```twig
+{% for section in fieldforge_get('page_builder') %}
+    {{ ff_component(section)|raw }}
+{% endfor %}
+```
+
+```php
+foreach (fieldforge_get('page_builder') as $section) {
+    fieldforge_render_component($section);
+}
+```

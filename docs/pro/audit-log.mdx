@@ -1,0 +1,74 @@
+# Audit Log
+
+Records every field value change in a dedicated database table. Useful for compliance, debugging, and change history.
+
+---
+
+## Enable audit logging for a field
+
+```php
+// In your schema file or functions.php
+use FieldForgePro\AuditLog\AuditRegistry;
+
+AuditRegistry::register('order_status', retentionDays: 365);
+AuditRegistry::register('price',        retentionDays: 90);
+```
+
+Or use the helper function:
+
+```php
+fieldforge_audit_field('order_status', retentionDays: 180);
+```
+
+---
+
+## What is logged
+
+Every time a registered field's value changes:
+
+| Column | Content |
+|---|---|
+| `post_id` | The post being saved |
+| `field_key` | The field key |
+| `old_value` | JSON-encoded previous value |
+| `new_value` | JSON-encoded new value |
+| `user_id` | The user who saved |
+| `created_at` | Timestamp |
+
+---
+
+## AuditRegistry API
+
+```php
+AuditRegistry::register(string $fieldKey, int $retentionDays = 365): void
+AuditRegistry::shouldAudit(string $fieldKey): bool
+AuditRegistry::getRetention(string $fieldKey): int
+AuditRegistry::all(): array<string, int>  // fieldKey => retentionDays
+```
+
+---
+
+## Viewing the audit log
+
+The audit log is available in **WP Admin → FieldForge → Audit Log**.
+
+---
+
+## Data retention
+
+A WP-Cron job runs daily and deletes rows older than the configured `retentionDays` per field. The default is 365 days.
+
+To manually purge old entries:
+
+```bash
+wp fieldforge audit-purge
+wp fieldforge audit-purge --field=order_status
+```
+
+---
+
+## Notes
+
+- The audit log table is created on plugin activation. If it is missing, run `wp fieldforge audit-install`.
+- Only value **changes** are logged. Saves where the value does not change produce no log entry.
+- Audit logging does not add measurable overhead to the save pipeline — it runs on the `fieldforge/after_save` hook.

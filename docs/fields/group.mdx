@@ -1,0 +1,68 @@
+# Group
+
+A non-repeatable group of related sub-fields. Renders as a visually grouped section.
+
+---
+
+## PHP API
+
+```php
+Field::object(string $key): GroupField
+```
+
+*(Also available as `Field::group()` which creates a top-level `FieldGroup`.)*
+
+### Type-specific methods
+
+```php
+->fields(array $fields): static
+```
+Sub-fields for this group.
+
+---
+
+## Storage
+
+Stored as a JSON object with sub-field keys.
+
+```json
+{
+  "contact": {
+    "name":  "Alice",
+    "email": "alice@example.com",
+    "phone": "+1 555 0100"
+  }
+}
+```
+
+---
+
+## Example
+
+```php
+Field::object('contact')
+    ->label('Contact Details')
+    ->fields([
+        Field::text('name')->label('Name')->required(),
+        Field::email('email')->label('Email'),
+        Field::text('phone')->label('Phone'),
+    ]),
+```
+
+---
+
+## Template usage
+
+```blade
+@php $contact = fieldforge_get('contact') @endphp
+
+<p>{{ $contact['name'] }}</p>
+<a href="mailto:{{ $contact['email'] }}">{{ $contact['email'] }}</a>
+```
+
+---
+
+## Notes
+
+- Use a Group when you have related fields that logically belong together but never repeat.
+- For repeatable rows, use [Repeater](./repeater).

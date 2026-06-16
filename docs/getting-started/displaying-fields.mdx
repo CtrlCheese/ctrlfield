@@ -1,0 +1,149 @@
+# Displaying Fields
+
+FieldForge provides first-class support for Blade (via Sage/Roots), Twig (via Timber), and plain PHP templates. The REST API is available for headless setups.
+
+---
+
+## Helper functions
+
+| Function | What it returns |
+|---|---|
+| `fieldforge_get('key')` | Single field value for the current post |
+| `fieldforge_get('key', $postId)` | Single field value for a specific post |
+| `fieldforge_get_all()` | All field values for the current post |
+| `fieldforge_get_user('key', $userId)` | User meta field |
+| `fieldforge_get_term('key', $termId)` | Term meta field |
+| `fieldforge_get_options('key', 'page-slug')` | Options page field |
+| `ff_option('key', 'page-slug', $default)` | Options field with fallback |
+
+---
+
+## Blade
+
+FieldForge ships a Blade integration via `ViewServiceProvider`. Register it in `functions.php`:
+
+```php
+add_action('after_setup_theme', function () {
+    \FieldForge\Integrations\Blade\ViewServiceProvider::register(
+        get_template_directory() . '/views',
+        get_template_directory() . '/cache/views',
+    );
+});
+```
+
+**Reading a field:**
+
+```blade
+{{ fieldforge_get('client_name') }}
+```
+
+**Checking and rendering an image:**
+
+```blade
+@php $hero = fieldforge_get('hero_image') @endphp
+
+@if($hero)
+    <img src="{{ $hero['url'] }}" alt="{{ $hero['alt'] }}"
+         width="{{ $hero['width'] }}" height="{{ $hero['height'] }}">
+@endif
+```
+
+**Repeater:**
+
+```blade
+@foreach(fieldforge_get('team_members') as $member)
+    <div>
+        <strong>{{ $member['name'] }}</strong>
+        <span>{{ $member['role'] }}</span>
+    </div>
+@endforeach
+```
+
+**Rendering a FlexibleContent page builder (Pro):**
+
+```blade
+@foreach(fieldforge_get('page_builder') as $section)
+    @ffSection($section)
+@endforeach
+```
+
+---
+
+## Twig (Timber)
+
+FieldForge functions are global in Twig when Timber is active:
+
+```twig
+{{ fieldforge_get('client_name') }}
+
+{% set hero = fieldforge_get('hero_image') %}
+{% if hero %}
+    <img src="{{ hero.url }}" alt="{{ hero.alt }}">
+{% endif %}
+
+{# Repeater #}
+{% for member in fieldforge_get('team_members') %}
+    <p>{{ member.name }} — {{ member.role }}</p>
+{% endfor %}
+
+{# FlexibleContent (Pro) #}
+{% for section in fieldforge_get('page_builder') %}
+    {{ ff_component(section)|raw }}
+{% endfor %}
+```
+
+---
+
+## Plain PHP
+
+```php
+<?php
+$clientName = fieldforge_get('client_name');
+$hero       = fieldforge_get('hero_image'); // array
+
+echo esc_html($clientName);
+
+if ($hero) {
+    printf(
+        '<img src="%s" alt="%s" width="%d">',
+        esc_url($hero['url']),
+        esc_attr($hero['alt']),
+        (int) $hero['width'],
+    );
+}
+```
+
+---
+
+## REST API
+
+FieldForge registers a REST endpoint for every field group where at least one field has `->showInRest(true)`:
+
+```
+GET /wp-json/fieldforge/v1/post/{id}
+PUT /wp-json/fieldforge/v1/post/{id}
+```
+
+**Expose a field via REST:**
+
+```php
+Field::text('client_name')->label('Client')->showInRest(true),
+```
+
+**Example response:**
+
+```json
+{
+    "post_id": 42,
+    "fields": {
+        "client_name": "Acme Corp",
+        "launch_date": "2026-06-01"
+    }
+}
+```
+
+---
+
+## Next step
+
+→ [The code-first philosophy](./code-first-philosophy)

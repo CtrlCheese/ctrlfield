@@ -1,0 +1,60 @@
+# Bricks Integration
+
+*(FieldForge Pro)*
+
+Exposes FieldForge field values as Bricks Dynamic Data tags.
+
+---
+
+## Requirements
+
+- Bricks Builder (any version with Dynamic Data API)
+- FieldForge Pro active
+
+---
+
+## Usage
+
+FieldForge fields are available in Bricks as `{fieldforge:field_key}` tags.
+
+**In Bricks text/heading elements:**
+```
+{fieldforge:client_name}
+```
+
+**In image elements:**
+```
+{fieldforge:hero_image}
+```
+(When the field has `returnFormat('url')`, the URL is returned directly. Otherwise the attachment URL is fetched from the stored ID.)
+
+**In links:**
+```
+{fieldforge:website}
+```
+
+---
+
+## Tag format
+
+All FieldForge tags use the prefix `fieldforge:`:
+
+```
+{fieldforge:field_key}
+```
+
+Tags are resolved via `fieldforge_get($fieldKey, $postId)` in the context of the currently rendered post.
+
+---
+
+## Bricks version compatibility
+
+The `get_tag_value()` method accepts `\WP_Post|int` as the `$post` parameter, which handles both old Bricks versions (passing `WP_Post`) and newer ones (passing the post ID as `int`).
+
+---
+
+## Notes
+
+- The Bricks provider boots lazily — only when Bricks is active.
+- Dynamic tags resolve in the context of the loop's current post (Bricks Nest or Query Loop).
+- Gallery fields with `returnFormat('array')` are not directly usable as a single tag. Use a Bricks Repeater with individual image tags per item.

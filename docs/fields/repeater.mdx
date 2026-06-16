@@ -1,0 +1,94 @@
+# Repeater
+
+A repeatable group of sub-fields. Users can add, remove, and reorder rows.
+
+---
+
+## PHP API
+
+```php
+Field::repeater(string $key): RepeaterField
+```
+
+### Type-specific methods
+
+```php
+->fields(array $fields): static
+```
+The sub-fields for each row. Accepts any `FieldDefinition` instances.
+
+```php
+->minRows(int $n): static
+```
+Minimum number of rows (validation).
+
+```php
+->maxRows(int $n): static
+```
+Maximum number of rows (0 = unlimited).
+
+```php
+->buttonLabel(string $label): static
+```
+Label for the "Add Row" button. Default: `'Add Row'`.
+
+---
+
+## Storage
+
+Stored as a JSON array. Each element is an object with sub-field keys.
+
+```json
+{
+  "team_members": [
+    { "name": "Alice", "role": "Engineer" },
+    { "name": "Bob",   "role": "Designer" }
+  ]
+}
+```
+
+---
+
+## Example
+
+```php
+Field::repeater('team_members')
+    ->label('Team Members')
+    ->minRows(1)
+    ->maxRows(10)
+    ->buttonLabel('Add Member')
+    ->fields([
+        Field::text('name')->label('Name')->required(),
+        Field::text('role')->label('Role'),
+        Field::image('photo')->label('Photo')->returnFormat('array'),
+    ]),
+```
+
+---
+
+## Template usage
+
+```blade
+@foreach(fieldforge_get('team_members') as $member)
+    <div class="member">
+        @if($member['photo'])
+            <img src="{{ $member['photo']['url'] }}" alt="{{ $member['photo']['alt'] }}">
+        @endif
+        <strong>{{ $member['name'] }}</strong>
+        <span>{{ $member['role'] }}</span>
+    </div>
+@endforeach
+```
+
+```twig
+{% for member in fieldforge_get('team_members') %}
+    <p>{{ member.name }} — {{ member.role }}</p>
+{% endfor %}
+```
+
+---
+
+## Notes
+
+- Repeaters cannot be nested inside a FlexibleContent layout. Nest them inside a Group instead.
+- Sub-field keys must be unique within the repeater (not globally).

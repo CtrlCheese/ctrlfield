@@ -1,0 +1,54 @@
+# Range
+
+A slider input for selecting a numeric value within a range.
+
+---
+
+## PHP API
+
+```php
+Field::range(string $key): RangeField
+```
+
+### Type-specific methods
+
+```php
+->min(float $min): static    // Default: 0.0
+->max(float $max): static    // Default: 100.0
+->step(float $step): static  // Default: 1.0
+->showValue(bool $show = true): static  // Show current value next to slider
+```
+
+---
+
+## Storage
+
+Stored as a float.
+
+```json
+{ "opacity": 0.75 }
+```
+
+---
+
+## Example
+
+```php
+Field::range('opacity')
+    ->label('Opacity')
+    ->min(0.0)
+    ->max(1.0)
+    ->step(0.05)
+    ->showValue()
+    ->default(1.0),
+```
+
+---
+
+## Template usage
+
+```blade
+<div style="opacity: {{ fieldforge_get('opacity') }}">
+    ...
+</div>
+```

@@ -1,0 +1,59 @@
+# Taxonomy Term
+
+*(FieldForge Pro)*
+
+A taxonomy term picker with AJAX search. Stores one or more term IDs.
+
+---
+
+## PHP API
+
+```php
+Field::taxonomyTerm(string $key): TaxonomyField  // Pro
+```
+
+### Type-specific methods
+
+```php
+->taxonomy(string $taxonomy): static
+```
+Taxonomy slug. Required.
+
+```php
+->multiple(bool $m = true): static
+```
+
+```php
+->addTerms(bool $allow = true): static
+```
+Allow creating new terms directly from the picker.
+
+---
+
+## Storage
+
+```json
+{ "project_categories": [4, 8] }
+```
+
+---
+
+## Example
+
+```php
+Field::taxonomyTerm('project_category')
+    ->label('Project Category')
+    ->taxonomy('project-category')
+    ->multiple(),
+```
+
+---
+
+## Template usage
+
+```blade
+@foreach(fieldforge_get('project_category') as $termId)
+    @php $term = get_term($termId, 'project-category') @endphp
+    <span>{{ $term->name }}</span>
+@endforeach
+```

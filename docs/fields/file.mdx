@@ -1,0 +1,55 @@
+# File
+
+A WordPress media library file picker. Stores the attachment ID.
+
+---
+
+## PHP API
+
+```php
+Field::file(string $key): FileField
+```
+
+### Type-specific methods
+
+```php
+->returnFormat(string $format): static
+```
+
+| Format | Returns |
+|---|---|
+| `'id'` (default) | `int` — attachment ID |
+| `'url'` | `string` — file URL |
+| `'array'` | `array` — `['id', 'url', 'name', 'mime']` |
+
+---
+
+## Storage
+
+```json
+{ "cv": 231 }
+```
+
+---
+
+## Example
+
+```php
+Field::file('project_brief')
+    ->label('Project Brief (PDF)')
+    ->returnFormat('array'),
+```
+
+---
+
+## Template usage
+
+```blade
+@php $file = fieldforge_get('project_brief') @endphp
+
+@if($file)
+    <a href="{{ $file['url'] }}" download>
+        Download {{ $file['name'] }} ({{ strtoupper(last(explode('/', $file['mime']))) }})
+    </a>
+@endif
+```

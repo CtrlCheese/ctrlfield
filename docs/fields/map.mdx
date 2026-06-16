@@ -1,0 +1,68 @@
+# Map
+
+*(FieldForge Pro)*
+
+An interactive OpenStreetMap/Leaflet picker. Stores coordinates and an optional address.
+
+---
+
+## PHP API
+
+```php
+Field::map(string $key): MapField  // Pro
+```
+
+### Type-specific methods
+
+```php
+->defaultLat(float $lat): static
+->defaultLng(float $lng): static
+->defaultZoom(int $zoom): static   // Default: 13
+->height(int $px): static          // Admin map height. Default: 400
+```
+
+---
+
+## Storage
+
+```json
+{
+  "office_location": {
+    "lat":     48.8566,
+    "lng":     2.3522,
+    "zoom":    14,
+    "address": "Paris, France"
+  }
+}
+```
+
+---
+
+## Example
+
+```php
+Field::map('office_location')
+    ->label('Office Location')
+    ->defaultLat(48.8566)
+    ->defaultLng(2.3522)
+    ->defaultZoom(12),
+```
+
+---
+
+## Template usage
+
+```blade
+@php $loc = fieldforge_get('office_location') @endphp
+
+@if($loc)
+    <div id="map"
+         data-lat="{{ $loc['lat'] }}"
+         data-lng="{{ $loc['lng'] }}"
+         data-zoom="{{ $loc['zoom'] }}">
+    </div>
+    <p>{{ $loc['address'] }}</p>
+@endif
+```
+
+Initialize the map with your preferred JS library using the data attributes.

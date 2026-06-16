@@ -1,0 +1,51 @@
+# Icon
+
+A Dashicons icon picker. Stores the icon slug as a string.
+
+---
+
+## PHP API
+
+```php
+Field::icon(string $key): IconField
+```
+
+### Type-specific methods
+
+```php
+->library(string $lib): static
+```
+Icon library to use. Default: `'dashicons'`. (Future support planned for FontAwesome, Heroicons.)
+
+---
+
+## Storage
+
+Stored as a string icon slug.
+
+```json
+{ "social_icon": "dashicons-twitter" }
+```
+
+---
+
+## Example
+
+```php
+Field::icon('section_icon')
+    ->label('Section Icon')
+    ->library('dashicons'),
+```
+
+---
+
+## Template usage
+
+```blade
+<span class="dashicons {{ fieldforge_get('section_icon') }}"></span>
+```
+
+```php
+$iconSlug = fieldforge_get('section_icon');
+printf('<span class="dashicons %s"></span>', esc_attr($iconSlug));
+```

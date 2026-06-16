@@ -1,0 +1,69 @@
+# Field Presets (Pro)
+
+`FieldPresets` is a zero-dependency Core feature, but it's primarily used in Pro workflows where the same field options (theme, spacing, heading level) are shared across dozens of FlexLayout components.
+
+See [Field Presets API reference](../api/field-presets) for the full API.
+
+---
+
+## Pattern: theme preset library
+
+Create a shared preset library file and load it before your schema files:
+
+```php
+// fieldforge/presets.php
+use FieldForge\Fields\Field;
+use FieldForge\Fields\FieldPresets;
+
+FieldPresets::register('theme', fn () =>
+    Field::buttonGroup('theme')
+        ->label('Theme')
+        ->options(['light' => 'Light', 'dark' => 'Dark'])
+        ->default('light')
+);
+
+FieldPresets::register('spacing', fn () =>
+    Field::select('spacing')
+        ->label('Spacing')
+        ->options(['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large'])
+        ->default('md')
+);
+
+FieldPresets::register('heading_level', fn () =>
+    Field::select('heading_level')
+        ->label('Heading Level')
+        ->options(['h1' => 'H1', 'h2' => 'H2', 'h3' => 'H3'])
+        ->default('h2')
+);
+```
+
+Load presets first:
+
+```php
+add_action('init', function () {
+    fieldforge_load_schemas(get_template_directory() . '/fieldforge/presets.php');
+    fieldforge_load_schemas(get_template_directory() . '/fieldforge/');
+}, 5);
+```
+
+---
+
+## Usage in component fields.php
+
+```php
+// components/hero/fields.php
+use FieldForgePro\Fields\FlexLayout;
+use FieldForge\Fields\Field;
+use FieldForge\Fields\FieldPresets;
+
+return FlexLayout::make('hero')
+    ->label('Hero')
+    ->fields([
+        Field::text('headline')->label('Headline'),
+        FieldPresets::heading_level(),  // fresh SelectField each time
+        FieldPresets::spacing(),
+        FieldPresets::theme(),
+    ]);
+```
+
+Because every call returns a **new independent instance**, the same preset can be used in 20 components without any state leakage between them.

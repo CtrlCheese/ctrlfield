@@ -1,0 +1,74 @@
+# Date
+
+A date picker. Stored as a `Y-m-d` string.
+
+---
+
+## PHP API
+
+```php
+Field::date(string $key): DateField
+```
+
+### Type-specific methods
+
+```php
+->format(string $format): static
+```
+Display format in the picker (PHP date format). Default: `'Y-m-d'`.
+
+```php
+->minDate(string $date): static
+```
+Minimum selectable date (`'Y-m-d'` or `'today'`).
+
+```php
+->maxDate(string $date): static
+```
+Maximum selectable date.
+
+```php
+->returnFormat(string $format): static
+```
+
+| Format | Returns |
+|---|---|
+| `''` (default) | `string` — `'2026-06-01'` |
+| `'DateTime'` | `\DateTime` object or `null` |
+| `'timestamp'` | `int` Unix timestamp |
+
+---
+
+## Storage
+
+```json
+{ "launch_date": "2026-06-01" }
+```
+
+---
+
+## Example
+
+```php
+Field::date('launch_date')
+    ->label('Launch Date')
+    ->format('d/m/Y')
+    ->minDate('today')
+    ->returnFormat('DateTime'),
+```
+
+---
+
+## Template usage
+
+```blade
+@php $date = fieldforge_get('launch_date') @endphp
+
+{{-- With returnFormat('DateTime') --}}
+@if($date)
+    {{ $date->format('F j, Y') }}    {{-- "June 1, 2026" --}}
+@endif
+
+{{-- Raw string (no returnFormat) --}}
+{{ fieldforge_get('launch_date') }}  {{-- "2026-06-01" --}}
+```

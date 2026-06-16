@@ -1,0 +1,96 @@
+# Flexible Content
+
+*(FieldForge Pro)*
+
+A page-builder style field. Users pick from a list of component layouts and arrange them in any order. Each layout has its own set of sub-fields.
+
+---
+
+## PHP API
+
+```php
+Field::flexibleContent(string $key): FlexibleContentField  // Pro
+// or
+new FlexibleContentField(string $key)
+```
+
+### Type-specific methods
+
+```php
+->layouts(array $layouts): static
+```
+Array of `FlexLayout` instances. Each layout is one block type.
+
+```php
+->autoDiscover(?callable $filter = null): static
+```
+Automatically populate layouts from `ComponentRegistry`. Discovered layouts are merged with manually added ones.
+
+```php
+->buttonLabel(string $label): static
+```
+Label for the "Add" button. Default: `'Add layout'`.
+
+```php
+->minLayouts(int $n): static
+->maxLayouts(int $n): static
+```
+
+---
+
+## Storage
+
+```json
+{
+  "page_builder": [
+    { "_layout": "hero", "headline": "Welcome", "cta": {"url": "/start", "title": "Get Started"} },
+    { "_layout": "features", "items": [...] }
+  ]
+}
+```
+
+---
+
+## Example
+
+```php
+use FieldForgePro\Fields\FlexibleContentField;
+use FieldForgePro\Fields\FlexLayout;
+
+FlexibleContentField::make('page_builder')
+    ->label('Page Sections')
+    ->where('post_type', '==', 'page')
+    ->buttonLabel('Add Section')
+    ->autoDiscover()   // discovers components from ComponentRegistry
+    ->layouts([
+        // manually add layouts not in the component directory
+        FlexLayout::make('raw_html')->label('Raw HTML')->fields([
+            Field::wysiwyg('html'),
+        ]),
+    ])
+    ->register();
+```
+
+---
+
+## Template usage
+
+```blade
+@foreach(fieldforge_get('page_builder') as $section)
+    @ffSection($section)
+@endforeach
+```
+
+```twig
+{% for section in fieldforge_get('page_builder') %}
+    {{ ff_component(section)|raw }}
+{% endfor %}
+```
+
+---
+
+## Notes
+
+- FlexibleContent cannot be nested inside another FlexibleContent or inside a Repeater.
+- Repeaters can be nested inside FlexLayout sub-fields.
+- See [ComponentRegistry](../pro/component-registry) and [FlexLayout](../pro/flexible-content) for the full component system.

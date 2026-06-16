@@ -1,0 +1,50 @@
+# Message
+
+A UI-only informational notice rendered inside the meta box. Useful for instructions, warnings, or contextual help.
+
+---
+
+## PHP API
+
+```php
+Field::message(string $key): MessageField
+```
+
+### Type-specific methods
+
+```php
+->content(string $html): static
+```
+The HTML content to display.
+
+```php
+->type(string $type): static
+```
+Visual style. Options: `'info'` (default), `'warning'`, `'error'`, `'success'`.
+
+---
+
+## Storage
+
+UI-only — never stored.
+
+---
+
+## Example
+
+```php
+Field::message('seo_notice')
+    ->content('<strong>SEO tip:</strong> Keep the meta title under 60 characters.')
+    ->type('info'),
+
+Field::message('danger_zone')
+    ->content('Changing this field will clear the page cache. <a href="#">Learn more</a>.')
+    ->type('warning'),
+```
+
+---
+
+## Notes
+
+- The `key` is required by the API but has no functional purpose for message fields.
+- HTML in `->content()` is rendered unescaped — keep it under developer control, never from user input.

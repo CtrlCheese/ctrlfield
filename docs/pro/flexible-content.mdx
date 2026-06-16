@@ -1,0 +1,102 @@
+# Flexible Content & FlexLayout
+
+`FlexLayout` defines a single block type (a "layout") within a `FlexibleContentField`. Together they form FieldForge's page-builder system.
+
+---
+
+## FlexLayout
+
+```php
+FlexLayout::make(string $key): FlexLayout
+```
+
+### Fluent methods
+
+```php
+->label(string $label): static       // Human-readable name in the picker
+->icon(string $icon): static         // Dashicons slug or SVG string
+->category(string $category): static // Groups layouts in the picker ('layout', 'content', 'media')
+->description(string $text): static  // Short description shown in picker cards
+->fields(array $fields): static      // Sub-fields for this layout
+```
+
+### Loading fields from a file
+
+```php
+FlexLayout::fieldsFromFile(string $path): static
+```
+
+The file must return a `FlexLayout` instance or an array of `FieldDefinition` instances:
+
+```php
+$layout = FlexLayout::fieldsFromFile(
+    get_template_directory() . '/components/hero/fields.php'
+);
+```
+
+Throws `ComponentFieldsFileNotFoundException` if the file does not exist.
+Throws `\InvalidArgumentException` if the file returns an unexpected type.
+
+---
+
+## FlexibleContentField
+
+```php
+new FlexibleContentField(string $key)
+// or via FieldGroup::make()->fields([...]) with a FlexibleContentField instance
+```
+
+### Fluent methods
+
+```php
+->layouts(FlexLayout[] $layouts): static
+->autoDiscover(?callable $filter = null): static
+->buttonLabel(string $label): static
+->minLayouts(int $n): static
+->maxLayouts(int $n): static
+```
+
+### Static
+
+```php
+FlexibleContentField::fieldsFromFile(string $path): FlexLayout
+```
+Delegates to `FlexLayout::fieldsFromFile()`.
+
+---
+
+## Full example
+
+```php
+use FieldForgePro\Fields\FlexibleContentField;
+use FieldForgePro\Fields\FlexLayout;
+
+// Register the field group with autoDiscover + a manual layout
+$flex = (new FlexibleContentField('page_builder'))
+    ->label('Page Sections')
+    ->buttonLabel('Add Section')
+    ->autoDiscover(function (array $layouts): array {
+        // Optional: filter or reorder the auto-discovered layouts
+        return array_filter($layouts, fn ($l) => $l->getCategory() !== 'legacy');
+    })
+    ->layouts([
+        // Manually add layouts not in the component directory
+        FlexLayout::make('divider')
+            ->label('Divider')
+            ->icon('minus')
+            ->fields([]),
+    ]);
+
+\FieldForge\Builder\FieldGroup::make('page_content')
+    ->where('post_type', '==', 'page')
+    ->fields([$flex])
+    ->register();
+```
+
+---
+
+## `autoDiscover()` — how it works
+
+When `autoDiscover()` is called, `resolveLayouts()` reads all components registered in `ComponentRegistry` at **registration time** (when `register()` is called). Each component's `fields.php` is loaded to get its `FlexLayout`. Discovered layouts are merged with manually provided layouts (manual layouts take precedence when keys collide).
+
+The optional `$filter` callback receives `FlexLayout[]` and must return `FlexLayout[]`.

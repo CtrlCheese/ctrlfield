@@ -1,0 +1,118 @@
+# Your First Field Group
+
+This guide walks you through creating a field group for a `portfolio` post type, displaying the fields, and querying by an indexed value.
+
+---
+
+## 1. Create the schema file
+
+Create `fieldforge/portfolio-details.php` in your theme:
+
+```php
+<?php
+
+use FieldForge\Fields\Field;
+
+Field::group('portfolio_details')
+    ->title('Portfolio Details')
+    ->where('post_type', '==', 'portfolio')
+    ->fields([
+        Field::text('client_name')
+            ->label('Client Name')
+            ->required()
+            ->setIndex(true),        // enables WP_Query meta_key searches
+
+        Field::select('project_type')
+            ->label('Project Type')
+            ->options([
+                'web'    => 'Web',
+                'brand'  => 'Brand',
+                'print'  => 'Print',
+            ]),
+
+        Field::date('launch_date')
+            ->label('Launch Date')
+            ->returnFormat('DateTime'),
+
+        Field::image('hero_image')
+            ->label('Hero Image')
+            ->returnFormat('array'),
+    ])
+    ->register();
+```
+
+---
+
+## 2. Load the schema
+
+In `functions.php`:
+
+```php
+add_action('init', function () {
+    fieldforge_load_schemas(get_template_directory() . '/fieldforge/');
+}, 5);
+```
+
+---
+
+## 3. Edit your post
+
+Navigate to **Portfolio → Add New** in the WP admin. The "Portfolio Details" meta box appears with all four fields.
+
+---
+
+## 4. Display the fields in your template
+
+**Blade (recommended):**
+
+```blade
+{{-- single-portfolio.blade.php --}}
+<h1>{{ get_the_title() }}</h1>
+
+@php
+    $client    = fieldforge_get('client_name');
+    $type      = fieldforge_get('project_type');
+    $launched  = fieldforge_get('launch_date');  // \DateTime object
+    $hero      = fieldforge_get('hero_image');   // ['id', 'url', 'width', 'height', 'alt']
+@endphp
+
+@if($hero)
+    <img src="{{ $hero['url'] }}" alt="{{ $hero['alt'] }}" width="{{ $hero['width'] }}">
+@endif
+
+<p>Client: {{ $client }}</p>
+<p>Type: {{ $type }}</p>
+@if($launched)
+    <p>Launched: {{ $launched->format('F Y') }}</p>
+@endif
+```
+
+**PHP:**
+
+```php
+<?php
+$client = fieldforge_get('client_name');
+$hero   = fieldforge_get('hero_image'); // array with url, width, height, alt
+?>
+<p><?= esc_html($client) ?></p>
+```
+
+---
+
+## 5. Query by indexed field
+
+Because `client_name` has `->setIndex(true)`, you can use standard `WP_Query` meta queries:
+
+```php
+$query = new WP_Query([
+    'post_type'  => 'portfolio',
+    'meta_key'   => '_fieldforge_idx_client_name',
+    'meta_value' => 'Acme Corp',
+]);
+```
+
+---
+
+## Next step
+
+→ [Displaying fields in all template engines](./displaying-fields)

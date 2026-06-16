@@ -1,0 +1,72 @@
+# Clone
+
+*(FieldForge Pro)*
+
+Includes the fields from another registered field group or a preset. Useful for sharing a common set of fields across multiple groups.
+
+---
+
+## PHP API
+
+```php
+Field::clone(string $key): CloneField  // Pro
+```
+
+### Type-specific methods
+
+```php
+->from(string $groupKeyOrPreset): static
+```
+The key of a registered `FieldGroup` or `FieldPresets` preset to clone from.
+
+```php
+->prefix(string $prefix): static
+```
+Prefix all cloned field keys to avoid collisions. e.g. `prefix('hero_')` makes `title` → `hero_title`.
+
+```php
+->display(string $mode): static
+```
+`'seamless'` (default) — fields appear inline. `'group'` — fields appear inside a sub-group UI.
+
+---
+
+## Storage
+
+Cloned fields are stored as if they were declared directly in the group. No nesting.
+
+```json
+{ "hero_title": "Welcome", "hero_subtitle": "We build things" }
+```
+
+---
+
+## Example
+
+```php
+// Define shared fields once
+Field::group('seo_fields')
+    ->where('post_type', '==', '_internal_seo')
+    ->fields([
+        Field::text('seo_title')->label('SEO Title'),
+        Field::textarea('seo_description')->label('SEO Description'),
+        Field::image('og_image')->label('OG Image'),
+    ])
+    ->register();
+
+// Clone into your group
+Field::group('portfolio_details')
+    ->where('post_type', '==', 'portfolio')
+    ->fields([
+        Field::text('client_name'),
+        Field::clone('seo')->from('seo_fields'),
+    ])
+    ->register();
+```
+
+---
+
+## Notes
+
+- The source group must be registered before the group containing the Clone field.
+- Avoid circular clones (group A cloning group B which clones group A).

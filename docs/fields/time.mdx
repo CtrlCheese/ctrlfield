@@ -1,0 +1,44 @@
+# Time
+
+A time picker. Stored as `H:i` string.
+
+---
+
+## PHP API
+
+```php
+Field::time(string $key): TimeField
+```
+
+### Type-specific methods
+
+```php
+->step(int $minutes): static
+```
+Step interval in minutes. Default: `1`.
+
+---
+
+## Storage
+
+```json
+{ "meeting_time": "14:30" }
+```
+
+---
+
+## Example
+
+```php
+Field::time('meeting_time')
+    ->label('Meeting Time')
+    ->step(15),
+```
+
+---
+
+## Template usage
+
+```blade
+{{ fieldforge_get('meeting_time') }}  {{-- "14:30" --}}
+```

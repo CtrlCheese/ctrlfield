@@ -1,0 +1,67 @@
+# Image
+
+A WordPress media library image picker. Stores the attachment ID.
+
+---
+
+## PHP API
+
+```php
+Field::image(string $key): ImageField
+```
+
+### Type-specific methods
+
+```php
+->returnFormat(string $format): static
+```
+Controls what `fieldforge_get()` returns. Options:
+
+| Format | Returns |
+|---|---|
+| `'id'` (default) | `int` — attachment ID |
+| `'url'` | `string` — full image URL |
+| `'array'` | `array` — `['id', 'url', 'width', 'height', 'alt']` |
+
+---
+
+## Storage
+
+Always stored as an integer attachment ID.
+
+```json
+{ "hero_image": 155 }
+```
+
+---
+
+## Example
+
+```php
+Field::image('hero_image')
+    ->label('Hero Image')
+    ->returnFormat('array'),
+```
+
+---
+
+## Template usage
+
+```blade
+@php $hero = fieldforge_get('hero_image') @endphp
+
+@if($hero)
+    <img
+        src="{{ $hero['url'] }}"
+        alt="{{ $hero['alt'] }}"
+        width="{{ $hero['width'] }}"
+        height="{{ $hero['height'] }}"
+    >
+@endif
+```
+
+With `returnFormat('url')`:
+
+```blade
+<img src="{{ fieldforge_get('logo') }}" alt="Logo">
+```

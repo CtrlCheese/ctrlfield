@@ -1,0 +1,67 @@
+# DateTime
+
+A combined date and time picker. Stored as `Y-m-d H:i:s`.
+
+---
+
+## PHP API
+
+```php
+Field::datetime(string $key): DateTimeField
+```
+
+### Type-specific methods
+
+```php
+->format(string $format): static
+```
+Display format. Default: `'Y-m-d H:i'`.
+
+```php
+->minDate(string $date): static
+```
+
+```php
+->maxDate(string $date): static
+```
+
+```php
+->returnFormat(string $format): static
+```
+
+| Format | Returns |
+|---|---|
+| `''` | `string` |
+| `'DateTime'` | `\DateTime` or `null` |
+| `'timestamp'` | `int` |
+
+---
+
+## Storage
+
+```json
+{ "scheduled_at": "2026-06-01 14:30:00" }
+```
+
+---
+
+## Example
+
+```php
+Field::datetime('scheduled_at')
+    ->label('Scheduled At')
+    ->format('d/m/Y H:i')
+    ->minDate('today')
+    ->returnFormat('DateTime'),
+```
+
+---
+
+## Template usage
+
+```blade
+@php $dt = fieldforge_get('scheduled_at') @endphp
+@if($dt)
+    {{ $dt->format('D, M j \a\t g:ia') }}  {{-- Mon, Jun 1 at 2:30pm --}}
+@endif
+```

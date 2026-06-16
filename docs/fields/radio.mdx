@@ -1,0 +1,64 @@
+# Radio
+
+A single-select list of radio buttons.
+
+---
+
+## PHP API
+
+```php
+Field::radio(string $key): RadioField
+```
+
+### Type-specific methods
+
+```php
+->options(array $options): static
+```
+Associative `value => label` array.
+
+```php
+->allowNull(bool $allow = true): static
+```
+Include a "None" option to deselect.
+
+---
+
+## Storage
+
+Stored as a string (the selected value).
+
+```json
+{ "project_type": "web" }
+```
+
+---
+
+## Example
+
+```php
+Field::radio('project_type')
+    ->label('Project Type')
+    ->options([
+        'web'   => 'Web',
+        'brand' => 'Brand',
+        'print' => 'Print',
+    ])
+    ->default('web'),
+```
+
+---
+
+## Template usage
+
+```blade
+<p>Type: {{ fieldforge_get('project_type') }}</p>
+```
+
+---
+
+## Notes
+
+- Use [Select](./select) when you have more than ~6 options.
+- Use [ButtonGroup](./button-group) for a visual tab-style picker.
+- Supports `->bulkEdit()`.

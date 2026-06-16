@@ -1,0 +1,76 @@
+# Select
+
+A dropdown select. Single selection or multiple selections.
+
+---
+
+## PHP API
+
+```php
+Field::select(string $key): SelectField
+```
+
+### Type-specific methods
+
+```php
+->options(array $options): static
+```
+Associative array of `value => label`. Required.
+
+```php
+->multiple(bool $m = true): static
+```
+Allow multiple selections. Stored as array of values.
+
+```php
+->allowNull(bool $allow = true): static
+```
+Include an empty "— Select —" option.
+
+```php
+->ajaxSearch(bool $ajax = true): static
+```
+Enable AJAX-powered option search for large option sets.
+
+---
+
+## Storage
+
+- Single: `"active"` (string)
+- Multiple: `["php", "js"]` (array of strings)
+
+---
+
+## Example
+
+```php
+Field::select('status')
+    ->label('Status')
+    ->options([
+        'draft'    => 'Draft',
+        'active'   => 'Active',
+        'archived' => 'Archived',
+    ])
+    ->default('draft')
+    ->setIndex(true)
+    ->adminColumn(true)
+    ->quickEdit(true),
+```
+
+---
+
+## Template usage
+
+```blade
+{{ fieldforge_get('status') }}  {{-- returns 'active' --}}
+```
+
+To display the label instead of the value, use the options array:
+
+```blade
+@php
+    $options = ['draft' => 'Draft', 'active' => 'Active', 'archived' => 'Archived'];
+    $value   = fieldforge_get('status');
+@endphp
+{{ $options[$value] ?? $value }}
+```

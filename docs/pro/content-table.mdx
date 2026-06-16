@@ -1,0 +1,81 @@
+# Content Table (Custom Table Storage)
+
+*(FieldForge Pro — Agency tier)*
+
+Store field data in a dedicated custom database table instead of `wp_postmeta`. Designed for high-volume content types where `wp_postmeta` becomes a performance bottleneck.
+
+---
+
+## When to use
+
+Use Content Table when:
+- A post type has 10,000+ rows
+- You need efficient `ORDER BY` or `LIMIT` queries across field values
+- You're building a data-heavy admin panel with sortable columns
+
+---
+
+## Setup
+
+```php
+use FieldForge\Builder\FieldGroup;
+use FieldForgePro\Builder\ContentTable;
+
+// Define the table structure
+ContentTable::make('portfolio_data')
+    ->columns([
+        'client_name'   => 'VARCHAR(255)',
+        'year'          => 'SMALLINT UNSIGNED',
+        'project_type'  => 'VARCHAR(50)',
+        'launch_date'   => 'DATE',
+    ])
+    ->install();  // runs CREATE TABLE IF NOT EXISTS
+
+// Tell the field group to use this table
+FieldGroup::make('portfolio_details')
+    ->where('post_type', '==', 'portfolio')
+    ->tableStorage('portfolio_data')
+    ->fields([...])
+    ->register();
+```
+
+---
+
+## Table management
+
+```bash
+# Install or update table schema
+wp fieldforge table install portfolio_data
+
+# Migrate existing wp_postmeta data into the custom table
+wp fieldforge table migrate portfolio_data --post-type=portfolio
+
+# Show table schema and row count
+wp fieldforge table status portfolio_data
+```
+
+---
+
+## Querying
+
+Custom table data is always available through the standard `fieldforge_get()` helpers. For direct database queries:
+
+```php
+global $wpdb;
+
+$results = $wpdb->get_results(
+    "SELECT post_id, client_name, year
+     FROM {$wpdb->prefix}fieldforge_portfolio_data
+     WHERE project_type = 'web'
+     ORDER BY year DESC
+     LIMIT 10"
+);
+```
+
+---
+
+## Notes
+
+- Field values are still accessible via `fieldforge_get()` — the adapter is transparent.
+- `setIndex()` has no effect on Content Table fields — all columns are queryable directly.
+- Table storage is Agency tier only. Personal tier sites fall back to `wp_postmeta`.

@@ -1,0 +1,89 @@
+# WooCommerce Integration
+
+*(FieldForge Pro)*
+
+Adds FieldForge field groups to WooCommerce product pages, product variations, and orders (HPOS-compatible).
+
+---
+
+## WooCommerce contexts
+
+Field groups target WooCommerce screens via the `context` condition:
+
+| Context key | Where it appears |
+|---|---|
+| `woo_product` | Product edit page (tab) |
+| `woo_variation` | Product variation row |
+| `woo_order` | Order detail page |
+| `woo_customer` | Customer profile page |
+
+---
+
+## Setup
+
+```php
+use FieldForge\Fields\Field;
+
+// Product fields — appear in a dedicated "FieldForge" tab
+Field::group('product_extra')
+    ->title('Product Extra')
+    ->where('context', '==', 'woo_product')
+    ->fields([
+        Field::text('sku_internal')->label('Internal SKU'),
+        Field::select('badge')->label('Badge')->options([
+            'new'     => 'New',
+            'sale'    => 'Sale',
+            'limited' => 'Limited',
+        ]),
+        Field::image('size_chart')->label('Size Chart')->returnFormat('url'),
+    ])
+    ->register();
+
+// Variation fields — appear per variation
+Field::group('variation_colors')
+    ->title('Color Options')
+    ->where('context', '==', 'woo_variation')
+    ->fields([
+        Field::color('swatch_color')->label('Swatch Color'),
+        Field::text('color_label')->label('Color Name'),
+    ])
+    ->register();
+
+// Order fields
+Field::group('order_notes_extra')
+    ->title('Delivery Notes')
+    ->where('context', '==', 'woo_order')
+    ->fields([
+        Field::textarea('delivery_notes')->label('Delivery Notes'),
+        Field::trueFalse('signature_required')->label('Signature Required'),
+    ])
+    ->register();
+```
+
+---
+
+## Reading field values
+
+```php
+// Product fields — use the post ID
+$badge = fieldforge_get('badge', $product->get_id());
+
+// Order fields — HPOS-compatible
+$notes = fieldforge_get('delivery_notes', $order->get_id());
+```
+
+---
+
+## HPOS compatibility
+
+Order fields use `WooOrderMetaAdapter` which calls `$order->get_meta()` / `$order->update_meta_data()`. This is fully compatible with WooCommerce High-Performance Order Storage (HPOS / Custom Order Tables).
+
+Product and variation fields continue to use standard WordPress post meta (`PostMetaAdapter`), which is correct since products remain as WP posts.
+
+---
+
+## Notes
+
+- The WooCommerce integration boots automatically when `class_exists('WooCommerce')` is true.
+- Variation fields save per-variation (keyed by `$variation->ID`).
+- All WooCommerce save handlers include nonce and capability verification.

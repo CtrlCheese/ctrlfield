@@ -1,0 +1,80 @@
+# User
+
+A WordPress user picker with live AJAX search. Stores one or more user IDs.
+
+---
+
+## PHP API
+
+```php
+Field::user(string $key): UserField
+```
+
+### Type-specific methods
+
+```php
+->multiple(bool $m = true): static
+```
+Allow selecting multiple users. Default: `false`.
+
+```php
+->roles(array $roles): static
+```
+Restrict the search to users with specific roles. e.g. `['author', 'editor']`.
+
+```php
+->minUsers(int $n): static
+```
+Minimum required selections.
+
+```php
+->maxUsers(int $n): static
+```
+Maximum allowed selections (0 = unlimited).
+
+---
+
+## Storage
+
+- Single: `42` (int — user ID)
+- Multiple: `[3, 7, 12]` (array of int user IDs)
+
+---
+
+## Example
+
+```php
+Field::user('assigned_to')
+    ->label('Assigned To')
+    ->roles(['editor', 'author'])
+    ->required(),
+
+Field::user('reviewers')
+    ->label('Reviewers')
+    ->multiple()
+    ->maxUsers(3),
+```
+
+---
+
+## Template usage
+
+```blade
+@php
+    $userId = fieldforge_get('assigned_to');
+    $user   = $userId ? get_userdata($userId) : null;
+@endphp
+
+@if($user)
+    <p>Assigned to: {{ $user->display_name }}</p>
+@endif
+```
+
+**Multiple users:**
+
+```blade
+@foreach(fieldforge_get('reviewers') as $uid)
+    @php $u = get_userdata($uid) @endphp
+    <span>{{ $u->display_name }}</span>
+@endforeach
+```

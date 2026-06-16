@@ -1,0 +1,100 @@
+# The Code-First Philosophy
+
+FieldForge is built on a single principle: **field definitions live in version-controlled PHP files, not in the database.**
+
+---
+
+## Why code-first?
+
+**Traditional WordPress custom field plugins** store schema in `wp_options` or `wp_postmeta`. This creates several problems:
+
+- Schema changes require database exports/imports between environments
+- Git diffs don't show field configuration changes
+- Staging-to-production sync is error-prone
+- No type safety, no autocompletion, no PHPStan
+
+**FieldForge stores only field values in the database.** The schema — which fields exist, their types, labels, conditions — lives entirely in PHP files that you commit to git.
+
+---
+
+## Schema lifecycle
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Git repo                                               │
+│  ├── fieldforge/                                        │
+│  │   ├── portfolio-details.php   ← your schema         │
+│  │   └── team-meta.php           ← another group       │
+│  └── functions.php               ← loads schemas       │
+└─────────────────────────────────────────────────────────┘
+           │
+           │  fieldforge_load_schemas()
+           │
+           ▼
+┌─────────────────────────────────────────────────────────┐
+│  WordPress runtime (memory only)                        │
+│  FieldRegistry::all() → FieldGroup[]                    │
+└─────────────────────────────────────────────────────────┘
+           │
+           │  save_post hook → SavePipeline
+           │
+           ▼
+┌─────────────────────────────────────────────────────────┐
+│  Database (values only)                                 │
+│  _fieldforge_data: {"client_name":"Acme","year":2026}  │
+│  _fieldforge_idx_client_name: "Acme"  ← if indexed     │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Schema migrations
+
+When you add a field to an existing group, **old posts are not automatically migrated**. This is intentional: silent data coercion can corrupt production data in ways that are hard to detect.
+
+To migrate existing posts to the new schema:
+
+```bash
+wp fieldforge migrate --post-type=portfolio
+```
+
+Use `--dry-run` first to see what would change:
+
+```bash
+wp fieldforge migrate --post-type=portfolio --dry-run
+```
+
+---
+
+## Environment parity
+
+Because schema is in code, every environment (local, staging, production) always has the same field structure as long as it runs the same git commit. There are no "did you sync the DB?" issues.
+
+**Staging environments never consume a Pro activation slot.** FieldForge automatically detects localhost, `*.local`, `*.dev`, `*.staging`, and `*.test` domains.
+
+---
+
+## Type safety
+
+FieldForge leans into PHP 8.2+ features: `readonly` properties, named arguments, enums, and union types. Your editor and PHPStan can verify field usage at analysis time.
+
+```php
+// PHPStan knows this returns SelectField, not a generic object
+$field = Field::select('status')
+    ->options(['active' => 'Active', 'archived' => 'Archived'])
+    ->required();
+```
+
+---
+
+## Fluent API conventions
+
+Every fluent method returns `static` (not `self`), so subclasses preserve their type through the chain:
+
+```php
+Field::date('launch_date')       // returns DateField
+    ->label('Launch Date')       // still DateField
+    ->format('d/m/Y')            // DateField-specific method
+    ->returnFormat('DateTime')   // FieldDefinition method, still DateField
+    ->setIndex(true);            // FieldDefinition method, still DateField
+```

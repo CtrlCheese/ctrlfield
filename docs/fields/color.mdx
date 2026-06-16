@@ -1,0 +1,52 @@
+# Color
+
+A color picker. Stored as a hex string (e.g. `#3a86ff`) or rgba string when alpha is enabled.
+
+---
+
+## PHP API
+
+```php
+Field::color(string $key): ColorField
+```
+
+### Type-specific methods
+
+```php
+->palette(array $colors): static
+```
+Array of hex strings to show as quick-pick swatches.
+
+```php
+->enableAlpha(bool $alpha = true): static
+```
+Show an alpha channel slider. Default: `false`.
+
+---
+
+## Storage
+
+```json
+{ "brand_color": "#3a86ff" }
+```
+
+---
+
+## Example
+
+```php
+Field::color('brand_color')
+    ->label('Brand Color')
+    ->palette(['#3a86ff', '#ff006e', '#ffbe0b', '#ffffff', '#000000'])
+    ->enableAlpha(false),
+```
+
+---
+
+## Template usage
+
+```blade
+<div style="background-color: {{ fieldforge_get('brand_color') }}">
+    ...
+</div>
+```

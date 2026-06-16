@@ -1,0 +1,67 @@
+# Checkbox
+
+A multi-select list of checkboxes. Stores selected values as an array.
+
+---
+
+## PHP API
+
+```php
+Field::checkbox(string $key): CheckboxField
+```
+
+### Type-specific methods
+
+```php
+->options(array $options): static
+```
+Associative `value => label` array.
+
+```php
+->allowCustom(bool $allow = true): static
+```
+Allow entering custom values not in the predefined list.
+
+---
+
+## Storage
+
+```json
+{ "technologies": ["php", "js", "css"] }
+```
+
+Always an array, even when only one option is selected.
+
+---
+
+## Example
+
+```php
+Field::checkbox('technologies')
+    ->label('Technologies Used')
+    ->options([
+        'php'        => 'PHP',
+        'js'         => 'JavaScript',
+        'css'        => 'CSS',
+        'wordpress'  => 'WordPress',
+    ])
+    ->default(['php', 'wordpress']),
+```
+
+---
+
+## Template usage
+
+```blade
+<ul>
+    @foreach(fieldforge_get('technologies') as $tech)
+        <li>{{ $tech }}</li>
+    @endforeach
+</ul>
+```
+
+---
+
+## Notes
+
+- Supports `->bulkEdit()` for bulk-editing from the post list table.

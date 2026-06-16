@@ -1,0 +1,42 @@
+# Email
+
+An email address input. Sanitized with `sanitize_email()`.
+
+---
+
+## PHP API
+
+```php
+Field::email(string $key): EmailField
+```
+
+No type-specific methods.
+
+---
+
+## Storage
+
+```json
+{ "contact_email": "hello@example.com" }
+```
+
+---
+
+## Example
+
+```php
+Field::email('contact_email')
+    ->label('Contact Email')
+    ->placeholder('hello@example.com')
+    ->required(),
+```
+
+---
+
+## Template usage
+
+```blade
+<a href="mailto:{{ fieldforge_get('contact_email') }}">
+    {{ fieldforge_get('contact_email') }}
+</a>
+```

@@ -1,0 +1,49 @@
+# URL
+
+A URL input. Sanitized with `esc_url_raw()`.
+
+---
+
+## PHP API
+
+```php
+Field::url(string $key): UrlField
+```
+
+No type-specific methods.
+
+---
+
+## Storage
+
+```json
+{ "website": "https://example.com" }
+```
+
+---
+
+## Example
+
+```php
+Field::url('website')
+    ->label('Website URL')
+    ->placeholder('https://')
+    ->required(),
+```
+
+---
+
+## Template usage
+
+```blade
+<a href="{{ fieldforge_get('website') }}" target="_blank" rel="noopener">
+    Visit Website
+</a>
+```
+
+```php
+$url = fieldforge_get('website');
+if ($url) {
+    printf('<a href="%s">Visit</a>', esc_url($url));
+}
+```
