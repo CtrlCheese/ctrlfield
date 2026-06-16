@@ -103,4 +103,124 @@ class ReturnFormatDecoratorTest extends TestCase
 
         $this->assertSame('array', $field->getReturnFormat());
     }
+
+    // -------------------------------------------------------------------------
+    // Gallery (Pro type — tested via anonymous FieldDefinition subclass)
+    // -------------------------------------------------------------------------
+
+    public function test_gallery_url_format_returns_array_of_strings(): void
+    {
+        $field = $this->makeField(\FieldForge\Enums\FieldType::GALLERY)->returnFormat('url');
+        $result = ReturnFormatDecorator::apply([4, 8, 15], $field);
+
+        $this->assertIsArray($result);
+        $this->assertCount(3, $result);
+        foreach ($result as $url) {
+            $this->assertIsString($url);
+        }
+    }
+
+    public function test_gallery_url_format_with_non_array_returns_empty_array(): void
+    {
+        $field  = $this->makeField(\FieldForge\Enums\FieldType::GALLERY)->returnFormat('url');
+        $result = ReturnFormatDecorator::apply('not-an-array', $field);
+
+        $this->assertSame([], $result);
+    }
+
+    public function test_gallery_array_format_returns_array(): void
+    {
+        $field  = $this->makeField(\FieldForge\Enums\FieldType::GALLERY)->returnFormat('array');
+        $result = ReturnFormatDecorator::apply([4, 8], $field);
+
+        $this->assertIsArray($result);
+    }
+
+    // -------------------------------------------------------------------------
+    // POST_OBJECT / RELATIONSHIP — toObject with arrays (Pro types)
+    // -------------------------------------------------------------------------
+
+    public function test_object_format_on_post_object_single_id_returns_stdclass(): void
+    {
+        $field  = $this->makeField(\FieldForge\Enums\FieldType::POST_OBJECT)->returnFormat('object');
+        $result = ReturnFormatDecorator::apply(42, $field);
+
+        // stubs.php get_post() returns a stdClass with ID matching the int arg
+        $this->assertIsObject($result);
+        $this->assertSame(42, $result->ID);
+    }
+
+    public function test_object_format_on_post_object_array_of_ids_returns_array_of_objects(): void
+    {
+        $field  = $this->makeField(\FieldForge\Enums\FieldType::POST_OBJECT)->returnFormat('object');
+        $result = ReturnFormatDecorator::apply([3, 7, 12], $field);
+
+        $this->assertIsArray($result);
+        $this->assertCount(3, $result);
+        $this->assertSame(3, $result[0]->ID);
+        $this->assertSame(12, $result[2]->ID);
+    }
+
+    public function test_relationship_object_format_always_returns_array(): void
+    {
+        $field  = $this->makeField(\FieldForge\Enums\FieldType::RELATIONSHIP)->returnFormat('object');
+        $result = ReturnFormatDecorator::apply([1, 2], $field);
+
+        $this->assertIsArray($result);
+        $this->assertCount(2, $result);
+    }
+
+    // -------------------------------------------------------------------------
+    // DATE → timestamp
+    // -------------------------------------------------------------------------
+
+    public function test_timestamp_format_returns_zero_for_empty_string(): void
+    {
+        $field  = Field::date('deadline')->returnFormat('timestamp');
+        $result = ReturnFormatDecorator::apply('', $field);
+
+        $this->assertSame(0, $result);
+    }
+
+    public function test_timestamp_format_parses_datetime_string(): void
+    {
+        $field  = Field::datetime('scheduled_at')->returnFormat('timestamp');
+        $result = ReturnFormatDecorator::apply('2026-01-01 12:00:00', $field);
+
+        $this->assertIsInt($result);
+        $this->assertGreaterThan(0, $result);
+    }
+
+    // -------------------------------------------------------------------------
+    // Default passthrough
+    // -------------------------------------------------------------------------
+
+    public function test_unknown_format_returns_value_unchanged(): void
+    {
+        $field  = Field::text('title')->returnFormat('custom_format');
+        $result = ReturnFormatDecorator::apply('hello', $field);
+
+        $this->assertSame('hello', $result);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helper
+    // -------------------------------------------------------------------------
+
+    private function makeField(\FieldForge\Enums\FieldType $type): \FieldForge\Fields\FieldDefinition
+    {
+        return new class($type, 'test') extends \FieldForge\Fields\FieldDefinition {
+            public function __construct(
+                private readonly \FieldForge\Enums\FieldType $fieldType,
+                string $key,
+            ) {
+                parent::__construct($key);
+            }
+
+            public function getType(): \FieldForge\Enums\FieldType
+            {
+                return $this->fieldType;
+            }
+        };
+    }
 }

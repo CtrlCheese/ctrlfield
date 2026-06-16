@@ -38,6 +38,9 @@ class EnumsTest extends TestCase
             'clone',
             // Core (Cycle A-10)
             'computed',
+            // Core CYCLES4 — new field types
+            'true_false', 'tab', 'accordion', 'accordion_end',
+            'message', 'separator', 'button_group', 'user', 'icon', 'code',
         ];
 
         $actual = array_map(fn(FieldType $t) => $t->value, FieldType::cases());
