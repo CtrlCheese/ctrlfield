@@ -152,6 +152,14 @@ if (! function_exists('admin_url')) {
     }
 }
 
+if (! function_exists('wp_kses_post')) {
+    function wp_kses_post(string $data): string
+    {
+        // Minimal stub: strip tags not allowed in post content (script, iframe, etc.)
+        return strip_tags($data, ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'pre', 'code', 'span', 'div']);
+    }
+}
+
 if (! function_exists('sanitize_text_field')) {
     function sanitize_text_field(string $str): string
     {

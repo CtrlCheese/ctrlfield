@@ -197,4 +197,56 @@ class CsvImporterTest extends TestCase
         $this->assertIsInt($stats['skipped']);
         $this->assertIsArray($stats['errors']);
     }
+
+    public function test_import_skips_row_when_capability_check_fails(): void
+    {
+        Field::group('portfolio_details')
+            ->where('post_type', '==', 'portfolio')
+            ->fields([Field::text('client_name')])
+            ->register();
+
+        // The unit test stubs.php current_user_can() always returns false,
+        // so the capability check in CsvImporter always denies edit_post.
+        $csv = "post_id,post_title,post_status,client_name\n";
+        $csv .= "99,Some Post,publish,Blocked\n";
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        file_put_contents($tmpFile, $csv);
+
+        try {
+            $importer = new CsvImporter();
+            $stats    = $importer->import($tmpFile, 'portfolio', false, true, false);
+
+            $this->assertSame(0, $stats['updated']);
+            $this->assertSame(1, $stats['skipped']);
+            $this->assertStringContainsString('insufficient permission', $stats['errors'][0]);
+        } finally {
+            unlink($tmpFile);
+        }
+    }
+
+    public function test_import_column_mismatch_is_skipped_with_error(): void
+    {
+        Field::group('portfolio_details')
+            ->where('post_type', '==', 'portfolio')
+            ->fields([Field::text('client_name')])
+            ->register();
+
+        // 3 headers but row has only 2 values
+        $csv = "post_id,post_title,client_name\n";
+        $csv .= "0,Short\n";
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        file_put_contents($tmpFile, $csv);
+
+        try {
+            $importer = new CsvImporter();
+            $stats    = $importer->import($tmpFile, 'portfolio');
+
+            $this->assertSame(1, $stats['skipped']);
+            $this->assertStringContainsString('column count mismatch', $stats['errors'][0]);
+        } finally {
+            unlink($tmpFile);
+        }
+    }
 }

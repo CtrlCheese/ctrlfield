@@ -165,6 +165,117 @@ class SanitizationStageTest extends TestCase
 
         $this->assertEmpty($context->indexedFields);
     }
+
+    // -------------------------------------------------------------------------
+    // CYCLES4 new field type sanitization
+    // -------------------------------------------------------------------------
+
+    public function test_true_false_cast_to_int(): void
+    {
+        $group   = $this->makeGroup([Field::trueFalse('active')]);
+        $adapter = $this->makeAdapter();
+        $stage   = new SanitizationStage($adapter);
+
+        $context         = new PipelineContext(1, [], [$group]);
+        $context->fields = ['active' => '1'];
+        $stage->handle($context);
+        $this->assertSame(1, $context->fields['active']);
+
+        $context->fields = ['active' => ''];
+        $stage->handle($context);
+        $this->assertSame(0, $context->fields['active']);
+    }
+
+    public function test_button_group_sanitized_as_text(): void
+    {
+        $group   = $this->makeGroup([Field::buttonGroup('size')->options(['sm' => 'Small'])]);
+        $adapter = $this->makeAdapter();
+        $stage   = new SanitizationStage($adapter);
+
+        $context         = new PipelineContext(1, [], [$group]);
+        $context->fields = ['size' => '<b>large</b>'];
+        $stage->handle($context);
+
+        $this->assertStringNotContainsString('<b>', $context->fields['size']);
+    }
+
+    public function test_user_single_cast_to_int(): void
+    {
+        $group   = $this->makeGroup([Field::user('author')]);
+        $adapter = $this->makeAdapter();
+        $stage   = new SanitizationStage($adapter);
+
+        $context         = new PipelineContext(1, [], [$group]);
+        $context->fields = ['author' => '42'];
+        $stage->handle($context);
+
+        $this->assertSame(42, $context->fields['author']);
+    }
+
+    public function test_user_multiple_returns_array_of_ints(): void
+    {
+        $group   = $this->makeGroup([Field::user('contributors')->multiple()]);
+        $adapter = $this->makeAdapter();
+        $stage   = new SanitizationStage($adapter);
+
+        $context         = new PipelineContext(1, [], [$group]);
+        $context->fields = ['contributors' => ['3', '7', '12']];
+        $stage->handle($context);
+
+        $this->assertSame([3, 7, 12], $context->fields['contributors']);
+    }
+
+    public function test_icon_sanitized_as_text(): void
+    {
+        $group   = $this->makeGroup([Field::icon('social_icon')]);
+        $adapter = $this->makeAdapter();
+        $stage   = new SanitizationStage($adapter);
+
+        $context         = new PipelineContext(1, [], [$group]);
+        $context->fields = ['social_icon' => 'dashicons-admin-home'];
+        $stage->handle($context);
+
+        $this->assertSame('dashicons-admin-home', $context->fields['social_icon']);
+    }
+
+    public function test_code_field_strips_xss_via_kses(): void
+    {
+        $group   = $this->makeGroup([Field::code('snippet')]);
+        $adapter = $this->makeAdapter();
+        $stage   = new SanitizationStage($adapter);
+
+        $context         = new PipelineContext(1, [], [$group]);
+        // <script> is not in the kses allowed list
+        $context->fields = ['snippet' => '<?php echo "hello"; ?><script>alert(1)</script>'];
+        $stage->handle($context);
+
+        $this->assertStringNotContainsString('<script>', (string) $context->fields['snippet']);
+    }
+
+    public function test_tab_separator_message_accordion_are_passthrough(): void
+    {
+        $group   = $this->makeGroup([
+            Field::tab('details'),
+            Field::separator('div'),
+            Field::message('notice'),
+            Field::accordion('advanced'),
+        ]);
+        $adapter = $this->makeAdapter();
+        $stage   = new SanitizationStage($adapter);
+
+        $context         = new PipelineContext(1, [], [$group]);
+        $context->fields = [
+            'details'  => 'raw',
+            'div'      => 'raw',
+            'notice'   => 'raw',
+            'advanced' => 'raw',
+        ];
+        $stage->handle($context);
+
+        // UI-only fields never appear in real payloads, but if they do, they pass through
+        $this->assertSame('raw', $context->fields['details']);
+        $this->assertSame('raw', $context->fields['div']);
+    }
 }
 
 // ---------------------------------------------------------------------------
