@@ -56,7 +56,7 @@ class FieldsController
         register_rest_route(self::NAMESPACE, '/schema/(?P<post_type>[a-z0-9_-]+)', [
             'methods'             => 'GET',
             'callback'            => [$this, 'getSchema'],
-            'permission_callback' => '__return_true',
+            'permission_callback' => [$this, 'canViewSchema'],
             'args'                => [
                 'post_type' => [
                     'required'          => true,
@@ -168,8 +168,11 @@ class FieldsController
             ], 422);
         }
 
+        $post   = get_post($postId);
         $stored = FieldDataService::getInstance()->getAll($postId, 'post');
-        return new \WP_REST_Response(['fields' => $stored], 200);
+        $ctx    = new AdminContext(postType: $post?->post_type ?? '');
+
+        return new \WP_REST_Response(['fields' => $this->filterRestExposed($ctx, $stored)], 200);
     }
 
     public function updateUserFields(\WP_REST_Request $request): \WP_REST_Response
@@ -197,7 +200,9 @@ class FieldsController
         }
 
         $stored = FieldDataService::getInstance()->getAll($userId, 'user');
-        return new \WP_REST_Response(['fields' => $stored], 200);
+        $ctx    = new AdminContext(contextType: 'user_profile');
+
+        return new \WP_REST_Response(['fields' => $this->filterRestExposed($ctx, $stored)], 200);
     }
 
     public function updateTermFields(\WP_REST_Request $request): \WP_REST_Response
@@ -224,13 +229,27 @@ class FieldsController
             ], 422);
         }
 
-        $stored = FieldDataService::getInstance()->getAll($termId, 'term');
-        return new \WP_REST_Response(['fields' => $stored], 200);
+        $stored   = FieldDataService::getInstance()->getAll($termId, 'term');
+        $termObj  = get_term($termId);
+        $taxonomy = ($termObj instanceof \WP_Term) ? $termObj->taxonomy : null;
+        $ctx      = new AdminContext(taxonomy: $taxonomy);
+
+        return new \WP_REST_Response(['fields' => $this->filterRestExposed($ctx, $stored)], 200);
     }
 
     // -------------------------------------------------------------------------
     // Permission callbacks
     // -------------------------------------------------------------------------
+
+    /** @return bool|\WP_Error */
+    public function canViewSchema(\WP_REST_Request $request): bool|\WP_Error
+    {
+        if (! is_user_logged_in()) {
+            return new \WP_Error('rest_not_logged_in', 'Authentication required.', ['status' => 401]);
+        }
+
+        return (bool) current_user_can('edit_posts');
+    }
 
     /** @return bool|\WP_Error */
     public function canReadPost(\WP_REST_Request $request): bool|\WP_Error
@@ -299,5 +318,33 @@ class FieldsController
         // Use the taxonomy-specific edit_terms capability instead of the
         // flat manage_categories which grants access to ALL taxonomies.
         return (bool) current_user_can($taxonomy->cap->edit_terms);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Filters stored fields to only those flagged as rest_exposed, matching the
+     * behaviour of getPostFields(). Applied to all PATCH responses so callers
+     * never receive fields they aren't supposed to see.
+     *
+     * @param  array<string, mixed> $stored
+     * @return array<string, mixed>
+     */
+    private function filterRestExposed(AdminContext $context, array $stored): array
+    {
+        $groups   = ContextRegistry::resolve($context);
+        $restKeys = [];
+
+        foreach ($groups as $group) {
+            foreach ($group->getFields() as $field) {
+                if ($field->getDefinition()['rest_exposed'] === true) {
+                    $restKeys[] = $field->getKey();
+                }
+            }
+        }
+
+        return array_intersect_key($stored, array_flip($restKeys));
     }
 }

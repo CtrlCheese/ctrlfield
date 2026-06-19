@@ -8,6 +8,8 @@ use FieldForge\Core\Pipeline\Contracts\StageInterface;
 use FieldForge\Core\Pipeline\PipelineContext;
 use FieldForge\Core\Pipeline\Traits\BuildsFieldMap;
 use FieldForge\Fields\Contracts\FieldSanitizerInterface;
+use FieldForge\Fields\Contracts\NestedFieldInterface;
+use FieldForge\Fields\FieldDefinition;
 use FieldForge\Enums\FieldType;
 use FieldForge\Fields\Sanitizers\ColorSanitizer;
 use FieldForge\Fields\Sanitizers\DateSanitizer;
@@ -42,7 +44,7 @@ class SanitizationStage implements StageInterface
             if ($definition instanceof FieldSanitizerInterface) {
                 $sanitized[$key] = $definition->sanitizeForStorage($value);
             } else {
-                $sanitized[$key] = self::sanitize($value, $type);
+                $sanitized[$key] = self::sanitize($value, $type, $definition);
             }
 
             if ($definition?->isIndex() === true) {
@@ -59,7 +61,20 @@ class SanitizationStage implements StageInterface
         $context->indexedFields = $indexed;
     }
 
-    private static function sanitize(mixed $value, FieldType $type): mixed
+    /**
+     * Entry point for external callers (e.g. CsvImporter) that need to sanitize
+     * a single value outside of the full pipeline.
+     */
+    public static function sanitizeField(mixed $value, FieldDefinition $definition): mixed
+    {
+        if ($definition instanceof FieldSanitizerInterface) {
+            return $definition->sanitizeForStorage($value);
+        }
+
+        return self::sanitize($value, $definition->getType(), $definition);
+    }
+
+    private static function sanitize(mixed $value, FieldType $type, ?FieldDefinition $definition = null): mixed
     {
         return match ($type) {
             FieldType::TEXT     => self::sanitizeText((string) $value),
@@ -75,8 +90,8 @@ class SanitizationStage implements StageInterface
             FieldType::CHECKBOX => is_array($value)
                 ? array_map(static fn(mixed $v) => self::sanitizeText((string) $v), $value)
                 : [],
-            FieldType::GROUP,
-            FieldType::REPEATER,
+            FieldType::GROUP    => self::sanitizeGroup($value, $definition),
+            FieldType::REPEATER => self::sanitizeRepeater($value, $definition),
             FieldType::FLEXIBLE_CONTENT,
             FieldType::POST_OBJECT,
             FieldType::TAXONOMY_TERM,
@@ -101,8 +116,10 @@ class SanitizationStage implements StageInterface
                 : (int) $value,
             // C-5: Icon — string like "dashicons-admin-home"
             FieldType::ICON => self::sanitizeText((string) $value),
-            // C-6: Code — preserve code characters, prevent XSS
-            FieldType::CODE => function_exists('wp_kses_post') ? wp_kses_post((string) $value) : (string) $value,
+            // C-6: Code — strip all tags; stored as text, escaped on output
+            FieldType::CODE => function_exists('sanitize_textarea_field')
+                ? sanitize_textarea_field((string) $value)
+                : strip_tags((string) $value),
             // C-1 / C-2: UI-only fields — never appear in payload, passthrough
             FieldType::TAB,
             FieldType::ACCORDION,
@@ -110,6 +127,92 @@ class SanitizationStage implements StageInterface
             FieldType::MESSAGE,
             FieldType::SEPARATOR => $value,
         };
+    }
+
+    /**
+     * Sanitizes a GROUP value by iterating each sub-field according to its schema type.
+     * Unknown keys (not in schema) are stripped.
+     *
+     * @param  array<string, mixed> $subMap
+     * @return array<string, mixed>
+     */
+    private static function sanitizeGroup(mixed $value, ?FieldDefinition $definition): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        if (! ($definition instanceof NestedFieldInterface)) {
+            // No schema available — fall back to text-sanitizing all string leaves.
+            return self::sanitizeFallback($value);
+        }
+
+        $subMap    = self::buildSubMap($definition->getFields());
+        $sanitized = [];
+
+        foreach ($value as $key => $subValue) {
+            $subDef = $subMap[$key] ?? null;
+            if ($subDef === null) {
+                continue; // strip unknown keys
+            }
+
+            if ($subDef instanceof FieldSanitizerInterface) {
+                $sanitized[$key] = $subDef->sanitizeForStorage($subValue);
+            } else {
+                $sanitized[$key] = self::sanitize($subValue, $subDef->getType(), $subDef);
+            }
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Sanitizes a REPEATER value by sanitizing each row as a group.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function sanitizeRepeater(mixed $value, ?FieldDefinition $definition): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(
+            array_map(
+                static fn(mixed $row) => self::sanitizeGroup($row, $definition),
+                $value
+            )
+        );
+    }
+
+    /**
+     * Fallback for nested arrays without schema: text-sanitize every string leaf.
+     *
+     * @param  array<mixed, mixed> $arr
+     * @return array<mixed, mixed>
+     */
+    private static function sanitizeFallback(array $arr): array
+    {
+        $out = [];
+        foreach ($arr as $k => $v) {
+            $out[$k] = is_array($v)
+                ? self::sanitizeFallback($v)
+                : self::sanitizeText((string) $v);
+        }
+        return $out;
+    }
+
+    /**
+     * @param  array<int, \FieldForge\Fields\FieldDefinition> $fields
+     * @return array<string, \FieldForge\Fields\FieldDefinition>
+     */
+    private static function buildSubMap(array $fields): array
+    {
+        $map = [];
+        foreach ($fields as $field) {
+            $map[$field->getKey()] = $field;
+        }
+        return $map;
     }
 
     private static function sanitizeText(string $value): string

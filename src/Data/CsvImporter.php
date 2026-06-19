@@ -6,6 +6,8 @@ namespace FieldForge\Data;
 
 use FieldForge\Builder\FieldGroup;
 use FieldForge\Core\Migration\SchemaVersion;
+use FieldForge\Core\Pipeline\Stages\SanitizationStage;
+use FieldForge\Fields\FieldDefinition;
 use FieldForge\Registry\FieldRegistry;
 use FieldForge\Storage\Drivers\WpPostMetaDriver;
 use FieldForge\Storage\PostMetaAdapter;
@@ -52,8 +54,8 @@ final class CsvImporter
             }
 
             $headers    = array_map('trim', $headers);
-            $groups     = $this->resolveGroups($postType);
-            $schemaKeys = $this->collectSchemaKeys($groups);
+            $groups    = $this->resolveGroups($postType);
+            $fieldMap  = $this->collectFieldMap($groups);
             $rowNum     = 1;
 
             while (($row = fgetcsv($handle, 0, ',', '"', '')) !== false) {
@@ -75,7 +77,7 @@ final class CsvImporter
                 $result = $this->processRow(
                     $record,
                     $postType,
-                    $schemaKeys,
+                    $fieldMap,
                     $rowNum,
                     $dryRun,
                     $updateExisting,
@@ -98,14 +100,14 @@ final class CsvImporter
     // -------------------------------------------------------------------------
 
     /**
-     * @param array<string, string> $record
-     * @param array<string, true>   $schemaKeys
+     * @param array<string, string>      $record
+     * @param array<string, FieldDefinition> $fieldMap
      * @return array{status: 'updated'|'created'|'skipped', error?: string}
      */
     private function processRow(
         array  $record,
         string $postType,
-        array  $schemaKeys,
+        array  $fieldMap,
         int    $rowNum,
         bool   $dryRun,
         bool   $updateExisting,
@@ -122,25 +124,28 @@ final class CsvImporter
                 continue;
             }
 
-            if (! isset($schemaKeys[$key])) {
+            $definition = $fieldMap[$key] ?? null;
+            if ($definition === null) {
                 return [
                     'status' => 'skipped',
                     'error'  => "Row {$rowNum}: column '{$key}' not in schema for post_type '{$postType}' — skipped.",
                 ];
             }
 
-            // Decode JSON-encoded complex fields (group, repeater, link)
+            // Decode JSON-encoded complex fields (group, repeater, link) before sanitizing.
             $trimmed = trim($value);
             if (str_starts_with($trimmed, '{') || str_starts_with($trimmed, '[')) {
                 try {
                     $decoded = json_decode($trimmed, true, 512, JSON_THROW_ON_ERROR);
-                    $fieldData[$key] = $decoded;
+                    $raw = $decoded;
                 } catch (\JsonException) {
-                    $fieldData[$key] = $value;
+                    $raw = $value;
                 }
             } else {
-                $fieldData[$key] = $value;
+                $raw = $value;
             }
+
+            $fieldData[$key] = SanitizationStage::sanitizeField($raw, $definition);
         }
 
         if ($postId > 0) {
@@ -237,18 +242,18 @@ final class CsvImporter
 
     /**
      * @param FieldGroup[] $groups
-     * @return array<string, true>
+     * @return array<string, FieldDefinition>
      */
-    private function collectSchemaKeys(array $groups): array
+    private function collectFieldMap(array $groups): array
     {
-        $keys = [];
+        $map = [];
 
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
-                $keys[$field->getKey()] = true;
+                $map[$field->getKey()] = $field;
             }
         }
 
-        return $keys;
+        return $map;
     }
 }

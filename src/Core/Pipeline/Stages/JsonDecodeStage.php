@@ -35,11 +35,6 @@ class JsonDecodeStage implements StageInterface
             );
         }
 
-        // WordPress adds slashes to $_POST via wp_magic_quotes(). Strip them before decoding.
-        if (function_exists('wp_unslash')) {
-            $raw = (string) wp_unslash($raw);
-        }
-
         try {
             $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {

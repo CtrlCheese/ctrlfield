@@ -8,6 +8,31 @@
 
 declare(strict_types=1);
 
+if (! function_exists('add_action')) {
+    function add_action(string $hook, callable $callback, int $priority = 10, int $accepted_args = 1): true
+    {
+        return true;
+    }
+}
+
+if (! function_exists('add_filter')) {
+    function add_filter(string $hook, callable $callback, int $priority = 10, int $accepted_args = 1): true
+    {
+        return true;
+    }
+}
+
+if (! function_exists('apply_filters')) {
+    function apply_filters(string $hook, mixed $value, mixed ...$args): mixed
+    {
+        return $value;
+    }
+}
+
+if (! function_exists('do_action')) {
+    function do_action(string $hook, mixed ...$args): void {}
+}
+
 if (! function_exists('esc_html')) {
     function esc_html(string $text): string
     {

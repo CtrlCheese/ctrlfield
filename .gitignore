@@ -23,6 +23,8 @@ wp-content/debug.log
 .env
 .env.*
 !.env.example
+.wp-env.json
+.wp-env.override.json
 
 # PHPStan cache
 .phpstan.cache/

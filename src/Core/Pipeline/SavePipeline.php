@@ -75,11 +75,15 @@ class SavePipeline
             return;
         }
 
-        $context  = new PipelineContext($entityId, $rawPost, array_values($groups));
+        // $_POST is magic-quoted by wp_magic_quotes(). Unslash at the boundary so
+        // every downstream stage (including JsonDecodeStage) receives clean strings.
+        $unslashed = function_exists('wp_unslash') ? (array) wp_unslash($rawPost) : $rawPost;
+
+        $context  = new PipelineContext($entityId, $unslashed, array_values($groups));
         $adapter  = $adapterOverride ?? new PostMetaAdapter(new WpPostMetaDriver());
         $pipeline = new self(self::buildFullStages($adapter));
 
-        self::dispatch($pipeline, $context, $entityId, $rawPost);
+        self::dispatch($pipeline, $context, $entityId, $unslashed);
     }
 
     /**
