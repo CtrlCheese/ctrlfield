@@ -33,7 +33,6 @@ final class TranslationBridge
         }
 
         if (self::isPolylangActive()) {
-            /** @phpstan-ignore-next-line */
             return (string)(pll_current_language() ?: '');
         }
 
@@ -46,7 +45,6 @@ final class TranslationBridge
             $postType = get_post_type($translatedId);
             if (is_string($postType)) {
                 $defaultLang = apply_filters('wpml_default_language', null);
-                /** @phpstan-ignore-next-line */
                 $original = apply_filters('wpml_object_id', $translatedId, $postType, false, $defaultLang);
                 if (is_int($original) && $original > 0) {
                     return $original;
@@ -55,10 +53,8 @@ final class TranslationBridge
         }
 
         if (self::isPolylangActive() && function_exists('pll_default_language') && function_exists('pll_get_post')) {
-            /** @phpstan-ignore-next-line */
             $default = pll_default_language();
             if (is_string($default) && $default !== '') {
-                /** @phpstan-ignore-next-line */
                 $original = pll_get_post($translatedId, $default);
                 if (is_int($original) && $original > 0) {
                     return $original;
@@ -79,7 +75,6 @@ final class TranslationBridge
         if (self::isWpmlActive() && function_exists('get_post_type') && function_exists('apply_filters')) {
             $postType = get_post_type($postId);
             if (is_string($postType)) {
-                /** @phpstan-ignore-next-line */
                 $details = apply_filters('wpml_element_translations', null, $postId, $postType);
                 if (is_array($details)) {
                     $result = [];
@@ -94,7 +89,6 @@ final class TranslationBridge
         }
 
         if (self::isPolylangActive() && function_exists('pll_get_post_translations')) {
-            /** @phpstan-ignore-next-line */
             $translations = pll_get_post_translations($postId);
             if (is_array($translations)) {
                 return array_map('intval', $translations);

@@ -46,7 +46,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Run PHPStan
-        run: vendor/bin/phpstan analyse --no-progress
+        run: php -d memory_limit=512M vendor/bin/phpstan analyse --no-progress
 
   # ─────────────────────────────────────────────────────────────────
   # 3. PHP unit tests
@@ -116,8 +116,11 @@ jobs:
       - name: Install PHP deps
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Start wp-env (CI config — free plugin only)
-        run: npx @wordpress/env start --config .wp-env.ci.json
+      - name: Use CI wp-env config (free plugin only)
+        run: cp .wp-env.ci.json .wp-env.json
+
+      - name: Start wp-env
+        run: npx @wordpress/env start
 
       - name: Run integration tests
         run: |
