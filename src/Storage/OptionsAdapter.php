@@ -73,12 +73,14 @@ class OptionsAdapter implements StorageAdapterInterface
             : 0;
 
         if ($storedVersion < SchemaVersion::CURRENT) {
-            error_log(sprintf(
-                'FieldForge: schema_version mismatch on options page "%s" (stored: %d, current: %d). Run "wp fieldforge migrate".',
-                $id,
-                $storedVersion,
-                SchemaVersion::CURRENT,
-            ));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf(
+                    'FieldForge: schema_version mismatch on options page "%s" (stored: %d, current: %d). Run "wp fieldforge migrate".',
+                    $id,
+                    $storedVersion,
+                    SchemaVersion::CURRENT,
+                ));
+            }
             return null;
         }
 

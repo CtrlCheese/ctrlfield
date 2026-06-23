@@ -203,13 +203,21 @@ final class SearchController
         $users   = get_users($args);
         $results = [];
 
+        // Only expose email to users who can explicitly manage others' accounts.
+        $includeEmail = current_user_can('manage_options');
+
         foreach ($users as $user) {
-            $results[] = [
+            $entry = [
                 'id'           => $user->ID,
                 'display_name' => $user->display_name,
-                'email'        => $user->user_email,
                 'avatar_url'   => get_avatar_url($user->ID, ['size' => 24]),
             ];
+
+            if ($includeEmail) {
+                $entry['email'] = $user->user_email;
+            }
+
+            $results[] = $entry;
         }
 
         return new \WP_REST_Response(['results' => $results, 'total' => count($results)], 200);

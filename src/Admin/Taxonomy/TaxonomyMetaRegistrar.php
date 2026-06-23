@@ -65,6 +65,14 @@ class TaxonomyMetaRegistrar
 
         $taxonomy = sanitize_key($_POST['taxonomy'] ?? '');
 
+        // Verify the user can edit terms in this taxonomy before running the pipeline.
+        $taxonomyObj = $taxonomy !== '' ? get_taxonomy($taxonomy) : false;
+        $cap         = ($taxonomyObj !== false) ? $taxonomyObj->cap->edit_terms : 'manage_categories';
+
+        if (! current_user_can($cap, $termId)) {
+            return;
+        }
+
         SavePipeline::run(
             entityId:        $termId,
             rawPost:         $_POST,

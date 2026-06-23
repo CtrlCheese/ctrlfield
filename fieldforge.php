@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       FieldForge
- * Plugin URI:        https://fieldforge.dev
+ * Plugin URI:        https://fieldforge.io
  * Description:       Enterprise-grade code-first schema engine for WordPress custom fields, CPTs, and taxonomies.
  * Version:           1.0.0
  * Requires at least: 6.4
@@ -72,6 +72,4 @@ add_action('plugins_loaded', static function (): void {
   \FieldForge\Bootstrap\BootManager::boot();
 });
 
-if (defined('FIELDFORGE_DEV_TEST') && FIELDFORGE_DEV_TEST) {
-  require_once __DIR__ . '/dev-test.php';
-}
+

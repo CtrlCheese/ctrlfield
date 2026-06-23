@@ -1,12 +1,11 @@
 {
   "core": null,
-  "plugins": [".", "../fieldforge-pro"],
+  "plugins": ["."],
   "themes": [],
   "config": {
     "WP_DEBUG": true,
     "WP_DEBUG_LOG": true,
     "WP_DEBUG_DISPLAY": false,
-    "FIELDFORGE_DEV_TEST": true,
     "FIELDFORGE_TESTING": true,
     "FIELDFORGE_SCHEMA_PATH": "/var/www/html/wp-content/plugins/fieldforge/schema/"
   }

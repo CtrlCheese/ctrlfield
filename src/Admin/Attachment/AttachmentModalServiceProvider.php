@@ -9,6 +9,7 @@ use FieldForge\Builder\AdminContext;
 use FieldForge\Core\Migration\SchemaVersion;
 use FieldForge\Core\Pipeline\SavePipeline;
 use FieldForge\Data\FieldDataService;
+use FieldForge\Enums\FieldType;
 use FieldForge\Registry\ContextRegistry;
 use FieldForge\Storage\Drivers\WpPostMetaDriver;
 use FieldForge\Storage\PostMetaAdapter;
@@ -91,7 +92,9 @@ final class AttachmentModalServiceProvider extends ServiceProvider
             return $post;
         }
 
-        $fields = [];
+        $fieldMap = $this->buildFieldTypeMap();
+        $fields   = [];
+
         foreach ($attachment as $name => $value) {
             if (! str_starts_with((string) $name, 'ff_')) {
                 continue;
@@ -102,9 +105,10 @@ final class AttachmentModalServiceProvider extends ServiceProvider
                 continue;
             }
 
+            $type     = $fieldMap[$key] ?? FieldType::TEXT;
             $fields[$key] = is_array($value)
-                ? array_map('sanitize_text_field', $value)
-                : sanitize_text_field((string) $value);
+                ? array_map(fn ($v) => $this->sanitizeByType($type, (string) $v), $value)
+                : $this->sanitizeByType($type, (string) $value);
         }
 
         if (empty($fields)) {
@@ -124,5 +128,37 @@ final class AttachmentModalServiceProvider extends ServiceProvider
     {
         $context = new AdminContext(postType: 'attachment');
         return ! empty(ContextRegistry::resolve($context));
+    }
+
+    /** @return array<string, FieldType> */
+    private function buildFieldTypeMap(): array
+    {
+        $context = new AdminContext(postType: 'attachment');
+        $map     = [];
+        foreach (ContextRegistry::resolve($context) as $group) {
+            foreach ($group->getFields() as $field) {
+                $map[$field->getKey()] = $field->getType();
+            }
+        }
+        return $map;
+    }
+
+    private function sanitizeByType(FieldType $type, string $value): mixed
+    {
+        return match ($type) {
+            FieldType::EMAIL    => sanitize_email($value),
+            FieldType::URL,
+            FieldType::OEMBED   => esc_url_raw($value),
+            FieldType::NUMBER,
+            FieldType::RANGE    => is_numeric($value) ? (float) $value : 0.0,
+            FieldType::IMAGE,
+            FieldType::FILE     => abs((int) $value),
+            FieldType::DATE,
+            FieldType::TIME,
+            FieldType::DATETIME => sanitize_text_field($value),
+            FieldType::WYSIWYG  => wp_kses_post($value),
+            FieldType::TEXTAREA => sanitize_textarea_field($value),
+            default             => sanitize_text_field($value),
+        };
     }
 }

@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ─────────────────────────────────────────────────────────────────
+  # 1. Security gate
+  # ─────────────────────────────────────────────────────────────────
+  security:
+    name: Security checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: No hardcoded secrets
+        run: |
+          if grep -rE "(password|secret|api_key)\s*=\s*['\"][^'\"]{8,}" src/ \
+              --include="*.php" \
+              --exclude-dir=vendor; then
+            echo "::warning::Possible hardcoded credential detected — review before merging."
+          fi
+
+  # ─────────────────────────────────────────────────────────────────
+  # 2. PHP static analysis
+  # ─────────────────────────────────────────────────────────────────
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --no-progress
+
+  # ─────────────────────────────────────────────────────────────────
+  # 3. PHP unit tests
+  # ─────────────────────────────────────────────────────────────────
+  unit:
+    name: Unit tests / PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run unit tests
+        run: vendor/bin/phpunit --configuration phpunit.xml
+
+  # ─────────────────────────────────────────────────────────────────
+  # 4. JavaScript unit tests (Vitest)
+  # ─────────────────────────────────────────────────────────────────
+  js:
+    name: JS tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install Node deps
+        run: npm ci
+
+      - name: Run Vitest
+        run: npm run test:js
+
+  # ─────────────────────────────────────────────────────────────────
+  # 5. PHP integration tests (wp-env, free plugin only)
+  # ─────────────────────────────────────────────────────────────────
+  integration:
+    name: Integration tests (wp-env)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install Node deps
+        run: npm ci
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Start wp-env (CI config — free plugin only)
+        run: npx @wordpress/env start --config .wp-env.ci.json
+
+      - name: Run integration tests
+        run: |
+          npx @wordpress/env run tests-cli \
+            vendor/bin/phpunit --configuration phpunit-integration.xml --no-progress
+
+      - name: Stop wp-env
+        if: always()
+        run: npx @wordpress/env stop
+
+  # ─────────────────────────────────────────────────────────────────
+  # 6. Build distribution zip (artifact — baixe para subir no LemonSqueezy)
+  # ─────────────────────────────────────────────────────────────────
+  build:
+    name: Build zip
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [security, phpstan, unit, js]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Install WP-CLI
+        run: |
+          curl -sS https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
+          chmod +x /usr/local/bin/wp
+
+      - name: Install WP-CLI dist-archive command
+        run: wp package install wp-cli/dist-archive-command --allow-root
+
+      - name: Install deps (production)
+        run: composer install --no-interaction --prefer-dist --no-progress --no-dev
+
+      - name: Build zip
+        run: wp dist-archive . fieldforge.zip --plugin-dirname=fieldforge --allow-root
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fieldforge-${{ github.sha }}
+          path: fieldforge.zip
+          retention-days: 30

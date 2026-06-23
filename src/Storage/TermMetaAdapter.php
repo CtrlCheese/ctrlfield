@@ -79,10 +79,12 @@ class TermMetaAdapter implements StorageAdapterInterface
             : 0;
 
         if ($storedVersion < $this->currentVersion) {
-            error_log(sprintf(
-                'FieldForge: schema_version mismatch on term %s (stored: %d, current: %d). Run "wp fieldforge migrate".',
-                $id, $storedVersion, $this->currentVersion,
-            ));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf(
+                    'FieldForge: schema_version mismatch on term %s (stored: %d, current: %d). Run "wp fieldforge migrate".',
+                    $id, $storedVersion, $this->currentVersion,
+                ));
+            }
             return null;
         }
 

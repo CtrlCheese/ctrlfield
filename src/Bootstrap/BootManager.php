@@ -112,11 +112,13 @@ class BootManager
             if (PendingCloneRegistry::hasPending()) {
                 foreach (PendingCloneRegistry::getPending() as $sourceKey => $groups) {
                     foreach ($groups as $group) {
-                        error_log(
-                            "FieldForge: Group '{$group->getKey()}' has an unresolved CloneField "
-                            . "waiting for source '{$sourceKey}'. "
-                            . 'Run `wp fieldforge validate` for details.'
-                        );
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            error_log(
+                                "FieldForge: Group '{$group->getKey()}' has an unresolved CloneField "
+                                . "waiting for source '{$sourceKey}'. "
+                                . 'Run `wp fieldforge validate` for details.'
+                            );
+                        }
                     }
                 }
             }

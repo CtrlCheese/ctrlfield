@@ -75,6 +75,15 @@ final class QuickEditServiceProvider extends ServiceProvider
             return;
         }
 
+        // Verify WordPress's inline-edit nonce before touching any field data.
+        if (! check_admin_referer('inlineeditnonce', '_inline_edit')) {
+            return;
+        }
+
+        if (! current_user_can('edit_post', $postId)) {
+            return;
+        }
+
         $fields = $this->extractQuickEditPayload();
         if (empty($fields)) {
             return;
@@ -87,6 +96,7 @@ final class QuickEditServiceProvider extends ServiceProvider
             return;
         }
 
+        // Pass the FieldForge nonce from POST so NonceValidationStage can verify it.
         $rawPost = [
             'fieldforge_payload' => $jsonPayload,
             '_fieldforge_nonce'  => $_POST['_fieldforge_nonce'] ?? '',

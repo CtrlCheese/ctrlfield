@@ -63,6 +63,13 @@ class CommentMetaRegistrar
             return;
         }
 
+        // Verify the FieldForge nonce explicitly before passing to the pipeline.
+        if (! isset($_POST['_fieldforge_nonce'])
+            || ! wp_verify_nonce(sanitize_key($_POST['_fieldforge_nonce']), 'fieldforge_save')
+        ) {
+            return;
+        }
+
         SavePipeline::run(
             entityId:        $commentId,
             rawPost:         $_POST,
