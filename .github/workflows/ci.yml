@@ -169,6 +169,9 @@ jobs:
           chmod +x /usr/local/bin/wp
 
       - name: Install WP-CLI dist-archive command
+        # WP-CLI's bundled Composer rejects the token format setup-php injects.
+        env:
+          COMPOSER_AUTH: '{}'
         run: wp package install wp-cli/dist-archive-command --allow-root
 
       - name: Install deps (production)
