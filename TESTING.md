@@ -103,6 +103,10 @@ npm run test:e2e:ui
 
 # Run a single spec
 npx playwright test tests/E2E/repeater.spec.js
+
+# Core only / Pro only (Pro specs live in pro/tests/E2E and need a valid license)
+npx playwright test --project=chromium
+npx playwright test --project=chromium-pro
 ```
 
 ### What's covered
