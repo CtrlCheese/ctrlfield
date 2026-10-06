@@ -6,6 +6,7 @@ namespace CtrlField\Bootstrap;
 
 use CtrlField\Registry\PendingCloneRegistry;
 use CtrlField\Schema\Exceptions\SchemaDirectoryNotFoundException;
+use CtrlField\Schema\SchemaErrors;
 use CtrlField\Schema\SchemaLoader;
 use RuntimeException;
 
@@ -126,6 +127,21 @@ class BootManager
                 }
             }
         }, 5);
+
+        // Schema files skipped because they threw (see SchemaLoader::loadFileSafely).
+        add_action('admin_notices', static function (): void {
+            $errors = SchemaErrors::all();
+            if ($errors === [] || ! current_user_can('manage_options')) {
+                return;
+            }
+            echo '<div class="notice notice-error"><p><strong>'
+                . esc_html__('CtrlField: these schema files have an error and were not loaded. The rest of the site keeps working.', 'ctrlfield')
+                . '</strong></p><ul style="list-style:disc;margin-left:20px">';
+            foreach ($errors as $file => $message) {
+                printf('<li><code>%s</code> — %s</li>', esc_html(basename($file)), esc_html($message));
+            }
+            echo '</ul></div>';
+        });
 
         // After schema files load, report any unresolved CloneField sources.
         add_action('init', static function (): void {

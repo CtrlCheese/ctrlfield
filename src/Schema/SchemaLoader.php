@@ -31,16 +31,35 @@ final class SchemaLoader
         sort($files);
 
         foreach ($files as $file) {
-            self::loadFile($file);
+            self::loadFileSafely($file);
         }
     }
 
     /**
-     * Load a single schema file.
+     * Load a single schema file. Throws whatever the file throws — used by
+     * `wp ctrlfield validate`, which should fail loudly.
      */
     public static function loadFile(string $absolutePath): void
     {
         require_once $absolutePath;
+    }
+
+    /**
+     * Load a schema file without letting its errors escape: a broken file is
+     * skipped and recorded in SchemaErrors; the other files still load.
+     */
+    public static function loadFileSafely(string $absolutePath): bool
+    {
+        try {
+            self::loadFile($absolutePath);
+            return true;
+        } catch (\Throwable $e) {
+            SchemaErrors::add($absolutePath, $e);
+            if (function_exists('error_log')) {
+                error_log("CtrlField: schema file {$absolutePath} was skipped: {$e->getMessage()}");
+            }
+            return false;
+        }
     }
 
     /**
@@ -78,7 +97,7 @@ final class SchemaLoader
         foreach ($subdirs as $dir) {
             $file = rtrim($dir, '/\\') . '/' . $fieldsFile;
             if (file_exists($file)) {
-                self::loadFile($file);
+                self::loadFileSafely($file);
             }
         }
     }

@@ -80,4 +80,21 @@ class SchemaLoaderTest extends TestCase
         SchemaLoader::loadDirectory($this->tmpDir);
         $this->addToAssertionCount(1);
     }
+
+    public function testBrokenSchemaFileIsSkippedAndOtherFilesStillLoad(): void
+    {
+        \CtrlField\Schema\SchemaErrors::reset();
+        $GLOBALS['ctrlfield_load_order'] = [];
+        file_put_contents($this->tmpDir . '/a_ok.php', '<?php $GLOBALS["ctrlfield_load_order"][] = "a";');
+        file_put_contents($this->tmpDir . '/b_broken.php', '<?php throw new InvalidArgumentException("Invalid field width 40");');
+        file_put_contents($this->tmpDir . '/c_ok.php', '<?php $GLOBALS["ctrlfield_load_order"][] = "c";');
+
+        SchemaLoader::loadDirectory($this->tmpDir);
+
+        $this->assertSame(['a', 'c'], $GLOBALS['ctrlfield_load_order']);
+        $errors = \CtrlField\Schema\SchemaErrors::all();
+        $this->assertCount(1, $errors);
+        $this->assertStringEndsWith('b_broken.php', array_key_first($errors));
+        $this->assertSame('Invalid field width 40', reset($errors));
+    }
 }
