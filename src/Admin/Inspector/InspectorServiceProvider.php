@@ -18,9 +18,11 @@ final class InspectorServiceProvider extends ServiceProvider
             return;
         }
 
+        // Priority 9: the top-level CtrlField menu must exist before any submenu
+        // (options pages, Pro pages) is attached to it.
         add_action('admin_menu', static function () {
             (new SchemaInspectorPage())->register();
-        });
+        }, 9);
 
         add_action('wp_ajax_ctrlfield_import_csv', [$this, 'handleCsvImport']);
     }

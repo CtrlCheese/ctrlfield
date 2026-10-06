@@ -33,7 +33,9 @@ class WordPressServiceProvider extends ServiceProvider
         add_action('init', [$this, 'registerTaxonomies'], 20);
         add_action('init', [$this, 'bindTaxonomyTermHooks'], 20);
         add_action('init', [$this, 'bindOptionsPageSaveHooks'], 20);
-        add_action('admin_menu', [$this, 'registerOptionsPages']);
+        // After top-level menus (priority 10, CtrlField's own at 9): a submenu added
+        // before its parent exists gets no page hook and opens "page not found".
+        add_action('admin_menu', [$this, 'registerOptionsPages'], 20);
     }
 
     // -------------------------------------------------------------------------
