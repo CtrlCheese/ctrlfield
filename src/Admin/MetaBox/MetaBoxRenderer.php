@@ -179,30 +179,36 @@ class MetaBoxRenderer
      */
     private function extractTabSections(array $fields): array
     {
-        $hasTabs   = false;
+        $hasTabs    = false;
         $beforeTabs = [];
-        $sections  = [];
-
-        $currentSection = null;
+        $sections   = [];
+        $open       = null; // section being filled, copied into $sections when the next tab starts
 
         foreach ($fields as $field) {
             if ($field instanceof TabField) {
+                if ($open !== null) {
+                    $sections[] = $open;
+                }
                 $hasTabs = true;
                 $def     = $field->getDefinition();
-                $currentSection = [
+                $open    = [
                     'key'    => $field->getKey(),
                     'label'  => $def['label'] ?: $field->getKey(),
                     'fields' => [],
                 ];
-                $sections[] = &$currentSection;
-                unset($currentSection); // break the reference; $sections keeps it
-                $currentSection = &$sections[count($sections) - 1];
-            } elseif ($currentSection !== null) {
-                $currentSection['fields'][] = $field;
+            } elseif ($open !== null) {
+                $open['fields'][] = $field;
             } else {
                 $beforeTabs[] = $field;
             }
         }
+
+        if ($open !== null) {
+            $sections[] = $open;
+        }
+        // No PHP references here on purpose: the previous version kept one to the
+        // open section, and assigning the next tab through it overwrote every
+        // earlier section — all tabs showed the last label and repeated its fields.
 
         return [
             'hasTabs'    => $hasTabs,

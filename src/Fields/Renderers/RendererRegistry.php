@@ -35,7 +35,8 @@ final class RendererRegistry
 
     public static function boot(): void
     {
-        self::$map = [
+        // Keep renderers registered before boot (Pro registers on plugins_loaded).
+        self::$map = array_replace([
             FieldType::TEXT->value     => new TextRenderer(),
             FieldType::TEXTAREA->value => new TextareaRenderer(),
             FieldType::NUMBER->value   => new NumberRenderer(),
@@ -72,7 +73,7 @@ final class RendererRegistry
             FieldType::ICON->value          => new IconRenderer(),
             // C-6: Code
             FieldType::CODE->value          => new CodeRenderer(),
-        ];
+        ], self::$map);
     }
 
     public static function resolve(FieldType $type): RendererInterface
@@ -87,6 +88,12 @@ final class RendererRegistry
     /** @param RendererInterface $renderer Allows Pro to override a renderer. */
     public static function register(FieldType $type, RendererInterface $renderer): void
     {
+        // Boot first: a non-empty map skips the lazy boot in resolve(), which left
+        // every Core type on the TextRenderer fallback once Pro registered its own.
+        if (empty(self::$map)) {
+            self::boot();
+        }
+
         self::$map[$type->value] = $renderer;
     }
 

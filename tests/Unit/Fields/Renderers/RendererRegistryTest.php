@@ -61,6 +61,27 @@ class RendererRegistryTest extends TestCase
         $this->assertSame($custom, RendererRegistry::resolve(FieldType::TEXTAREA));
     }
 
+    public function test_registering_one_renderer_before_first_resolve_keeps_core_renderers(): void
+    {
+        // Pro registers its renderers on plugins_loaded, before any resolve().
+        // Every Core type used to fall back to TextRenderer after that.
+        $custom = new TextRenderer();
+        RendererRegistry::register(FieldType::FLEXIBLE_CONTENT, $custom);
+
+        $this->assertInstanceOf(SelectRenderer::class, RendererRegistry::resolve(FieldType::SELECT));
+        $this->assertInstanceOf(CheckboxRenderer::class, RendererRegistry::resolve(FieldType::CHECKBOX));
+        $this->assertSame($custom, RendererRegistry::resolve(FieldType::FLEXIBLE_CONTENT));
+    }
+
+    public function test_boot_keeps_renderers_registered_earlier(): void
+    {
+        $custom = new TextRenderer();
+        RendererRegistry::register(FieldType::FLEXIBLE_CONTENT, $custom);
+        RendererRegistry::boot();
+
+        $this->assertSame($custom, RendererRegistry::resolve(FieldType::FLEXIBLE_CONTENT));
+    }
+
     public function test_reset_clears_map(): void
     {
         RendererRegistry::boot();
