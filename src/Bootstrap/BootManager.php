@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CtrlField\Bootstrap;
 
 use CtrlField\Registry\PendingCloneRegistry;
+use CtrlField\Schema\Exceptions\SchemaDirectoryNotFoundException;
 use CtrlField\Schema\SchemaLoader;
 use RuntimeException;
 
@@ -101,8 +102,26 @@ class BootManager
             $paths = (array) apply_filters('ctrlfield/schema_paths', $paths);
 
             foreach ($paths as $path) {
-                if (is_string($path) && $path !== '') {
+                if (! is_string($path) || $path === '') {
+                    continue;
+                }
+
+                // A wrong path in wp-config must not take the whole site down:
+                // skip it and tell admins instead.
+                try {
                     SchemaLoader::loadDirectory($path);
+                } catch (SchemaDirectoryNotFoundException $e) {
+                    error_log($e->getMessage());
+                    add_action('admin_notices', static function () use ($path): void {
+                        if (! current_user_can('manage_options')) {
+                            return;
+                        }
+                        printf(
+                            '<div class="notice notice-error"><p>%s <code>%s</code></p></div>',
+                            esc_html__('CtrlField: schema directory not found, its field groups were not loaded:', 'ctrlfield'),
+                            esc_html($path)
+                        );
+                    });
                 }
             }
         }, 5);
