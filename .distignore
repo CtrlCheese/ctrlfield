@@ -4,6 +4,8 @@
 .claude
 .env
 .wp-env.json
+.wp-env.ci.json
+.gitignore
 node_modules
 
 # Tests
@@ -11,6 +13,7 @@ tests
 playwright.config.js
 phpunit.xml
 phpunit-integration.xml
+.phpunit.result.cache
 vitest.config.js
 TESTING.md
 
@@ -19,6 +22,7 @@ vite.config.js
 package.json
 package-lock.json
 phpstan.neon
+phpstan-baseline.neon
 
 # Dev-only scripts
 bin

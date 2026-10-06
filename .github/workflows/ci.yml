@@ -163,22 +163,16 @@ jobs:
           php-version: '8.2'
           coverage: none
 
-      - name: Install WP-CLI
-        run: |
-          curl -sS https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
-          chmod +x /usr/local/bin/wp
-
-      - name: Install WP-CLI dist-archive command
-        # WP-CLI's bundled Composer rejects the token format setup-php injects.
-        env:
-          COMPOSER_AUTH: '{}'
-        run: wp package install wp-cli/dist-archive-command --allow-root
-
       - name: Install deps (production)
         run: composer install --no-interaction --prefer-dist --no-progress --no-dev
 
+      # Same result as wp dist-archive (honours .distignore), without WP-CLI.
+      # In the public repo this is the Free zip; in the private repo, the full zip.
       - name: Build zip
-        run: wp dist-archive . ctrlfield.zip --plugin-dirname=ctrlfield --allow-root
+        run: |
+          mkdir -p dist/ctrlfield
+          rsync -a --exclude-from=.distignore --exclude=dist ./ dist/ctrlfield/
+          (cd dist && zip -qr ../ctrlfield.zip ctrlfield)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
