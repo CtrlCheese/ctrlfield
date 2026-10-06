@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Conditions;
+namespace CtrlField\Fields\Conditions;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\Exceptions\InvalidOperatorForTypeException;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Exceptions\InvalidOperatorForTypeException;
+use CtrlField\Fields\FieldDefinition;
 
 /**
  * Validates condition operator applicability against source field types.

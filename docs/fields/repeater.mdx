@@ -69,7 +69,7 @@ Field::repeater('team_members')
 ## Template usage
 
 ```blade
-@foreach(fieldforge_get('team_members') as $member)
+@foreach(ctrlfield_get('team_members') as $member)
     <div class="member">
         @if($member['photo'])
             <img src="{{ $member['photo']['url'] }}" alt="{{ $member['photo']['alt'] }}">
@@ -81,7 +81,7 @@ Field::repeater('team_members')
 ```
 
 ```twig
-{% for member in fieldforge_get('team_members') %}
+{% for member in ctrlfield_get('team_members') %}
     <p>{{ member.name }} — {{ member.role }}</p>
 {% endfor %}
 ```

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Registry;
+namespace CtrlField\Tests\Unit\Registry;
 
-use FieldForge\Bootstrap\Exceptions\NotFoundException;
-use FieldForge\Builder\Exceptions\DuplicateGroupKeyException;
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Bootstrap\Exceptions\NotFoundException;
+use CtrlField\Builder\Exceptions\DuplicateGroupKeyException;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 class FieldRegistryTest extends TestCase
@@ -83,8 +83,8 @@ class FieldRegistryTest extends TestCase
             ->title('Project Details')
             ->where('post_type', '==', 'portfolio')
             ->fields([
-                \FieldForge\Fields\Field::text('client_name')->label('Client Name'),
-                \FieldForge\Fields\Field::select('project_type')->options(['a' => 'A']),
+                \CtrlField\Fields\Field::text('client_name')->label('Client Name'),
+                \CtrlField\Fields\Field::select('project_type')->options(['a' => 'A']),
             ])
             ->register();
 

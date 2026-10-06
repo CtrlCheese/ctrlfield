@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Core\Pipeline\Stages;
+namespace CtrlField\Tests\Unit\Core\Pipeline\Stages;
 
-use FieldForge\Core\Pipeline\PipelineContext;
-use FieldForge\Core\Pipeline\PipelineException;
-use FieldForge\Core\Pipeline\Stages\CapabilityCheckStage;
-use FieldForge\Core\Security\Contracts\CapabilityCheckerInterface;
+use CtrlField\Core\Pipeline\PipelineContext;
+use CtrlField\Core\Pipeline\PipelineException;
+use CtrlField\Core\Pipeline\Stages\CapabilityCheckStage;
+use CtrlField\Core\Security\Contracts\CapabilityCheckerInterface;
 use PHPUnit\Framework\TestCase;
 
 class CapabilityCheckStageTest extends TestCase

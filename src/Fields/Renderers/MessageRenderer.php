@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\MessageField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\MessageField;
 
 final class MessageRenderer extends AbstractRenderer
 {
@@ -24,7 +24,7 @@ final class MessageRenderer extends AbstractRenderer
         $safeType    = $this->esc($type);
 
         return sprintf(
-            '<div class="ff-message ff-message--%s"><p>%s</p></div>',
+            '<div class="ctrlf-message ctrlf-message--%s"><p>%s</p></div>',
             $safeType,
             $safeContent,
         );

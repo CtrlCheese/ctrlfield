@@ -1,6 +1,6 @@
 # Taxonomy Term
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
 A taxonomy term picker with AJAX search. Stores one or more term IDs.
 
@@ -52,7 +52,7 @@ Field::taxonomyTerm('project_category')
 ## Template usage
 
 ```blade
-@foreach(fieldforge_get('project_category') as $termId)
+@foreach(ctrlfield_get('project_category') as $termId)
     @php $term = get_term($termId, 'project-category') @endphp
     <span>{{ $term->name }}</span>
 @endforeach

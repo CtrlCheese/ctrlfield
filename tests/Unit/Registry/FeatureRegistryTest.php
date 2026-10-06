@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Registry;
+namespace CtrlField\Tests\Unit\Registry;
 
-use FieldForge\Registry\FeatureRegistry;
+use CtrlField\Registry\FeatureRegistry;
 use PHPUnit\Framework\TestCase;
 
 class FeatureRegistryTest extends TestCase

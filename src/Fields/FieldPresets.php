@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields;
+namespace CtrlField\Fields;
 
-use FieldForge\Fields\Exceptions\PresetNotFoundException;
+use CtrlField\Fields\Exceptions\PresetNotFoundException;
 
 /**
  * Extensible registry for reusable field snippets.

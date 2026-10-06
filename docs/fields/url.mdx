@@ -36,13 +36,13 @@ Field::url('website')
 ## Template usage
 
 ```blade
-<a href="{{ fieldforge_get('website') }}" target="_blank" rel="noopener">
+<a href="{{ ctrlfield_get('website') }}" target="_blank" rel="noopener">
     Visit Website
 </a>
 ```
 
 ```php
-$url = fieldforge_get('website');
+$url = ctrlfield_get('website');
 if ($url) {
     printf('<a href="%s">Visit</a>', esc_url($url));
 }

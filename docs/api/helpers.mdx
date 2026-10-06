@@ -1,32 +1,32 @@
 # Helper Functions
 
-Global PHP functions available in all template engines after FieldForge is activated.
+Global PHP functions available in all template engines after CtrlField is activated.
 
 ---
 
 ## Post fields
 
 ```php
-fieldforge_get(string $key, ?int $postId = null): mixed
+ctrlfield_get(string $key, ?int $postId = null): mixed
 ```
 Returns the value of a single field for the current post (or `$postId` if provided). `returnFormat` decorators are applied.
 
 ```php
-fieldforge_get_all(?int $postId = null): array
+ctrlfield_get_all(?int $postId = null): array
 ```
-Returns all field values for the current post as an associative array. Values are raw (no `returnFormat` applied). Use `fieldforge_get()` per key to apply decorators.
+Returns all field values for the current post as an associative array. Values are raw (no `returnFormat` applied). Use `ctrlfield_get()` per key to apply decorators.
 
 ---
 
 ## User meta
 
 ```php
-fieldforge_get_user(string $key, int $userId = 0): mixed
+ctrlfield_get_user(string $key, int $userId = 0): mixed
 ```
 Returns a single user field value. Defaults to the current user when `$userId` is 0.
 
 ```php
-fieldforge_get_all_user(int $userId = 0): array
+ctrlfield_get_all_user(int $userId = 0): array
 ```
 Returns all user field values.
 
@@ -35,11 +35,11 @@ Returns all user field values.
 ## Term meta
 
 ```php
-fieldforge_get_term(string $key, int $termId): mixed
+ctrlfield_get_term(string $key, int $termId): mixed
 ```
 
 ```php
-fieldforge_get_all_term(int $termId): array
+ctrlfield_get_all_term(int $termId): array
 ```
 
 ---
@@ -47,11 +47,11 @@ fieldforge_get_all_term(int $termId): array
 ## Comment meta
 
 ```php
-fieldforge_get_comment(string $key, int $commentId): mixed
+ctrlfield_get_comment(string $key, int $commentId): mixed
 ```
 
 ```php
-fieldforge_get_all_comment(int $commentId): array
+ctrlfield_get_all_comment(int $commentId): array
 ```
 
 ---
@@ -59,30 +59,30 @@ fieldforge_get_all_comment(int $commentId): array
 ## Options pages
 
 ```php
-fieldforge_get_options(string $key, string $pageSlug): mixed
+ctrlfield_get_options(string $key, string $pageSlug): mixed
 ```
 Reads a field value from an options page. `$pageSlug` matches the slug passed to `OptionsPage::make()`.
 
 ```php
-fieldforge_get_all_options(string $pageSlug): array
+ctrlfield_get_all_options(string $pageSlug): array
 ```
 
 ```php
-ff_option(string $key, string $pageSlug, mixed $default = null): mixed
+ctrlf_option(string $key, string $pageSlug, mixed $default = null): mixed
 ```
-Shorthand with fallback. Useful in Blade: `{{ ff_option('logo', 'theme_options') }}`.
+Shorthand with fallback. Useful in Blade: `{{ ctrlf_option('logo', 'theme_options') }}`.
 
 ---
 
 ## Schema loading
 
 ```php
-fieldforge_load_schemas(string $absolutePath): void
+ctrlfield_load_schemas(string $absolutePath): void
 ```
 Loads every `*.php` file in `$absolutePath` as a schema file. Call on the `init` hook at priority 5.
 
 ```php
-fieldforge_load_components(string $componentsDir, string $fieldsFile = 'fields.php'): void
+ctrlfield_load_components(string $componentsDir, string $fieldsFile = 'fields.php'): void
 ```
 Scans `$componentsDir` for subdirectories that contain `$fieldsFile` and loads each one. Used for component-based themes.
 
@@ -91,16 +91,16 @@ Scans `$componentsDir` for subdirectories that contain `$fieldsFile` and loads e
 ## Component rendering
 
 ```php
-fieldforge_render_component(array $section): void
+ctrlfield_render_component(array $section): void
 ```
 Echoes the rendered HTML for a flexible-content section. The `$section` array must contain a `_layout` key.
 
 ```php
-fieldforge_render_component_string(array $section): string
+ctrlfield_render_component_string(array $section): string
 ```
 Returns the rendered HTML as a string instead of echoing it.
 
 ```php
-fieldforge_render(string $componentName, array $data = []): void
+ctrlfield_render(string $componentName, array $data = []): void
 ```
 Renders a named component with explicit data. Useful outside of a flexible-content loop.

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Data;
+namespace CtrlField\Tests\Unit\Data;
 
-use FieldForge\Data\CsvImporter;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Data\CsvImporter;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 class CsvImporterTest extends TestCase
@@ -33,7 +33,7 @@ class CsvImporterTest extends TestCase
 
     public function test_import_returns_error_for_empty_file(): void
     {
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, '');
 
         try {
@@ -58,7 +58,7 @@ class CsvImporterTest extends TestCase
         $csv = "post_id,post_title,post_status,client_name,unknown_column\n";
         $csv .= "0,Test Post,publish,Acme,SomeValue\n";
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, $csv);
 
         try {
@@ -85,7 +85,7 @@ class CsvImporterTest extends TestCase
         $csv = "post_id,post_title,post_status,client_name\n";
         $csv .= "26,Test Post,publish,Acme Corp\n";
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, $csv);
 
         try {
@@ -112,7 +112,7 @@ class CsvImporterTest extends TestCase
         $csv = "post_id,post_title,post_status,client_name\n";
         $csv .= "0,New Post,publish,New Client\n";
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, $csv);
 
         try {
@@ -139,7 +139,7 @@ class CsvImporterTest extends TestCase
         $csv = "post_id,post_title,post_status,client_name\n";
         $csv .= "0,New Post,publish,Dry Run Client\n";
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, $csv);
 
         try {
@@ -169,7 +169,7 @@ class CsvImporterTest extends TestCase
         $csv = "post_id,post_title,post_status,meta\n";
         $csv .= "0,New Post,publish,\"{$jsonValue}\"\n";
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, $csv);
 
         try {
@@ -210,7 +210,7 @@ class CsvImporterTest extends TestCase
         $csv = "post_id,post_title,post_status,client_name\n";
         $csv .= "99,Some Post,publish,Blocked\n";
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, $csv);
 
         try {
@@ -236,7 +236,7 @@ class CsvImporterTest extends TestCase
         $csv = "post_id,post_title,client_name\n";
         $csv .= "0,Short\n";
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'ff_csv_');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, $csv);
 
         try {

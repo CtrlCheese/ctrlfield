@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\GroupField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\GroupField;
 
 final class GroupRenderer extends AbstractRenderer
 {
@@ -23,13 +23,13 @@ final class GroupRenderer extends AbstractRenderer
             $input   = RendererRegistry::resolve($sub->getType())->render($sub, $subPath);
 
             $rows .= <<<HTML
-<div class="ff-field">
-    <label class="ff-label" for="ff-{$this->esc($sub->getKey())}">{$label}</label>
+<div class="ctrlf-field">
+    <label class="ctrlf-label" for="ctrlf-{$this->esc($sub->getKey())}">{$label}</label>
     {$input}
 </div>
 HTML;
         }
 
-        return sprintf('<div class="ff-group">%s</div>', $rows);
+        return sprintf('<div class="ctrlf-group">%s</div>', $rows);
     }
 }

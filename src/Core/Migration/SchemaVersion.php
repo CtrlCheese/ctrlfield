@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Migration;
+namespace CtrlField\Core\Migration;
 
 /**
  * Single source of truth for the current schema version.

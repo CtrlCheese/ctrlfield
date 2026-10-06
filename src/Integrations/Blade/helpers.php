@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-use FieldForge\Data\FieldDataService;
+use CtrlField\Data\FieldDataService;
 
-if (! function_exists('fieldforge_get')) {
-    function fieldforge_get(string $key, ?int $postId = null): mixed
+if (! function_exists('ctrlfield_get')) {
+    function ctrlfield_get(string $key, ?int $postId = null): mixed
     {
-        return fieldforge_get_all($postId)[$key] ?? null;
+        return ctrlfield_get_all($postId)[$key] ?? null;
     }
 }
 
-if (! function_exists('fieldforge_get_all')) {
+if (! function_exists('ctrlfield_get_all')) {
     /**
      * Returns all stored field values for a post.
      *
      * @return array<string, mixed>
      */
-    function fieldforge_get_all(?int $postId = null): array
+    function ctrlfield_get_all(?int $postId = null): array
     {
         $id = $postId ?? (function_exists('get_the_ID') ? (int) get_the_ID() : 0);
 
@@ -29,20 +29,20 @@ if (! function_exists('fieldforge_get_all')) {
     }
 }
 
-if (! function_exists('fieldforge_get_user')) {
-    function fieldforge_get_user(string $key, int $userId = 0): mixed
+if (! function_exists('ctrlfield_get_user')) {
+    function ctrlfield_get_user(string $key, int $userId = 0): mixed
     {
-        return fieldforge_get_all_user($userId)[$key] ?? null;
+        return ctrlfield_get_all_user($userId)[$key] ?? null;
     }
 }
 
-if (! function_exists('fieldforge_get_all_user')) {
+if (! function_exists('ctrlfield_get_all_user')) {
     /**
      * Returns all stored field values for a user.
      *
      * @return array<string, mixed>
      */
-    function fieldforge_get_all_user(int $userId = 0): array
+    function ctrlfield_get_all_user(int $userId = 0): array
     {
         $id = $userId > 0 ? $userId : (function_exists('get_current_user_id') ? get_current_user_id() : 0);
 
@@ -54,8 +54,8 @@ if (! function_exists('fieldforge_get_all_user')) {
     }
 }
 
-if (! function_exists('fieldforge_get_comment')) {
-    function fieldforge_get_comment(string $key, int $commentId = 0): mixed
+if (! function_exists('ctrlfield_get_comment')) {
+    function ctrlfield_get_comment(string $key, int $commentId = 0): mixed
     {
         if ($commentId <= 0) {
             return null;
@@ -65,13 +65,13 @@ if (! function_exists('fieldforge_get_comment')) {
     }
 }
 
-if (! function_exists('fieldforge_get_all_comment')) {
+if (! function_exists('ctrlfield_get_all_comment')) {
     /**
      * Returns all stored field values for a comment.
      *
      * @return array<string, mixed>
      */
-    function fieldforge_get_all_comment(int $commentId): array
+    function ctrlfield_get_all_comment(int $commentId): array
     {
         if ($commentId <= 0) {
             return [];
@@ -81,8 +81,8 @@ if (! function_exists('fieldforge_get_all_comment')) {
     }
 }
 
-if (! function_exists('fieldforge_get_term')) {
-    function fieldforge_get_term(string $key, int $termId): mixed
+if (! function_exists('ctrlfield_get_term')) {
+    function ctrlfield_get_term(string $key, int $termId): mixed
     {
         if ($termId <= 0) {
             return null;
@@ -92,13 +92,13 @@ if (! function_exists('fieldforge_get_term')) {
     }
 }
 
-if (! function_exists('fieldforge_get_all_term')) {
+if (! function_exists('ctrlfield_get_all_term')) {
     /**
      * Returns all stored field values for a taxonomy term.
      *
      * @return array<string, mixed>
      */
-    function fieldforge_get_all_term(int $termId): array
+    function ctrlfield_get_all_term(int $termId): array
     {
         if ($termId <= 0) {
             return [];
@@ -108,79 +108,79 @@ if (! function_exists('fieldforge_get_all_term')) {
     }
 }
 
-if (! function_exists('fieldforge_get_options')) {
-    function fieldforge_get_options(string $key, string $pageSlug): mixed
+if (! function_exists('ctrlfield_get_options')) {
+    function ctrlfield_get_options(string $key, string $pageSlug): mixed
     {
         return FieldDataService::getInstance()->get($key, $pageSlug, 'options');
     }
 }
 
-if (! function_exists('fieldforge_get_all_options')) {
+if (! function_exists('ctrlfield_get_all_options')) {
     /**
      * Returns all stored field values for an options page.
      *
      * @return array<string, mixed>
      */
-    function fieldforge_get_all_options(string $pageSlug): array
+    function ctrlfield_get_all_options(string $pageSlug): array
     {
         return FieldDataService::getInstance()->getAll($pageSlug, 'options');
     }
 }
 
 // ── Theme integration helpers ─────────────────────────────────────────────────
-// These are the FieldForge equivalents of CF3's site_option() and
+// These are the CtrlField equivalents of CF3's site_option() and
 // Flynt's Options::get() — designed to be called from Blade templates
-// and theme PHP files without knowing FieldForge internals.
+// and theme PHP files without knowing CtrlField internals.
 
-if (! function_exists('ff_option')) {
+if (! function_exists('ctrlf_option')) {
     /**
      * Read a single value from any options page.
      * Equivalent to CF3's carbon_get_theme_option() / site_option().
      *
-     * Usage in Blade:   {{ ff_option('social_instagram', 'theme_options') }}
-     * Usage in PHP:     $logo = ff_option('site_logo', 'theme_options');
+     * Usage in Blade:   {{ ctrlf_option('social_instagram', 'theme_options') }}
+     * Usage in PHP:     $logo = ctrlf_option('site_logo', 'theme_options');
      */
-    function ff_option(string $key, string $pageSlug, mixed $default = null): mixed
+    function ctrlf_option(string $key, string $pageSlug, mixed $default = null): mixed
     {
-        return fieldforge_get_options($key, $pageSlug) ?? $default;
+        return ctrlfield_get_options($key, $pageSlug) ?? $default;
     }
 }
 
-if (! function_exists('fieldforge_load_schemas')) {
+if (! function_exists('ctrlfield_load_schemas')) {
     /**
      * Load all *.php schema files from a directory.
      * Call this from the theme's functions.php on the 'init' hook (priority < 10).
      *
      * Usage:
      *   add_action('init', function() {
-     *       fieldforge_load_schemas(get_template_directory() . '/fieldforge/');
+     *       ctrlfield_load_schemas(get_template_directory() . '/ctrlfield/');
      *   }, 5);
      */
-    function fieldforge_load_schemas(string $absolutePath): void
+    function ctrlfield_load_schemas(string $absolutePath): void
     {
-        if (! class_exists(\FieldForge\Schema\SchemaLoader::class)) {
+        if (! class_exists(\CtrlField\Schema\SchemaLoader::class)) {
             return;
         }
-        \FieldForge\Schema\SchemaLoader::loadDirectory($absolutePath);
+        \CtrlField\Schema\SchemaLoader::loadDirectory($absolutePath);
     }
 }
 
-if (! function_exists('fieldforge_load_components')) {
+if (! function_exists('ctrlfield_load_components')) {
     /**
      * Component-based auto-discovery: scans subdirectories for a fields.php and loads each.
      * Mirrors CF3's FieldGroupRenderer::registerAll() and Flynt's component loading.
      *
      * Usage:
      *   add_action('init', function() {
-     *       fieldforge_load_components(get_template_directory() . '/components/');
+     *       ctrlfield_load_components(get_template_directory() . '/components/');
      *   }, 5);
      */
-    function fieldforge_load_components(string $componentsDir, string $fieldsFile = 'fields.php'): void
+    function ctrlfield_load_components(string $componentsDir, string $fieldsFile = 'fields.php'): void
     {
-        if (! class_exists(\FieldForge\Schema\SchemaLoader::class)) {
+        if (! class_exists(\CtrlField\Schema\SchemaLoader::class)) {
             return;
         }
-        \FieldForge\Schema\SchemaLoader::loadComponentsDirectory($componentsDir, $fieldsFile);
+        \CtrlField\Schema\SchemaLoader::loadComponentsDirectory($componentsDir, $fieldsFile);
     }
 }
 
@@ -188,7 +188,7 @@ if (! function_exists('fieldforge_load_components')) {
 // Engine-agnostic helpers for rendering flexible-content components from PHP
 // templates. These wrap ComponentRenderer so themes don't need to import it.
 
-if (! function_exists('fieldforge_render_component')) {
+if (! function_exists('ctrlfield_render_component')) {
     /**
      * Renders a flexible-content section array and echoes the result.
      *
@@ -196,41 +196,41 @@ if (! function_exists('fieldforge_render_component')) {
      * component key.
      *
      * Usage (PHP template):
-     *   <?php foreach (fieldforge_get('page_builder') as $section): ?>
-     *       <?php fieldforge_render_component($section); ?>
+     *   <?php foreach (ctrlfield_get('page_builder') as $section): ?>
+     *       <?php ctrlfield_render_component($section); ?>
      *   <?php endforeach; ?>
      *
      * @param array<string, mixed> $section
      */
-    function fieldforge_render_component(array $section): void
+    function ctrlfield_render_component(array $section): void
     {
-        echo \FieldForge\Components\ComponentRenderer::render($section);
+        echo \CtrlField\Components\ComponentRenderer::render($section);
     }
 }
 
-if (! function_exists('fieldforge_render_component_string')) {
+if (! function_exists('ctrlfield_render_component_string')) {
     /**
      * Renders a flexible-content section array and returns the HTML string.
      *
      * @param array<string, mixed> $section
      */
-    function fieldforge_render_component_string(array $section): string
+    function ctrlfield_render_component_string(array $section): string
     {
-        return \FieldForge\Components\ComponentRenderer::render($section);
+        return \CtrlField\Components\ComponentRenderer::render($section);
     }
 }
 
-if (! function_exists('fieldforge_render')) {
+if (! function_exists('ctrlfield_render')) {
     /**
      * Renders a named component with explicit data and echoes the result.
      *
      * Usage (PHP template):
-     *   <?php fieldforge_render('hero', ['headline' => 'Welcome']); ?>
+     *   <?php ctrlfield_render('hero', ['headline' => 'Welcome']); ?>
      *
      * @param array<string, mixed> $data
      */
-    function fieldforge_render(string $componentName, array $data = []): void
+    function ctrlfield_render(string $componentName, array $data = []): void
     {
-        echo \FieldForge\Components\ComponentRenderer::renderByName($componentName, $data);
+        echo \CtrlField\Components\ComponentRenderer::renderByName($componentName, $data);
     }
 }

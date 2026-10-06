@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Scaffold\Exceptions;
+namespace CtrlField\Integrations\CLI\Scaffold\Exceptions;
 
 final class FileExistsException extends \RuntimeException {}

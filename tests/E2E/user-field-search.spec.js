@@ -18,10 +18,10 @@ test.describe('User field AJAX search', () => {
     test('typing triggers search and shows results dropdown', async ({ page }) => {
         await page.goto(POST_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const userSearch = container.locator('.ff-user-search, input[placeholder*="user" i], [x-model*="user"]').first();
+        const userSearch = container.locator('.ctrlf-user-search, input[placeholder*="user" i], [x-model*="user"]').first();
         if (! await userSearch.isVisible()) {
             test.skip();
             return;
@@ -31,30 +31,30 @@ test.describe('User field AJAX search', () => {
         await userSearch.fill('ad');
 
         // Wait for the dropdown to appear
-        const dropdown = container.locator('.ff-user-results, .ff-user-dropdown');
+        const dropdown = container.locator('.ctrlf-user-results, .ctrlf-user-dropdown');
         await expect(dropdown).toBeVisible({ timeout: 5_000 });
 
-        const resultItems = dropdown.locator('li, .ff-user-result');
+        const resultItems = dropdown.locator('li, .ctrlf-user-result');
         expect(await resultItems.count()).toBeGreaterThan(0);
     });
 
     test('clicking a result selects user and closes dropdown', async ({ page }) => {
         await page.goto(POST_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const userSearch = container.locator('.ff-user-search, input[placeholder*="user" i], [x-model*="user"]').first();
+        const userSearch = container.locator('.ctrlf-user-search, input[placeholder*="user" i], [x-model*="user"]').first();
         if (! await userSearch.isVisible()) {
             test.skip();
             return;
         }
 
         await userSearch.fill('ad');
-        const dropdown = container.locator('.ff-user-results, .ff-user-dropdown');
+        const dropdown = container.locator('.ctrlf-user-results, .ctrlf-user-dropdown');
         await expect(dropdown).toBeVisible({ timeout: 5_000 });
 
-        const firstResult = dropdown.locator('li, .ff-user-result').first();
+        const firstResult = dropdown.locator('li, .ctrlf-user-result').first();
         const userName = (await firstResult.textContent()) ?? '';
         await firstResult.click();
 
@@ -62,7 +62,7 @@ test.describe('User field AJAX search', () => {
         await expect(dropdown).not.toBeVisible({ timeout: 2_000 });
 
         // Selected user name is shown
-        const selectedLabel = container.locator('.ff-user-selected, .ff-user-name');
+        const selectedLabel = container.locator('.ctrlf-user-selected, .ctrlf-user-name');
         if (await selectedLabel.isVisible()) {
             await expect(selectedLabel).toContainText(userName.trim().split('\n')[0]);
         }
@@ -74,19 +74,19 @@ test.describe('User field AJAX search', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('User Field E2E ' + Date.now());
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const userSearch = container.locator('.ff-user-search, input[placeholder*="user" i]').first();
+        const userSearch = container.locator('.ctrlf-user-search, input[placeholder*="user" i]').first();
         if (! await userSearch.isVisible()) {
             test.skip();
             return;
         }
 
         await userSearch.fill('ad');
-        const dropdown = container.locator('.ff-user-results, .ff-user-dropdown');
+        const dropdown = container.locator('.ctrlf-user-results, .ctrlf-user-dropdown');
         await expect(dropdown).toBeVisible({ timeout: 5_000 });
-        await dropdown.locator('li, .ff-user-result').first().click();
+        await dropdown.locator('li, .ctrlf-user-result').first().click();
 
         // Fill required field if any
         const required = container.locator('[x-model*="client_name"]').first();
@@ -101,7 +101,7 @@ test.describe('User field AJAX search', () => {
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // The selected user should still be shown
-        const selected = container.locator('.ff-user-selected, .ff-user-name, [x-model*="user_id"]');
+        const selected = container.locator('.ctrlf-user-selected, .ctrlf-user-name, [x-model*="user_id"]');
         if (await selected.first().isVisible()) {
             const value = await selected.first().textContent() || await selected.first().inputValue();
             expect(value).toBeTruthy();

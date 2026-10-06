@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Storage\Contracts;
+namespace CtrlField\Storage\Contracts;
 
 interface StorageAdapterInterface
 {

@@ -21,7 +21,7 @@ test.describe('CYCLES4 new field types', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('TrueFalse E2E ' + Date.now());
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // Find a true_false toggle (checkbox or button)
@@ -51,11 +51,11 @@ test.describe('CYCLES4 new field types', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('ButtonGroup E2E ' + Date.now());
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // Button group renders as a set of buttons or a hidden input
-        const btnGroup = container.locator('.ff-btn-group button, [x-model*="size"], [x-model*="layout"]').first();
+        const btnGroup = container.locator('.ctrlf-btn-group button, [x-model*="size"], [x-model*="layout"]').first();
         if (! await btnGroup.isVisible()) {
             test.skip();
             return;
@@ -69,7 +69,7 @@ test.describe('CYCLES4 new field types', () => {
 
         // The selection should still be active after reload
         await expect(container).toBeVisible({ timeout: 10_000 });
-        const reloadedGroup = container.locator('.ff-btn-group .is-active, .ff-btn-group [aria-pressed="true"]');
+        const reloadedGroup = container.locator('.ctrlf-btn-group .is-active, .ctrlf-btn-group [aria-pressed="true"]');
         expect(await reloadedGroup.count()).toBeGreaterThanOrEqual(0); // presence is enough
     });
 
@@ -79,7 +79,7 @@ test.describe('CYCLES4 new field types', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('Code Field E2E ' + Date.now());
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         const codeEditor = container.locator('.CodeMirror, [x-model*="code"], [x-model*="snippet"]').first();

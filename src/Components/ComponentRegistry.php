@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Components;
+namespace CtrlField\Components;
 
 /**
  * Singleton that discovers, tracks, and exposes registered components.
@@ -14,10 +14,10 @@ namespace FieldForge\Components;
  *   }, 5);
  *
  * Fires WordPress actions:
- *   'fieldforge/component_registered'  — per component, args: ($key, $definition)
- *   'fieldforge/components_loaded'     — once after all components are registered
+ *   'ctrlfield/component_registered'  — per component, args: ($key, $definition)
+ *   'ctrlfield/components_loaded'     — once after all components are registered
  *
- * Core never hard-depends on Pro classes. FlexLayout (FieldForgePro\Fields\FlexLayout)
+ * Core never hard-depends on Pro classes. FlexLayout (CtrlField\Pro\Fields\FlexLayout)
  * is referenced only behind class_exists() guards.
  */
 final class ComponentRegistry
@@ -50,8 +50,8 @@ final class ComponentRegistry
 
             if (
                 $layout !== null
-                && class_exists(\FieldForgePro\Fields\FlexLayout::class)
-                && $layout instanceof \FieldForgePro\Fields\FlexLayout
+                && class_exists(\CtrlField\Pro\Fields\FlexLayout::class)
+                && $layout instanceof \CtrlField\Pro\Fields\FlexLayout
             ) {
                 $label    = $layout->getLabel() ?: '';
                 $icon     = $layout->getIcon() ?: '';
@@ -80,12 +80,12 @@ final class ComponentRegistry
             }
 
             if (function_exists('do_action')) {
-                do_action('fieldforge/component_registered', $key, $definition);
+                do_action('ctrlfield/component_registered', $key, $definition);
             }
         }
 
         if (function_exists('do_action')) {
-            do_action('fieldforge/components_loaded');
+            do_action('ctrlfield/components_loaded');
         }
     }
 

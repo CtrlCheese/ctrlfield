@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Cache;
+namespace CtrlField\Core\Cache;
 
 /**
  * Two-layer cache: static PHP array (request-scoped) + WP Object Cache (cross-request).
@@ -16,7 +16,7 @@ namespace FieldForge\Core\Cache;
  */
 class CacheAdapter
 {
-    private const GROUP = 'fieldforge';
+    private const GROUP = 'ctrlfield';
 
     /** @var array<string, mixed> */
     private static array $staticCache = [];

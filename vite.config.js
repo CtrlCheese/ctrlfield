@@ -10,7 +10,7 @@ export default defineConfig({
         rollupOptions: {
             input: 'assets/admin/src/index.js',
             output: {
-                entryFileNames: 'assets/admin/fieldforge.js',
+                entryFileNames: 'assets/admin/ctrlfield.js',
                 assetFileNames: 'assets/admin/[name][extname]',
                 format: 'iife',
             },

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Fields;
+namespace CtrlField\Tests\Unit\Fields;
 
-use FieldForge\Enums\AdminTab;
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\Field;
+use CtrlField\Enums\AdminTab;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Field;
 use PHPUnit\Framework\TestCase;
 
 class FieldDefinitionTest extends TestCase
@@ -146,7 +146,7 @@ class FieldDefinitionTest extends TestCase
     {
         $field = Field::text('name')->label('Name')->setIndex(true);
 
-        $this->assertInstanceOf(\FieldForge\Fields\Types\TextField::class, $field);
+        $this->assertInstanceOf(\CtrlField\Fields\Types\TextField::class, $field);
         $this->assertSame(FieldType::TEXT->value, $field->getDefinition()['type']);
     }
 }

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Fields\Types;
+namespace CtrlField\Tests\Unit\Fields\Types;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\Field;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Field;
 use PHPUnit\Framework\TestCase;
 
 class GroupFieldTest extends TestCase

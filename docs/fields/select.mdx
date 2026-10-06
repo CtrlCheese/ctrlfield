@@ -62,7 +62,7 @@ Field::select('status')
 ## Template usage
 
 ```blade
-{{ fieldforge_get('status') }}  {{-- returns 'active' --}}
+{{ ctrlfield_get('status') }}  {{-- returns 'active' --}}
 ```
 
 To display the label instead of the value, use the options array:
@@ -70,7 +70,7 @@ To display the label instead of the value, use the options array:
 ```blade
 @php
     $options = ['draft' => 'Draft', 'active' => 'Active', 'archived' => 'Archived'];
-    $value   = fieldforge_get('status');
+    $value   = ctrlfield_get('status');
 @endphp
 {{ $options[$value] ?? $value }}
 ```

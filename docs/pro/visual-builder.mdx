@@ -1,6 +1,6 @@
 # Visual Builder
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
 A drag-and-drop interface in the WP admin that generates PHP schema files from a visual form. Designed for developers who prefer a GUI for initial schema setup.
 
@@ -8,7 +8,7 @@ A drag-and-drop interface in the WP admin that generates PHP schema files from a
 
 ## Access
 
-**WP Admin → FieldForge → Visual Builder**
+**WP Admin → CtrlField → Visual Builder**
 
 ---
 
@@ -25,7 +25,7 @@ A drag-and-drop interface in the WP admin that generates PHP schema files from a
 
 ## What it generates
 
-The builder outputs standard FieldForge PHP — no proprietary format, no lock-in:
+The builder outputs standard CtrlField PHP — no proprietary format, no lock-in:
 
 ```php
 Field::group('portfolio_details')
@@ -53,5 +53,5 @@ You own the generated code. The visual builder is a code generator, not a runtim
 ## Notes
 
 - The Visual Builder does not save schema to the database — it only generates PHP code.
-- Schema changes require you to copy the generated code to a file and reload it with `fieldforge_load_schemas()`.
+- Schema changes require you to copy the generated code to a file and reload it with `ctrlfield_load_schemas()`.
 - The builder supports all Core field types. Pro field types (Gallery, Map, Relationship, etc.) are available in the Pro palette.

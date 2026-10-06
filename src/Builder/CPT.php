@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Builder;
+namespace CtrlField\Builder;
 
 /**
  * Fluent builder for Custom Post Type registration.

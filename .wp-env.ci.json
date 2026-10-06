@@ -6,7 +6,7 @@
     "WP_DEBUG": true,
     "WP_DEBUG_LOG": true,
     "WP_DEBUG_DISPLAY": false,
-    "FIELDFORGE_TESTING": true,
-    "FIELDFORGE_SCHEMA_PATH": "/var/www/html/wp-content/plugins/fieldforge/schema/"
+    "CTRLFIELD_TESTING": true,
+    "CTRLFIELD_SCHEMA_PATH": "/var/www/html/wp-content/plugins/ctrlfield/schema/"
   }
 }

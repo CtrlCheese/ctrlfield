@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Columns;
+namespace CtrlField\Admin\Columns;
 
-use FieldForge\Bootstrap\ServiceProvider;
+use CtrlField\Bootstrap\ServiceProvider;
 
 final class ColumnsServiceProvider extends ServiceProvider
 {

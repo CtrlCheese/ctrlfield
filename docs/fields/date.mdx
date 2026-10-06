@@ -62,7 +62,7 @@ Field::date('launch_date')
 ## Template usage
 
 ```blade
-@php $date = fieldforge_get('launch_date') @endphp
+@php $date = ctrlfield_get('launch_date') @endphp
 
 {{-- With returnFormat('DateTime') --}}
 @if($date)
@@ -70,5 +70,5 @@ Field::date('launch_date')
 @endif
 
 {{-- Raw string (no returnFormat) --}}
-{{ fieldforge_get('launch_date') }}  {{-- "2026-06-01" --}}
+{{ ctrlfield_get('launch_date') }}  {{-- "2026-06-01" --}}
 ```

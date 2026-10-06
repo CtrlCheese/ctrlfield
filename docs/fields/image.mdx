@@ -15,7 +15,7 @@ Field::image(string $key): ImageField
 ```php
 ->returnFormat(string $format): static
 ```
-Controls what `fieldforge_get()` returns. Options:
+Controls what `ctrlfield_get()` returns. Options:
 
 | Format | Returns |
 |---|---|
@@ -48,7 +48,7 @@ Field::image('hero_image')
 ## Template usage
 
 ```blade
-@php $hero = fieldforge_get('hero_image') @endphp
+@php $hero = ctrlfield_get('hero_image') @endphp
 
 @if($hero)
     <img
@@ -63,5 +63,5 @@ Field::image('hero_image')
 With `returnFormat('url')`:
 
 ```blade
-<img src="{{ fieldforge_get('logo') }}" alt="Logo">
+<img src="{{ ctrlfield_get('logo') }}" alt="Logo">
 ```

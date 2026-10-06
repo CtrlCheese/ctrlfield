@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Scaffold;
+namespace CtrlField\Integrations\CLI\Scaffold;
 
 final class ContentTableScaffoldDef
 {

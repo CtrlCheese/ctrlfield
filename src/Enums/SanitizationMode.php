@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Enums;
+namespace CtrlField\Enums;
 
 enum SanitizationMode: string
 {

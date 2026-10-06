@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Core\Pipeline;
+namespace CtrlField\Tests\Unit\Core\Pipeline;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Core\Cache\CacheAdapter;
-use FieldForge\Core\Pipeline\PipelineContext;
-use FieldForge\Core\Pipeline\PipelineException;
-use FieldForge\Core\Pipeline\SavePipeline;
-use FieldForge\Core\Pipeline\Stages\CapabilityCheckStage;
-use FieldForge\Core\Pipeline\Stages\JsonDecodeStage;
-use FieldForge\Core\Pipeline\Stages\NonceValidationStage;
-use FieldForge\Core\Pipeline\Stages\PersistenceStage;
-use FieldForge\Core\Pipeline\Stages\RulesVerificationStage;
-use FieldForge\Core\Pipeline\Stages\SanitizationStage;
-use FieldForge\Core\Pipeline\Stages\SchemaValidationStage;
-use FieldForge\Core\Pipeline\Stages\TypeCoercionStage;
-use FieldForge\Core\Security\Contracts\CapabilityCheckerInterface;
-use FieldForge\Core\Security\Contracts\NonceValidatorInterface;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\FieldRegistry;
-use FieldForge\Storage\Drivers\PostMetaDriverInterface;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Core\Cache\CacheAdapter;
+use CtrlField\Core\Pipeline\PipelineContext;
+use CtrlField\Core\Pipeline\PipelineException;
+use CtrlField\Core\Pipeline\SavePipeline;
+use CtrlField\Core\Pipeline\Stages\CapabilityCheckStage;
+use CtrlField\Core\Pipeline\Stages\JsonDecodeStage;
+use CtrlField\Core\Pipeline\Stages\NonceValidationStage;
+use CtrlField\Core\Pipeline\Stages\PersistenceStage;
+use CtrlField\Core\Pipeline\Stages\RulesVerificationStage;
+use CtrlField\Core\Pipeline\Stages\SanitizationStage;
+use CtrlField\Core\Pipeline\Stages\SchemaValidationStage;
+use CtrlField\Core\Pipeline\Stages\TypeCoercionStage;
+use CtrlField\Core\Security\Contracts\CapabilityCheckerInterface;
+use CtrlField\Core\Security\Contracts\NonceValidatorInterface;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\FieldRegistry;
+use CtrlField\Storage\Drivers\PostMetaDriverInterface;
+use CtrlField\Storage\PostMetaAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -94,8 +94,8 @@ class SavePipelineFullFlowTest extends TestCase
         ]);
 
         $rawPost = [
-            'fieldforge_nonce'   => 'valid',
-            'fieldforge_payload' => $payload,
+            'ctrlfield_nonce'   => 'valid',
+            'ctrlfield_payload' => $payload,
         ];
 
         $ctx = new PipelineContext(1, $rawPost, [$group]);
@@ -116,7 +116,7 @@ class SavePipelineFullFlowTest extends TestCase
         $group = $this->registerGroup();
 
         $payload = json_encode(['client_name' => 'Beta Inc', 'year' => '2023', 'status' => '', 'tags' => []]);
-        $ctx     = new PipelineContext(1, ['fieldforge_nonce' => 'v', 'fieldforge_payload' => $payload], [$group]);
+        $ctx     = new PipelineContext(1, ['ctrlfield_nonce' => 'v', 'ctrlfield_payload' => $payload], [$group]);
         $this->makePipeline()->process($ctx);
 
         $indexKey = PostMetaAdapter::INDEX_KEY_PREFIX . 'client_name';
@@ -133,7 +133,7 @@ class SavePipelineFullFlowTest extends TestCase
         $group = $this->registerGroup();
 
         $payload = json_encode(['client_name' => 'Should not save']);
-        $ctx     = new PipelineContext(1, ['fieldforge_nonce' => 'bad', 'fieldforge_payload' => $payload], [$group]);
+        $ctx     = new PipelineContext(1, ['ctrlfield_nonce' => 'bad', 'ctrlfield_payload' => $payload], [$group]);
 
         try {
             $this->makePipeline(nonceValid: false)->process($ctx);
@@ -154,7 +154,7 @@ class SavePipelineFullFlowTest extends TestCase
 
         // client_name is required but absent
         $payload = json_encode(['year' => '2024', 'status' => 'active', 'tags' => []]);
-        $ctx     = new PipelineContext(1, ['fieldforge_nonce' => 'v', 'fieldforge_payload' => $payload], [$group]);
+        $ctx     = new PipelineContext(1, ['ctrlfield_nonce' => 'v', 'ctrlfield_payload' => $payload], [$group]);
 
         $this->expectException(PipelineException::class);
         $this->makePipeline()->process($ctx);
@@ -170,7 +170,7 @@ class SavePipelineFullFlowTest extends TestCase
 
         $xss     = '<script>alert("xss")</script>';
         $payload = json_encode(['client_name' => $xss, 'year' => '2024', 'status' => '', 'tags' => []]);
-        $ctx     = new PipelineContext(1, ['fieldforge_nonce' => 'v', 'fieldforge_payload' => $payload], [$group]);
+        $ctx     = new PipelineContext(1, ['ctrlfield_nonce' => 'v', 'ctrlfield_payload' => $payload], [$group]);
         $this->makePipeline()->process($ctx);
 
         CacheAdapter::flush();
@@ -196,7 +196,7 @@ class SavePipelineFullFlowTest extends TestCase
             'tags'         => [],
         ]);
 
-        $ctx = new PipelineContext(1, ['fieldforge_nonce' => 'v', 'fieldforge_payload' => $payload], [$group]);
+        $ctx = new PipelineContext(1, ['ctrlfield_nonce' => 'v', 'ctrlfield_payload' => $payload], [$group]);
         $this->makePipeline()->process($ctx);
 
         CacheAdapter::flush();

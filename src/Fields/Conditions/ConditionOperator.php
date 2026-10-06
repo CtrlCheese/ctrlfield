@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Conditions;
+namespace CtrlField\Fields\Conditions;
 
 enum ConditionOperator: string
 {

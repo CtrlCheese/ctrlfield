@@ -1,6 +1,6 @@
 # Relationship
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
 A multi-select post picker that stores an ordered array of post IDs. Supports drag-to-reorder.
 
@@ -47,7 +47,7 @@ Field::relationship('team_members')
 ## Template usage
 
 ```blade
-@foreach(fieldforge_get('team_members') as $member)
+@foreach(ctrlfield_get('team_members') as $member)
     <div>
         <a href="{{ get_permalink($member->ID) }}">{{ $member->post_title }}</a>
     </div>

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Fields\FieldDefinition;
 
 final class IconRenderer extends AbstractRenderer
 {
@@ -107,7 +107,7 @@ final class IconRenderer extends AbstractRenderer
             $fullClass    = 'dashicons dashicons-' . $escapedSlug;
             $fullValue    = 'dashicons-' . $escapedSlug;
             $iconButtons .= sprintf(
-                '<button type="button" class="ff-icon-item"'
+                '<button type="button" class="ctrlf-icon-item"'
                 . ' x-show="!iconSearch || \'%1$s\'.includes(iconSearch.toLowerCase())"'
                 . ' @click="%2$s = \'%3$s\'; open = false">'
                 . '<span class="%4$s"></span>'
@@ -121,18 +121,18 @@ final class IconRenderer extends AbstractRenderer
         }
 
         return sprintf(
-            '<div class="ff-icon-picker" x-data="{ open: false }">'
-            . '<button type="button" class="ff-icon-preview-btn" @click="open = true">'
-            . '<span :class="%1$s ? \'dashicons \' + %1$s : \'ff-icon-empty\'" style="font-size:24px"></span>'
-            . '<span class="ff-icon-label" x-text="%1$s || \'Select icon\'"></span>'
+            '<div class="ctrlf-icon-picker" x-data="{ open: false }">'
+            . '<button type="button" class="ctrlf-icon-preview-btn" @click="open = true">'
+            . '<span :class="%1$s ? \'dashicons \' + %1$s : \'ctrlf-icon-empty\'" style="font-size:24px"></span>'
+            . '<span class="ctrlf-icon-label" x-text="%1$s || \'Select icon\'"></span>'
             . '</button>'
-            . '<div class="ff-icon-modal" x-show="open" @keydown.escape.window="open = false">'
-            . '<div class="ff-icon-modal-inner">'
-            . '<div class="ff-icon-modal-header">'
-            . '<input type="text" x-model="iconSearch" placeholder="Search icons..." class="ff-input">'
+            . '<div class="ctrlf-icon-modal" x-show="open" @keydown.escape.window="open = false">'
+            . '<div class="ctrlf-icon-modal-inner">'
+            . '<div class="ctrlf-icon-modal-header">'
+            . '<input type="text" x-model="iconSearch" placeholder="Search icons..." class="ctrlf-input">'
             . '<button type="button" @click="open = false">&#10005;</button>'
             . '</div>'
-            . '<div class="ff-icon-grid">%2$s</div>'
+            . '<div class="ctrlf-icon-grid">%2$s</div>'
             . '<button type="button" class="button" @click="%1$s = \'\'; open = false">Clear</button>'
             . '</div>'
             . '</div>'

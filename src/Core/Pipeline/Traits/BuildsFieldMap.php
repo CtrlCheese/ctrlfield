@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Pipeline\Traits;
+namespace CtrlField\Core\Pipeline\Traits;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Fields\FieldDefinition;
 
 trait BuildsFieldMap
 {

@@ -16,13 +16,13 @@ test.describe('WYSIWYG field', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('WYSIWYG Test Post');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         await container.locator('[x-model*="client_name"]').fill('WYSIWYG Client');
 
         // TinyMCE renders inside an iframe — interact with the iframe body
-        const editorId = 'ff_wysiwyg_description';  // adjust key to match your dev-test schema
+        const editorId = 'ctrlf_wysiwyg_description';  // adjust key to match your dev-test schema
         const editorFrame = page.frameLocator(`#${editorId}_ifr`);
 
         // Wait for TinyMCE to initialise
@@ -51,10 +51,10 @@ test.describe('WYSIWYG field', () => {
     test('wysiwyg content updates admin state on every keystroke', async ({ page }) => {
         await page.goto('/wp-admin/post-new.php?post_type=portfolio');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const editorId = 'ff_wysiwyg_description';
+        const editorId = 'ctrlf_wysiwyg_description';
         const editorFrame = page.frameLocator(`#${editorId}_ifr`);
         await expect(editorFrame.locator('body#tinymce')).toBeVisible({ timeout: 10_000 });
 
@@ -63,7 +63,7 @@ test.describe('WYSIWYG field', () => {
 
         // The hidden payload input should include the typed content
         const payload = await page.evaluate(() => {
-            const input = document.querySelector('input[name="fieldforge_payload"]');
+            const input = document.querySelector('input[name="ctrlfield_payload"]');
             return input ? JSON.parse(input.value) : null;
         });
 

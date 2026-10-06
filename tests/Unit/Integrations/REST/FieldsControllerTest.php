@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Integrations\REST;
+namespace CtrlField\Tests\Unit\Integrations\REST;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Core\Cache\CacheAdapter;
-use FieldForge\Fields\Field;
-use FieldForge\Integrations\REST\FieldsController;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Core\Cache\CacheAdapter;
+use CtrlField\Fields\Field;
+use CtrlField\Integrations\REST\FieldsController;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -156,6 +156,6 @@ class FieldsControllerTest extends TestCase
 
     public function test_namespace_constant(): void
     {
-        $this->assertSame('fieldforge/v1', FieldsController::NAMESPACE);
+        $this->assertSame('ctrlfield/v1', FieldsController::NAMESPACE);
     }
 }

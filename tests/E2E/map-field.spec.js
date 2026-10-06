@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 
 /**
  * E2E: map field — set marker, save, reload, verify stored lat/lng.
- * Requires wp-env with fieldforge-pro active and a map field group.
+ * Requires wp-env with ctrlfield-pro active and a map field group.
  * Uses OpenStreetMap provider (no API key required).
  *
  * Acceptance criteria (Cycle B-5):
@@ -16,10 +16,10 @@ test.describe('map field', () => {
     test('map field renders a map preview container', async ({ page }) => {
         await page.goto('/wp-admin/post-new.php?post_type=portfolio');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const mapField = container.locator('.ff-field-map, [data-field-type="map"]').first();
+        const mapField = container.locator('.ctrlf-field-map, [data-field-type="map"]').first();
         await expect(mapField).toBeVisible();
     });
 
@@ -31,7 +31,7 @@ test.describe('map field', () => {
 
         // Set coordinates via Alpine state
         await page.evaluate(() => {
-            const el = document.querySelector('.fieldforge-container');
+            const el = document.querySelector('.ctrlfield-container');
             if (el && el._x_dataStack) {
                 el._x_dataStack[0].adminState.location = {
                     lat: 48.8566,
@@ -48,7 +48,7 @@ test.describe('map field', () => {
         await page.reload();
 
         // Verify lat/lng are stored by checking the lat input rendered by MapRenderer
-        const latInput = page.locator('.fieldforge-container [name*="lat"], .ff-map-lat').first();
+        const latInput = page.locator('.ctrlfield-container [name*="lat"], .ctrlf-map-lat').first();
         await expect(latInput).toHaveValue('48.8566', { timeout: 10_000 });
     });
 

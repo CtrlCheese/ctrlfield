@@ -1,6 +1,6 @@
 # Post Object
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
 A post picker with AJAX search. Stores one or more post IDs.
 
@@ -64,7 +64,7 @@ Field::postObject('related_posts')
 ## Template usage
 
 ```blade
-@php $post = fieldforge_get('related_case') @endphp
+@php $post = ctrlfield_get('related_case') @endphp
 
 @if($post)
     <a href="{{ get_permalink($post->ID) }}">{{ $post->post_title }}</a>

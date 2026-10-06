@@ -12,7 +12,7 @@ export function GroupField({ field, value, onChange, allValues }) {
         <PanelBody
             title={ field.label || field.key }
             initialOpen={ true }
-            className="ff-gb-group"
+            className="ctrlf-gb-group"
         >
             { (field.fields ?? []).map((sub) => (
                 <FieldInput

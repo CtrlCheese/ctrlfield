@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Commands;
+namespace CtrlField\Integrations\CLI\Commands;
 
-use FieldForge\Builder\CPT;
-use FieldForge\Builder\Taxonomy;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Builder\CPT;
+use CtrlField\Builder\Taxonomy;
+use CtrlField\Registry\FieldRegistry;
 
 /**
- * WP-CLI command: wp fieldforge import
+ * WP-CLI command: wp ctrlfield import
  *
  * Excluded from PHPStan — references WP_CLI not available outside CLI runtime.
  *
- * Reads a JSON file produced by `wp fieldforge export` and compares it
+ * Reads a JSON file produced by `wp ctrlfield export` and compares it
  * against the current PHP schema, reporting additions and removals.
  * No writes are performed — this is a validation/diff command.
  *
  * Usage:
- *   wp fieldforge import --file=<path>
+ *   wp ctrlfield import --file=<path>
  */
 class ImportCommand
 {
@@ -31,7 +31,7 @@ class ImportCommand
         $file = $assocArgs['file'] ?? null;
 
         if ($file === null) {
-            \WP_CLI::error('--file is required. Usage: wp fieldforge import --file=<path>');
+            \WP_CLI::error('--file is required. Usage: wp ctrlfield import --file=<path>');
             return;
         }
 

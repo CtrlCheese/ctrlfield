@@ -22,10 +22,18 @@ jobs:
 
       - name: No hardcoded secrets
         run: |
-          if grep -rE "(password|secret|api_key)\s*=\s*['\"][^'\"]{8,}" src/ \
+          if grep -rE "(password|secret|api_key)\s*=\s*['\"][^'\"]{8,}" $(ls -d src pro/src 2>/dev/null) \
               --include="*.php" \
               --exclude-dir=vendor; then
             echo "::warning::Possible hardcoded credential detected — review before merging."
+          fi
+
+      - name: No placeholder RSA key
+        if: hashFiles('pro/src/**') != ''
+        run: |
+          if grep -r "REPLACE_WITH_REAL_RSA2048_PUBLIC_KEY" pro/src/; then
+            echo "::error::Replace the placeholder RSA public key in JwtLicenseValidator before shipping."
+            exit 1
           fi
 
   # ─────────────────────────────────────────────────────────────────
@@ -68,8 +76,16 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Run unit tests
+      - name: Run unit tests (Core)
         run: vendor/bin/phpunit --configuration phpunit.xml
+
+      # Private repo only — the public Free build has no pro/.
+      # Pro tests never ran before the merge (src/helpers.php exited without ABSPATH).
+      # 36 of them fail on the pre-merge code too; non-blocking until those are fixed.
+      - name: Run unit tests (Pro)
+        if: hashFiles('pro/phpunit.xml') != ''
+        continue-on-error: true
+        run: vendor/bin/phpunit --configuration pro/phpunit.xml
 
   # ─────────────────────────────────────────────────────────────────
   # 4. JavaScript unit tests (Vitest)
@@ -159,11 +175,11 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress --no-dev
 
       - name: Build zip
-        run: wp dist-archive . fieldforge.zip --plugin-dirname=fieldforge --allow-root
+        run: wp dist-archive . ctrlfield.zip --plugin-dirname=ctrlfield --allow-root
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fieldforge-${{ github.sha }}
-          path: fieldforge.zip
+          name: ctrlfield-${{ github.sha }}
+          path: ctrlfield.zip
           retention-days: 30

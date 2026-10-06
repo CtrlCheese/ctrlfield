@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\UserMeta;
+namespace CtrlField\Admin\UserMeta;
 
-use FieldForge\Bootstrap\ServiceProvider;
+use CtrlField\Bootstrap\ServiceProvider;
 
 class UserMetaServiceProvider extends ServiceProvider
 {

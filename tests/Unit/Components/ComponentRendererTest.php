@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Components;
+namespace CtrlField\Tests\Unit\Components;
 
-use FieldForge\Components\ComponentDefinition;
-use FieldForge\Components\ComponentRegistry;
-use FieldForge\Components\ComponentRenderer;
+use CtrlField\Components\ComponentDefinition;
+use CtrlField\Components\ComponentRegistry;
+use CtrlField\Components\ComponentRenderer;
 use PHPUnit\Framework\TestCase;
 
 class ComponentRendererTest extends TestCase
@@ -16,7 +16,7 @@ class ComponentRendererTest extends TestCase
     protected function setUp(): void
     {
         ComponentRegistry::reset();
-        $this->tmpBase = sys_get_temp_dir() . '/ff_renderer_test_' . uniqid();
+        $this->tmpBase = sys_get_temp_dir() . '/ctrlf_renderer_test_' . uniqid();
         mkdir($this->tmpBase, 0777, true);
     }
 
@@ -64,8 +64,8 @@ class ComponentRendererTest extends TestCase
 
         $this->registerBare('greeting', $template);
 
-        $result = ComponentRenderer::render(['_layout' => 'greeting', 'name' => 'FieldForge']);
-        $this->assertSame('FieldForge', $result);
+        $result = ComponentRenderer::render(['_layout' => 'greeting', 'name' => 'CtrlField']);
+        $this->assertSame('CtrlField', $result);
     }
 
     public function test_render_by_name_injects_layout_key(): void

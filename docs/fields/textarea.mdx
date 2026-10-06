@@ -35,9 +35,9 @@ Field::textarea('bio')
 ## Template usage
 
 ```blade
-{!! nl2br(e(fieldforge_get('bio'))) !!}
+{!! nl2br(e(ctrlfield_get('bio'))) !!}
 ```
 
 ```php
-echo nl2br(esc_html(fieldforge_get('bio')));
+echo nl2br(esc_html(ctrlfield_get('bio')));
 ```

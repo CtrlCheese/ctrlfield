@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Security;
+namespace CtrlField\Core\Security;
 
-use FieldForge\Core\Security\Contracts\NonceValidatorInterface;
+use CtrlField\Core\Security\Contracts\NonceValidatorInterface;
 
 /**
  * Production wrapper around wp_verify_nonce().

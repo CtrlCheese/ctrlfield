@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\RepeaterField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\RepeaterField;
 
 final class RepeaterRenderer extends AbstractRenderer
 {
@@ -31,8 +31,8 @@ final class RepeaterRenderer extends AbstractRenderer
             $emptyRowJson[$subKey] = null;
 
             $subFieldsHtml .= <<<HTML
-<div class="ff-field ff-field--inline">
-    <label class="ff-label">{$label}</label>
+<div class="ctrlf-field ctrlf-field--inline">
+    <label class="ctrlf-label">{$label}</label>
     {$subInput}
 </div>
 HTML;
@@ -45,27 +45,27 @@ HTML;
         );
 
         return <<<HTML
-<div class="ff-repeater" x-data>
+<div class="ctrlf-repeater" x-data>
     <template x-for="(row, rowIdx) in {$escapedPath}" :key="rowIdx">
-        <div class="ff-repeater-row">
+        <div class="ctrlf-repeater-row">
             {$subFieldsHtml}
-            <div class="ff-repeater-actions">
-                <button type="button" class="ff-btn ff-btn--up"
+            <div class="ctrlf-repeater-actions">
+                <button type="button" class="ctrlf-btn ctrlf-btn--up"
                         @click="moveRowUp('{$escapedKey}', rowIdx)"
                         :disabled="rowIdx === 0"
                         title="Move up">&#8593;</button>
-                <button type="button" class="ff-btn ff-btn--down"
+                <button type="button" class="ctrlf-btn ctrlf-btn--down"
                         @click="moveRowDown('{$escapedKey}', rowIdx)"
                         :disabled="rowIdx === {$escapedPath}.length - 1"
                         title="Move down">&#8595;</button>
-                <button type="button" class="ff-btn ff-btn--remove"
+                <button type="button" class="ctrlf-btn ctrlf-btn--remove"
                         @click="removeRow('{$escapedKey}', rowIdx)"
                         title="Remove row">&#10005;</button>
             </div>
         </div>
     </template>
 
-    <button type="button" class="ff-btn ff-btn--add"
+    <button type="button" class="ctrlf-btn ctrlf-btn--add"
             @click="addRow('{$escapedKey}', {$emptyRow})">
         + Add Row
     </button>

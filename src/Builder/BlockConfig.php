@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Builder;
+namespace CtrlField\Builder;
 
 /**
  * Value object holding the Gutenberg block configuration for a FieldGroup.

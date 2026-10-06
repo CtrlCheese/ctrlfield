@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Integrations\Blade;
+namespace CtrlField\Tests\Unit\Integrations\Blade;
 
-use FieldForge\Bootstrap\ServiceContainer;
-use FieldForge\Integrations\Blade\ViewServiceProvider;
+use CtrlField\Bootstrap\ServiceContainer;
+use CtrlField\Integrations\Blade\ViewServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use PHPUnit\Framework\TestCase;
 
@@ -46,7 +46,7 @@ class ViewServiceProviderTest extends TestCase
         $compiled = $compiler->compileString("@field('client_name')");
 
         $this->assertStringContainsString('htmlspecialchars', $compiled);
-        $this->assertStringContainsString("fieldforge_get('client_name')", $compiled);
+        $this->assertStringContainsString("ctrlfield_get('client_name')", $compiled);
     }
 
     public function test_field_raw_directive_compiles_without_escaping(): void
@@ -60,7 +60,7 @@ class ViewServiceProviderTest extends TestCase
         $compiled = $compiler->compileString("@field_raw('bio')");
 
         $this->assertStringNotContainsString('htmlspecialchars', $compiled);
-        $this->assertStringContainsString("fieldforge_get('bio')", $compiled);
+        $this->assertStringContainsString("ctrlfield_get('bio')", $compiled);
     }
 
     public function test_repeater_directive_compiles_to_foreach(): void

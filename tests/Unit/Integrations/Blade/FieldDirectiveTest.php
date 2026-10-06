@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Integrations\Blade;
+namespace CtrlField\Tests\Unit\Integrations\Blade;
 
-use FieldForge\Integrations\Blade\FieldDirective;
+use CtrlField\Integrations\Blade\FieldDirective;
 use PHPUnit\Framework\TestCase;
 
 class FieldDirectiveTest extends TestCase
@@ -14,7 +14,7 @@ class FieldDirectiveTest extends TestCase
         $output = FieldDirective::compile("'client_name'");
 
         $this->assertStringContainsString('htmlspecialchars', $output);
-        $this->assertStringContainsString("fieldforge_get('client_name')", $output);
+        $this->assertStringContainsString("ctrlfield_get('client_name')", $output);
         $this->assertStringContainsString('ENT_QUOTES', $output);
     }
 
@@ -23,7 +23,7 @@ class FieldDirectiveTest extends TestCase
         $output = FieldDirective::compileRaw("'description'");
 
         $this->assertStringNotContainsString('htmlspecialchars', $output);
-        $this->assertStringContainsString("fieldforge_get('description')", $output);
+        $this->assertStringContainsString("ctrlfield_get('description')", $output);
     }
 
     public function test_compiled_output_starts_with_php_open_tag(): void
@@ -63,6 +63,6 @@ class FieldDirectiveTest extends TestCase
     {
         $output = FieldDirective::compile('$fieldKey');
 
-        $this->assertStringContainsString('fieldforge_get($fieldKey)', $output);
+        $this->assertStringContainsString('ctrlfield_get($fieldKey)', $output);
     }
 }

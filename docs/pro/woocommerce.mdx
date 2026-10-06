@@ -1,8 +1,8 @@
 # WooCommerce Integration
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
-Adds FieldForge field groups to WooCommerce product pages, product variations, and orders (HPOS-compatible).
+Adds CtrlField field groups to WooCommerce product pages, product variations, and orders (HPOS-compatible).
 
 ---
 
@@ -22,9 +22,9 @@ Field groups target WooCommerce screens via the `context` condition:
 ## Setup
 
 ```php
-use FieldForge\Fields\Field;
+use CtrlField\Fields\Field;
 
-// Product fields — appear in a dedicated "FieldForge" tab
+// Product fields — appear in a dedicated "CtrlField" tab
 Field::group('product_extra')
     ->title('Product Extra')
     ->where('context', '==', 'woo_product')
@@ -66,10 +66,10 @@ Field::group('order_notes_extra')
 
 ```php
 // Product fields — use the post ID
-$badge = fieldforge_get('badge', $product->get_id());
+$badge = ctrlfield_get('badge', $product->get_id());
 
 // Order fields — HPOS-compatible
-$notes = fieldforge_get('delivery_notes', $order->get_id());
+$notes = ctrlfield_get('delivery_notes', $order->get_id());
 ```
 
 ---

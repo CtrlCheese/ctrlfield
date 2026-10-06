@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Core\Pipeline\Stages;
+namespace CtrlField\Tests\Unit\Core\Pipeline\Stages;
 
-use FieldForge\Core\Pipeline\PipelineContext;
-use FieldForge\Core\Pipeline\PipelineException;
-use FieldForge\Core\Pipeline\Stages\NonceValidationStage;
-use FieldForge\Core\Security\Contracts\NonceValidatorInterface;
+use CtrlField\Core\Pipeline\PipelineContext;
+use CtrlField\Core\Pipeline\PipelineException;
+use CtrlField\Core\Pipeline\Stages\NonceValidationStage;
+use CtrlField\Core\Security\Contracts\NonceValidatorInterface;
 use PHPUnit\Framework\TestCase;
 
 class NonceValidationStageTest extends TestCase
@@ -15,7 +15,7 @@ class NonceValidationStageTest extends TestCase
     public function test_passes_with_valid_nonce(): void
     {
         $stage   = new NonceValidationStage(new AlwaysValidNonce());
-        $context = new PipelineContext(1, ['_fieldforge_nonce' => 'valid_nonce']);
+        $context = new PipelineContext(1, ['_ctrlfield_nonce' => 'valid_nonce']);
 
         $stage->handle($context); // must not throw
 
@@ -25,7 +25,7 @@ class NonceValidationStageTest extends TestCase
     public function test_throws_with_invalid_nonce(): void
     {
         $stage   = new NonceValidationStage(new AlwaysInvalidNonce());
-        $context = new PipelineContext(1, ['_fieldforge_nonce' => 'bad_nonce']);
+        $context = new PipelineContext(1, ['_ctrlfield_nonce' => 'bad_nonce']);
 
         $this->expectException(PipelineException::class);
 

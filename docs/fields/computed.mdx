@@ -27,7 +27,7 @@ Computed values are written to the same JSON blob as regular fields, after the s
 { "price": 100, "tax_rate": 20, "total_price": 120 }
 ```
 
-If `->setIndex(true)` is set, the value is also written to `_fieldforge_idx_total_price`.
+If `->setIndex(true)` is set, the value is also written to `_ctrlfield_idx_total_price`.
 
 ---
 
@@ -60,8 +60,8 @@ Field::computed('full_name', function (array $fields): string {
 Computed fields are read exactly like regular fields:
 
 ```blade
-{{ fieldforge_get('total_price') }}    {{-- 120 --}}
-{{ fieldforge_get('full_name') }}      {{-- "Alice Smith" --}}
+{{ ctrlfield_get('total_price') }}    {{-- 120 --}}
+{{ ctrlfield_get('full_name') }}      {{-- "Alice Smith" --}}
 ```
 
 ---

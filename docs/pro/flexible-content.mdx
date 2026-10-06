@@ -1,6 +1,6 @@
 # Flexible Content & FlexLayout
 
-`FlexLayout` defines a single block type (a "layout") within a `FlexibleContentField`. Together they form FieldForge's page-builder system.
+`FlexLayout` defines a single block type (a "layout") within a `FlexibleContentField`. Together they form CtrlField's page-builder system.
 
 ---
 
@@ -68,8 +68,8 @@ Delegates to `FlexLayout::fieldsFromFile()`.
 ## Full example
 
 ```php
-use FieldForgePro\Fields\FlexibleContentField;
-use FieldForgePro\Fields\FlexLayout;
+use CtrlField\Pro\Fields\FlexibleContentField;
+use CtrlField\Pro\Fields\FlexLayout;
 
 // Register the field group with autoDiscover + a manual layout
 $flex = (new FlexibleContentField('page_builder'))
@@ -87,7 +87,7 @@ $flex = (new FlexibleContentField('page_builder'))
             ->fields([]),
     ]);
 
-\FieldForge\Builder\FieldGroup::make('page_content')
+\CtrlField\Builder\FieldGroup::make('page_content')
     ->where('post_type', '==', 'page')
     ->fields([$flex])
     ->register();

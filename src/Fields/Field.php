@@ -2,40 +2,40 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields;
+namespace CtrlField\Fields;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Fields\Types\AccordionEndField;
-use FieldForge\Fields\Types\AccordionField;
-use FieldForge\Fields\Types\ButtonGroupField;
-use FieldForge\Fields\Types\CheckboxField;
-use FieldForge\Fields\Types\CodeField;
-use FieldForge\Fields\Types\ColorField;
-use FieldForge\Fields\Types\DateField;
-use FieldForge\Fields\Types\DateTimeField;
-use FieldForge\Fields\Types\EmailField;
-use FieldForge\Fields\Types\FileField;
-use FieldForge\Fields\Types\GroupField;
-use FieldForge\Fields\Types\IconField;
-use FieldForge\Fields\Types\ImageField;
-use FieldForge\Fields\Types\LinkField;
-use FieldForge\Fields\Types\MessageField;
-use FieldForge\Fields\Types\NumberField;
-use FieldForge\Fields\Types\ComputedField;
-use FieldForge\Fields\Types\OembedField;
-use FieldForge\Fields\Types\RadioField;
-use FieldForge\Fields\Types\RangeField;
-use FieldForge\Fields\Types\RepeaterField;
-use FieldForge\Fields\Types\SelectField;
-use FieldForge\Fields\Types\SeparatorField;
-use FieldForge\Fields\Types\TabField;
-use FieldForge\Fields\Types\TextareaField;
-use FieldForge\Fields\Types\TextField;
-use FieldForge\Fields\Types\TimeField;
-use FieldForge\Fields\Types\TrueFalseField;
-use FieldForge\Fields\Types\UrlField;
-use FieldForge\Fields\Types\UserField;
-use FieldForge\Fields\Types\WysiwygField;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Fields\Types\AccordionEndField;
+use CtrlField\Fields\Types\AccordionField;
+use CtrlField\Fields\Types\ButtonGroupField;
+use CtrlField\Fields\Types\CheckboxField;
+use CtrlField\Fields\Types\CodeField;
+use CtrlField\Fields\Types\ColorField;
+use CtrlField\Fields\Types\DateField;
+use CtrlField\Fields\Types\DateTimeField;
+use CtrlField\Fields\Types\EmailField;
+use CtrlField\Fields\Types\FileField;
+use CtrlField\Fields\Types\GroupField;
+use CtrlField\Fields\Types\IconField;
+use CtrlField\Fields\Types\ImageField;
+use CtrlField\Fields\Types\LinkField;
+use CtrlField\Fields\Types\MessageField;
+use CtrlField\Fields\Types\NumberField;
+use CtrlField\Fields\Types\ComputedField;
+use CtrlField\Fields\Types\OembedField;
+use CtrlField\Fields\Types\RadioField;
+use CtrlField\Fields\Types\RangeField;
+use CtrlField\Fields\Types\RepeaterField;
+use CtrlField\Fields\Types\SelectField;
+use CtrlField\Fields\Types\SeparatorField;
+use CtrlField\Fields\Types\TabField;
+use CtrlField\Fields\Types\TextareaField;
+use CtrlField\Fields\Types\TextField;
+use CtrlField\Fields\Types\TimeField;
+use CtrlField\Fields\Types\TrueFalseField;
+use CtrlField\Fields\Types\UrlField;
+use CtrlField\Fields\Types\UserField;
+use CtrlField\Fields\Types\WysiwygField;
 
 /**
  * Static factory for field types and field group registration.
@@ -46,13 +46,13 @@ use FieldForge\Fields\Types\WysiwygField;
 final class Field
 {
     // -------------------------------------------------------------------------
-    // Clone factory — registered by Pro plugin at boot time
+    // Clone factory — registered by Pro at boot time (valid license)
     // -------------------------------------------------------------------------
 
     private static ?\Closure $cloneFieldFactory = null;
 
     /**
-     * Register the factory for Field::clone() — called by FieldForge Pro bootstrap.
+     * Register the factory for Field::clone() — called by CtrlField Pro bootstrap.
      */
     public static function registerCloneFactory(\Closure $factory): void
     {
@@ -60,7 +60,7 @@ final class Field
     }
 
     /**
-     * Create a CloneField instance. Requires FieldForge Pro to be active.
+     * Create a CloneField instance. Requires a valid CtrlField Pro license.
      *
      * @throws \RuntimeException if the clone field factory has not been registered
      */
@@ -68,7 +68,7 @@ final class Field
     {
         if (self::$cloneFieldFactory === null) {
             throw new \RuntimeException(
-                'Field::clone() requires FieldForge Pro. The clone factory has not been registered.'
+                'Field::clone() requires a CtrlField Pro license. The clone factory has not been registered.'
             );
         }
 

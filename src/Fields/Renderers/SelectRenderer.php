@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\SelectField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\SelectField;
 
 final class SelectRenderer extends AbstractRenderer
 {
@@ -24,7 +24,7 @@ final class SelectRenderer extends AbstractRenderer
         }
 
         return sprintf(
-            '<select id="%s" x-model="%s" class="ff-input ff-input--select">%s</select>',
+            '<select id="%s" x-model="%s" class="ctrlf-input ctrlf-input--select">%s</select>',
             $this->esc($this->inputId($field)),
             $this->esc($statePath),
             $options,

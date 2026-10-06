@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Attachment;
+namespace CtrlField\Admin\Attachment;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Builder\AdminContext;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Core\Pipeline\SavePipeline;
-use FieldForge\Data\FieldDataService;
-use FieldForge\Enums\FieldType;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Storage\Drivers\WpPostMetaDriver;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Core\Pipeline\SavePipeline;
+use CtrlField\Data\FieldDataService;
+use CtrlField\Enums\FieldType;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
+use CtrlField\Storage\PostMetaAdapter;
 
 /**
- * Renders and saves FieldForge fields inside the WordPress Media Library modal
+ * Renders and saves CtrlField fields inside the WordPress Media Library modal
  * (attachment_fields_to_edit / attachment_fields_to_save).
  *
  * Fields appear when any FieldGroup is registered with:
@@ -60,11 +60,11 @@ final class AttachmentModalServiceProvider extends ServiceProvider
                 $label = $def['label'] ?: $key;
                 $value = FieldDataService::getInstance()->get($key, $post->ID, 'post');
 
-                $formFields['ff_' . $key] = [
+                $formFields['ctrlf_' . $key] = [
                     'label' => esc_html($label),
                     'input' => 'html',
                     'html'  => sprintf(
-                        '<input type="text" id="attachments-%1$d-ff_%2$s" name="attachments[%1$d][ff_%2$s]" value="%3$s" class="text" style="width:100%%">',
+                        '<input type="text" id="attachments-%1$d-ctrlf_%2$s" name="attachments[%1$d][ctrlf_%2$s]" value="%3$s" class="text" style="width:100%%">',
                         $post->ID,
                         esc_attr($key),
                         esc_attr((string) $value),
@@ -96,7 +96,7 @@ final class AttachmentModalServiceProvider extends ServiceProvider
         $fields   = [];
 
         foreach ($attachment as $name => $value) {
-            if (! str_starts_with((string) $name, 'ff_')) {
+            if (! str_starts_with((string) $name, 'ctrlf_')) {
                 continue;
             }
 

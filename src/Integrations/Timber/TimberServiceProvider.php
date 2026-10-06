@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\Timber;
+namespace CtrlField\Integrations\Timber;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Data\FieldDataService;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Data\FieldDataService;
 
 /**
- * Registers FieldForge helper functions in the Timber/Twig environment.
+ * Registers CtrlField helper functions in the Timber/Twig environment.
  *
  * Zero cost when Timber is not installed — boot() returns immediately
  * if \Timber\Timber is not present.
  *
  * Available Twig functions:
- *   {{ ff('key') }}                    → fieldforge_get($key, $postId)
- *   {{ ff_all() }}                     → fieldforge_get_all($postId)
- *   {{ ff_user('key', userId) }}       → fieldforge_get_user($key, $userId)
- *   {% for row in ff_repeater('key') %} → iterates repeater rows
+ *   {{ ctrlf('key') }}                    → ctrlfield_get($key, $postId)
+ *   {{ ctrlf_all() }}                     → ctrlfield_get_all($postId)
+ *   {{ ctrlf_user('key', userId) }}       → ctrlfield_get_user($key, $userId)
+ *   {% for row in ctrlf_repeater('key') %} → iterates repeater rows
  *
  * Excluded from PHPStan — references Twig and Timber classes.
  */
@@ -41,7 +41,7 @@ final class TimberServiceProvider extends ServiceProvider
     public function addFunctions(\Twig\Environment $twig): \Twig\Environment
     {
         $twig->addFunction(new \Twig\TwigFunction(
-            'ff',
+            'ctrlf',
             static function (string $key, ?int $postId = null): mixed {
                 return FieldDataService::getInstance()->get(
                     $key,
@@ -52,7 +52,7 @@ final class TimberServiceProvider extends ServiceProvider
         ));
 
         $twig->addFunction(new \Twig\TwigFunction(
-            'ff_all',
+            'ctrlf_all',
             static function (?int $postId = null): array {
                 return FieldDataService::getInstance()->getAll(
                     $postId ?? (function_exists('get_the_ID') ? (int) get_the_ID() : 0),
@@ -62,7 +62,7 @@ final class TimberServiceProvider extends ServiceProvider
         ));
 
         $twig->addFunction(new \Twig\TwigFunction(
-            'ff_user',
+            'ctrlf_user',
             static function (string $key, int $userId = 0): mixed {
                 return FieldDataService::getInstance()->get(
                     $key,
@@ -73,14 +73,14 @@ final class TimberServiceProvider extends ServiceProvider
         ));
 
         $twig->addFunction(new \Twig\TwigFunction(
-            'ff_term',
+            'ctrlf_term',
             static function (string $key, int $termId): mixed {
                 return FieldDataService::getInstance()->get($key, $termId, 'term');
             },
         ));
 
         $twig->addFunction(new \Twig\TwigFunction(
-            'ff_repeater',
+            'ctrlf_repeater',
             static function (string $key, ?int $postId = null): array {
                 $value = FieldDataService::getInstance()->get(
                     $key,
@@ -91,24 +91,24 @@ final class TimberServiceProvider extends ServiceProvider
             },
         ));
 
-        // ff_component(section) — renders a flexible-content section array.
-        // Equivalent to @ffSection in Blade.
-        // Usage: {{ ff_component(section)|raw }}
+        // ctrlf_component(section) — renders a flexible-content section array.
+        // Equivalent to @ctrlfSection in Blade.
+        // Usage: {{ ctrlf_component(section)|raw }}
         $twig->addFunction(new \Twig\TwigFunction(
-            'ff_component',
+            'ctrlf_component',
             static function (array $section): string {
-                return \FieldForge\Components\ComponentRenderer::render($section);
+                return \CtrlField\Components\ComponentRenderer::render($section);
             },
             ['is_safe' => ['html']],
         ));
 
-        // ff_render('name', data) — renders a named component with explicit data.
-        // Equivalent to @ffComponent in Blade.
-        // Usage: {{ ff_render('hero', {'headline': 'Welcome'})|raw }}
+        // ctrlf_render('name', data) — renders a named component with explicit data.
+        // Equivalent to @ctrlfComponent in Blade.
+        // Usage: {{ ctrlf_render('hero', {'headline': 'Welcome'})|raw }}
         $twig->addFunction(new \Twig\TwigFunction(
-            'ff_render',
+            'ctrlf_render',
             static function (string $name, array $data = []): string {
-                return \FieldForge\Components\ComponentRenderer::renderByName($name, $data);
+                return \CtrlField\Components\ComponentRenderer::renderByName($name, $data);
             },
             ['is_safe' => ['html']],
         ));

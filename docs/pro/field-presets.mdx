@@ -11,9 +11,9 @@ See [Field Presets API reference](../api/field-presets) for the full API.
 Create a shared preset library file and load it before your schema files:
 
 ```php
-// fieldforge/presets.php
-use FieldForge\Fields\Field;
-use FieldForge\Fields\FieldPresets;
+// ctrlfield/presets.php
+use CtrlField\Fields\Field;
+use CtrlField\Fields\FieldPresets;
 
 FieldPresets::register('theme', fn () =>
     Field::buttonGroup('theme')
@@ -41,8 +41,8 @@ Load presets first:
 
 ```php
 add_action('init', function () {
-    fieldforge_load_schemas(get_template_directory() . '/fieldforge/presets.php');
-    fieldforge_load_schemas(get_template_directory() . '/fieldforge/');
+    ctrlfield_load_schemas(get_template_directory() . '/ctrlfield/presets.php');
+    ctrlfield_load_schemas(get_template_directory() . '/ctrlfield/');
 }, 5);
 ```
 
@@ -52,9 +52,9 @@ add_action('init', function () {
 
 ```php
 // components/hero/fields.php
-use FieldForgePro\Fields\FlexLayout;
-use FieldForge\Fields\Field;
-use FieldForge\Fields\FieldPresets;
+use CtrlField\Pro\Fields\FlexLayout;
+use CtrlField\Fields\Field;
+use CtrlField\Fields\FieldPresets;
 
 return FlexLayout::make('hero')
     ->label('Hero')

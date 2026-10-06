@@ -15,7 +15,7 @@ test.describe('visibleWhen conditional fields', () => {
     test('dependent field shows when condition is met', async ({ page }) => {
         await page.goto('/wp-admin/post-new.php?post_type=portfolio');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // The client_contact field is visible only when project_type == 'web'
@@ -34,7 +34,7 @@ test.describe('visibleWhen conditional fields', () => {
     test('dependent field hides when condition clears', async ({ page }) => {
         await page.goto('/wp-admin/post-new.php?post_type=portfolio');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         const select = container.locator('[x-model*="project_type"]');
@@ -55,7 +55,7 @@ test.describe('visibleWhen conditional fields', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('Visible When Test');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         await container.locator('[x-model*="client_name"]').fill('Acme');

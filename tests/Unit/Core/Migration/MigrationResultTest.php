@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Core\Migration;
+namespace CtrlField\Tests\Unit\Core\Migration;
 
-use FieldForge\Core\Migration\MigrationResult;
+use CtrlField\Core\Migration\MigrationResult;
 use PHPUnit\Framework\TestCase;
 
 class MigrationResultTest extends TestCase

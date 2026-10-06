@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Notifications;
+namespace CtrlField\Fields\Notifications;
 
 /**
  * Immutable config for a single field-change notification rule.

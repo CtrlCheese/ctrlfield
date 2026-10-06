@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Admin\QuickEdit;
+namespace CtrlField\Tests\Unit\Admin\QuickEdit;
 
-use FieldForge\Fields\Exceptions\BulkEditOnInvalidTypeException;
-use FieldForge\Fields\Field;
+use CtrlField\Fields\Exceptions\BulkEditOnInvalidTypeException;
+use CtrlField\Fields\Field;
 use PHPUnit\Framework\TestCase;
 
 class QuickEditDefinitionTest extends TestCase

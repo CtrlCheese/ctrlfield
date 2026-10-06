@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Admin\NavMenu;
+namespace CtrlField\Tests\Unit\Admin\NavMenu;
 
-use FieldForge\Admin\NavMenu\NavMenuServiceProvider;
-use FieldForge\Bootstrap\ServiceContainer;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Admin\NavMenu\NavMenuServiceProvider;
+use CtrlField\Bootstrap\ServiceContainer;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 class NavMenuServiceProviderTest extends TestCase
@@ -71,15 +71,15 @@ class NavMenuServiceProviderTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function test_save_fields_skips_when_no_ff_nav_data(): void
+    public function test_save_fields_skips_when_no_ctrlf_nav_data(): void
     {
-        // Simulate nonce present but no ff_nav data.
-        $_POST['_ff_nav_nonce_5'] = 'fake_nonce';
+        // Simulate nonce present but no ctrlf_nav data.
+        $_POST['_ctrlf_nav_nonce_5'] = 'fake_nonce';
 
         $provider = new NavMenuServiceProvider(new ServiceContainer());
         $provider->saveFields(1, 5, []);
 
-        unset($_POST['_ff_nav_nonce_5']);
+        unset($_POST['_ctrlf_nav_nonce_5']);
 
         $this->addToAssertionCount(1);
     }

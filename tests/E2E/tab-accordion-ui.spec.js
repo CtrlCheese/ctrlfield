@@ -19,32 +19,32 @@ test.describe('Tab and Accordion UI', () => {
     test('first tab is active by default', async ({ page }) => {
         await page.goto(POST_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const tabs = container.locator('.ff-tabs-nav, [role="tablist"]').first();
+        const tabs = container.locator('.ctrlf-tabs-nav, [role="tablist"]').first();
         if (! await tabs.isVisible()) {
             test.skip();
             return;
         }
 
-        const firstTab = tabs.locator('[role="tab"], .ff-tab-btn').first();
+        const firstTab = tabs.locator('[role="tab"], .ctrlf-tab-btn').first();
         await expect(firstTab).toHaveAttribute('aria-selected', 'true');
     });
 
     test('clicking a different tab shows its panel', async ({ page }) => {
         await page.goto(POST_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const tabs = container.locator('.ff-tabs-nav, [role="tablist"]').first();
+        const tabs = container.locator('.ctrlf-tabs-nav, [role="tablist"]').first();
         if (! await tabs.isVisible()) {
             test.skip();
             return;
         }
 
-        const secondTab = tabs.locator('[role="tab"], .ff-tab-btn').nth(1);
+        const secondTab = tabs.locator('[role="tab"], .ctrlf-tab-btn').nth(1);
         if (! await secondTab.isVisible()) {
             test.skip();
             return;
@@ -53,40 +53,40 @@ test.describe('Tab and Accordion UI', () => {
         await secondTab.click();
         await expect(secondTab).toHaveAttribute('aria-selected', 'true');
 
-        const firstTab = tabs.locator('[role="tab"], .ff-tab-btn').first();
+        const firstTab = tabs.locator('[role="tab"], .ctrlf-tab-btn').first();
         await expect(firstTab).not.toHaveAttribute('aria-selected', 'true');
     });
 
     test('accordion is collapsed by default', async ({ page }) => {
         await page.goto(POST_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const accordion = container.locator('.ff-accordion').first();
+        const accordion = container.locator('.ctrlf-accordion').first();
         if (! await accordion.isVisible()) {
             test.skip();
             return;
         }
 
-        const body = accordion.locator('.ff-accordion-body').first();
+        const body = accordion.locator('.ctrlf-accordion-body').first();
         await expect(body).not.toBeVisible();
     });
 
     test('accordion expands on header click and collapses on second click', async ({ page }) => {
         await page.goto(POST_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const accordion = container.locator('.ff-accordion').first();
+        const accordion = container.locator('.ctrlf-accordion').first();
         if (! await accordion.isVisible()) {
             test.skip();
             return;
         }
 
-        const header = accordion.locator('.ff-accordion-header').first();
-        const body   = accordion.locator('.ff-accordion-body').first();
+        const header = accordion.locator('.ctrlf-accordion-header').first();
+        const body   = accordion.locator('.ctrlf-accordion-body').first();
 
         // Expand
         await header.click();
@@ -103,17 +103,17 @@ test.describe('Tab and Accordion UI', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('Accordion E2E ' + Date.now());
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const accordion = container.locator('.ff-accordion').first();
+        const accordion = container.locator('.ctrlf-accordion').first();
         if (! await accordion.isVisible()) {
             test.skip();
             return;
         }
 
         // Expand and fill a sub-field
-        await accordion.locator('.ff-accordion-header').click();
+        await accordion.locator('.ctrlf-accordion-header').click();
         const subInput = accordion.locator('input[type="text"]').first();
         if (await subInput.isVisible()) {
             await subInput.fill('Accordion Value E2E');
@@ -125,8 +125,8 @@ test.describe('Tab and Accordion UI', () => {
 
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const reloadedAccordion = container.locator('.ff-accordion').first();
-        await reloadedAccordion.locator('.ff-accordion-header').click();
+        const reloadedAccordion = container.locator('.ctrlf-accordion').first();
+        await reloadedAccordion.locator('.ctrlf-accordion-header').click();
 
         const reloadedInput = reloadedAccordion.locator('input[type="text"]').first();
         if (await reloadedInput.isVisible()) {

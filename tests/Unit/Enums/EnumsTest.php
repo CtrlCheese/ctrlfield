@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Enums;
+namespace CtrlField\Tests\Unit\Enums;
 
-use FieldForge\Enums\AdminTab;
-use FieldForge\Enums\FieldType;
-use FieldForge\Enums\SanitizationMode;
+use CtrlField\Enums\AdminTab;
+use CtrlField\Enums\FieldType;
+use CtrlField\Enums\SanitizationMode;
 use PHPUnit\Framework\TestCase;
 
 class EnumsTest extends TestCase

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\CodeField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\CodeField;
 
 final class CodeRenderer extends AbstractRenderer
 {
@@ -28,12 +28,12 @@ final class CodeRenderer extends AbstractRenderer
         $wrapLinesStr = $this->esc($wrapLines ? 'true' : 'false');
 
         return sprintf(
-            '<div class="ff-code-editor-wrap"'
-            . ' data-fieldforge-code="%1$s"'
+            '<div class="ctrlf-code-editor-wrap"'
+            . ' data-ctrlfield-code="%1$s"'
             . ' data-language="%2$s"'
             . ' data-rows="%3$s"'
             . ' data-wrap-lines="%4$s">'
-            . '<textarea id="ff-code-%1$s" class="ff-code-textarea" rows="%3$s"'
+            . '<textarea id="ctrlf-code-%1$s" class="ctrlf-code-textarea" rows="%3$s"'
             . ' x-model="%5$s"></textarea>'
             . '</div>',
             $fieldKey,

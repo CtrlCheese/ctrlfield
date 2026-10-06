@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\TimeField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\TimeField;
 
 final class TimeRenderer extends AbstractRenderer
 {
@@ -17,7 +17,7 @@ final class TimeRenderer extends AbstractRenderer
         $roAttr      = $readOnly ? ' disabled' : '';
 
         return sprintf(
-            '<input type="time" id="%s" x-model="%s" step="%d" class="ff-input ff-input--time"%s>',
+            '<input type="time" id="%s" x-model="%s" step="%d" class="ctrlf-input ctrlf-input--time"%s>',
             $this->esc($this->inputId($field)),
             $this->esc($statePath),
             $stepSeconds,

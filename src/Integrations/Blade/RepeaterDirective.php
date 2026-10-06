@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\Blade;
+namespace CtrlField\Integrations\Blade;
 
 /**
  * Handles @repeater / @endrepeater Blade directives.
@@ -24,8 +24,8 @@ final class RepeaterDirective
     public static function compile(string $expression): string
     {
         return sprintf(
-            '<?php $__ff_rows = (array)(fieldforge_get(%s) ?? []); ' .
-            'foreach ($__ff_rows as $__ff_row) { extract($__ff_row, EXTR_OVERWRITE); ?>',
+            '<?php $__ctrlf_rows = (array)(ctrlfield_get(%s) ?? []); ' .
+            'foreach ($__ctrlf_rows as $__ctrlf_row) { extract($__ctrlf_row, EXTR_OVERWRITE); ?>',
             $expression
         );
     }
@@ -35,6 +35,6 @@ final class RepeaterDirective
      */
     public static function compileEnd(): string
     {
-        return '<?php } unset($__ff_rows, $__ff_row); ?>';
+        return '<?php } unset($__ctrlf_rows, $__ctrlf_row); ?>';
     }
 }

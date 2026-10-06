@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Data;
+namespace CtrlField\Tests\Unit\Data;
 
-use FieldForge\Data\FieldDataService;
+use CtrlField\Data\FieldDataService;
 use PHPUnit\Framework\TestCase;
 
 class FieldDataServiceTest extends TestCase

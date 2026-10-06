@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Integrations\CLI\Scaffold;
+namespace CtrlField\Tests\Unit\Integrations\CLI\Scaffold;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\InvalidSlugException;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\UnknownFieldTypeException;
-use FieldForge\Integrations\CLI\Scaffold\FieldScaffoldDef;
+use CtrlField\Enums\FieldType;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\InvalidSlugException;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\UnknownFieldTypeException;
+use CtrlField\Integrations\CLI\Scaffold\FieldScaffoldDef;
 use PHPUnit\Framework\TestCase;
 
 class FieldScaffoldDefTest extends TestCase

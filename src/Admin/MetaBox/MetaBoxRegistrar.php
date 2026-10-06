@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\MetaBox;
+namespace CtrlField\Admin\MetaBox;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Registry\ContextRegistry;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Registry\ContextRegistry;
 
 /**
  * Registers one meta box per FieldGroup that matches the current post type.
@@ -57,12 +57,12 @@ class MetaBoxRegistrar
 
     private function registerGroupMetaBox(string $key, FieldGroup $group, string $postType): void
     {
-        $title    = $group->getTitle() ?: __('FieldForge Fields', 'fieldforge');
+        $title    = $group->getTitle() ?: __('CtrlField Fields', 'ctrlfield');
         $position = $group->getPosition(); // 'normal' | 'side' | 'after_title'
         $style    = $group->getStyle();    // 'default' | 'seamless'
 
         add_meta_box(
-            'fieldforge-' . $key,
+            'ctrlfield-' . $key,
             $style === 'seamless' ? '' : $title,
             function (\WP_Post $post) use ($group): void {
                 $this->renderer->renderGroup($post->ID, $group);
@@ -74,8 +74,8 @@ class MetaBoxRegistrar
 
         // For seamless style, remove the meta box wrapper visuals via CSS class.
         if ($style === 'seamless') {
-            add_filter('postbox_classes_' . $postType . '_fieldforge-' . $key, static function (array $classes): array {
-                $classes[] = 'fieldforge-seamless';
+            add_filter('postbox_classes_' . $postType . '_ctrlfield-' . $key, static function (array $classes): array {
+                $classes[] = 'ctrlfield-seamless';
                 return $classes;
             });
         }

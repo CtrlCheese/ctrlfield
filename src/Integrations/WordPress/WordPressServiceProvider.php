@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\WordPress;
+namespace CtrlField\Integrations\WordPress;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Builder\CPT;
-use FieldForge\Builder\OptionsPage;
-use FieldForge\Builder\Taxonomy;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\SelectField;
-use FieldForge\Storage\Drivers\WpOptionsDriver;
-use FieldForge\Storage\OptionsAdapter;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Builder\CPT;
+use CtrlField\Builder\OptionsPage;
+use CtrlField\Builder\Taxonomy;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\SelectField;
+use CtrlField\Storage\Drivers\WpOptionsDriver;
+use CtrlField\Storage\OptionsAdapter;
 
 /**
  * Excluded from PHPStan — references WP functions not available outside WP runtime.
@@ -221,7 +221,7 @@ class WordPressServiceProvider extends ServiceProvider
     private function renderOptionsPage(OptionsPage $page): void
     {
         if (! current_user_can($page->getCapability())) {
-            wp_die(esc_html__('You do not have permission to access this page.', 'fieldforge'));
+            wp_die(esc_html__('You do not have permission to access this page.', 'ctrlfield'));
         }
 
         $key     = $page->getKey();
@@ -233,22 +233,22 @@ class WordPressServiceProvider extends ServiceProvider
             <h1><?php echo esc_html($page->getTitle()); ?></h1>
             <?php if (isset($_GET['settings-updated'])): ?>
                 <div class="notice notice-success is-dismissible">
-                    <p><?php esc_html_e('Settings saved.', 'fieldforge'); ?></p>
+                    <p><?php esc_html_e('Settings saved.', 'ctrlfield'); ?></p>
                 </div>
             <?php endif; ?>
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-                <?php wp_nonce_field($action, "_fieldforge_nonce_{$key}"); ?>
+                <?php wp_nonce_field($action, "_ctrlfield_nonce_{$key}"); ?>
                 <input type="hidden" name="action" value="<?php echo esc_attr($action); ?>">
                 <table class="form-table" role="presentation">
                     <?php foreach ($page->getFields() as $field): ?>
                         <tr>
                             <th scope="row">
-                                <label for="fieldforge_<?php echo esc_attr($field->getKey()); ?>">
+                                <label for="ctrlfield_<?php echo esc_attr($field->getKey()); ?>">
                                     <?php echo esc_html($field->getDefinition()['label'] ?: $field->getKey()); ?>
                                 </label>
                             </th>
                             <td>
-                                <?php $this->renderBasicField($field, $saved[$field->getKey()] ?? null, 'fieldforge_field'); ?>
+                                <?php $this->renderBasicField($field, $saved[$field->getKey()] ?? null, 'ctrlfield_field'); ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -263,20 +263,20 @@ class WordPressServiceProvider extends ServiceProvider
     {
         $key    = $page->getKey();
         $action = $this->saveAction($key);
-        $nonce  = isset($_POST["_fieldforge_nonce_{$key}"]) && is_string($_POST["_fieldforge_nonce_{$key}"])
-            ? $_POST["_fieldforge_nonce_{$key}"]
+        $nonce  = isset($_POST["_ctrlfield_nonce_{$key}"]) && is_string($_POST["_ctrlfield_nonce_{$key}"])
+            ? $_POST["_ctrlfield_nonce_{$key}"]
             : '';
 
         if (! wp_verify_nonce($nonce, $action)) {
-            wp_die(esc_html__('Security check failed.', 'fieldforge'));
+            wp_die(esc_html__('Security check failed.', 'ctrlfield'));
         }
 
         if (! current_user_can($page->getCapability())) {
-            wp_die(esc_html__('You do not have permission to save these settings.', 'fieldforge'));
+            wp_die(esc_html__('You do not have permission to save these settings.', 'ctrlfield'));
         }
 
-        $posted = isset($_POST['fieldforge_field']) && is_array($_POST['fieldforge_field'])
-            ? $_POST['fieldforge_field']
+        $posted = isset($_POST['ctrlfield_field']) && is_array($_POST['ctrlfield_field'])
+            ? $_POST['ctrlfield_field']
             : [];
 
         $data = [];
@@ -306,17 +306,17 @@ class WordPressServiceProvider extends ServiceProvider
      */
     private function renderTermFields(string $taxonomy, array $fields, ?int $termId): void
     {
-        $nonce = wp_create_nonce("fieldforge_term_{$taxonomy}");
+        $nonce = wp_create_nonce("ctrlfield_term_{$taxonomy}");
 
         printf(
-            '<input type="hidden" name="_fieldforge_term_nonce_%s" value="%s">',
+            '<input type="hidden" name="_ctrlfield_term_nonce_%s" value="%s">',
             esc_attr($taxonomy),
             esc_attr($nonce)
         );
 
         foreach ($fields as $field) {
             $value = $termId !== null
-                ? get_term_meta($termId, "_fieldforge_term_{$field->getKey()}", true)
+                ? get_term_meta($termId, "_ctrlfield_term_{$field->getKey()}", true)
                 : null;
 
             $label = esc_html($field->getDefinition()['label'] ?: $field->getKey());
@@ -324,13 +324,13 @@ class WordPressServiceProvider extends ServiceProvider
             if ($termId === null) {
                 echo '<div class="form-field">';
                 echo "<label>{$label}</label>";
-                $this->renderBasicField($field, $value ?: null, 'fieldforge_term');
+                $this->renderBasicField($field, $value ?: null, 'ctrlfield_term');
                 echo '</div>';
             } else {
                 echo '<tr class="form-field">';
                 echo "<th scope=\"row\"><label>{$label}</label></th>";
                 echo '<td>';
-                $this->renderBasicField($field, $value ?: null, 'fieldforge_term');
+                $this->renderBasicField($field, $value ?: null, 'ctrlfield_term');
                 echo '</td>';
                 echo '</tr>';
             }
@@ -342,21 +342,21 @@ class WordPressServiceProvider extends ServiceProvider
      */
     private function saveTermFields(string $taxonomy, int $termId, array $fields): void
     {
-        $nonceKey = "_fieldforge_term_nonce_{$taxonomy}";
+        $nonceKey = "_ctrlfield_term_nonce_{$taxonomy}";
         $nonce    = isset($_POST[$nonceKey]) && is_string($_POST[$nonceKey]) ? $_POST[$nonceKey] : '';
 
-        if (! wp_verify_nonce($nonce, "fieldforge_term_{$taxonomy}")) {
+        if (! wp_verify_nonce($nonce, "ctrlfield_term_{$taxonomy}")) {
             return;
         }
 
-        $posted = isset($_POST['fieldforge_term']) && is_array($_POST['fieldforge_term'])
-            ? $_POST['fieldforge_term']
+        $posted = isset($_POST['ctrlfield_term']) && is_array($_POST['ctrlfield_term'])
+            ? $_POST['ctrlfield_term']
             : [];
 
         foreach ($fields as $field) {
             $raw   = $posted[$field->getKey()] ?? null;
             $value = $this->sanitizeField($field, $raw);
-            update_term_meta($termId, "_fieldforge_term_{$field->getKey()}", $value);
+            update_term_meta($termId, "_ctrlfield_term_{$field->getKey()}", $value);
         }
     }
 
@@ -367,7 +367,7 @@ class WordPressServiceProvider extends ServiceProvider
     private function renderBasicField(FieldDefinition $field, mixed $value, string $namespace): void
     {
         $key  = $field->getKey();
-        $id   = "fieldforge_{$key}";
+        $id   = "ctrlfield_{$key}";
         $name = "{$namespace}[{$key}]";
 
         switch ($field->getType()->value) {
@@ -435,9 +435,9 @@ class WordPressServiceProvider extends ServiceProvider
 
                 // JS binding is wired in Cycle 7 (Alpine.js media library integration).
                 printf(
-                    '<button type="button" class="button fieldforge-upload-btn" data-target="%s">%s</button>',
+                    '<button type="button" class="button ctrlfield-upload-btn" data-target="%s">%s</button>',
                     esc_attr($id),
-                    esc_html__('Select Image', 'fieldforge')
+                    esc_html__('Select Image', 'ctrlfield')
                 );
                 break;
 
@@ -474,6 +474,6 @@ class WordPressServiceProvider extends ServiceProvider
 
     private function saveAction(string $pageKey): string
     {
-        return "fieldforge_save_options_{$pageKey}";
+        return "ctrlfield_save_options_{$pageKey}";
     }
 }

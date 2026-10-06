@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Data;
+namespace CtrlField\Data;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\FieldDefinition;
 
 /**
  * Transforms raw stored values into richer types based on ->returnFormat().

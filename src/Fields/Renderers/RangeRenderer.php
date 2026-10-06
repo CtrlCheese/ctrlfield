@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\RangeField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\RangeField;
 
 final class RangeRenderer extends AbstractRenderer
 {
@@ -20,7 +20,7 @@ final class RangeRenderer extends AbstractRenderer
         $id        = $this->esc($this->inputId($field));
 
         $input = sprintf(
-            '<input type="range" id="%s" x-model.number="%s" min="%s" max="%s" step="%s" class="ff-input ff-input--range"%s>',
+            '<input type="range" id="%s" x-model.number="%s" min="%s" max="%s" step="%s" class="ctrlf-input ctrlf-input--range"%s>',
             $id,
             $this->esc($statePath),
             $this->esc((string) $min),
@@ -34,7 +34,7 @@ final class RangeRenderer extends AbstractRenderer
         }
 
         return sprintf(
-            '<div class="ff-range-wrap">%s<output class="ff-range-output" x-text="%s"></output></div>',
+            '<div class="ctrlf-range-wrap">%s<output class="ctrlf-range-output" x-text="%s"></output></div>',
             $input,
             $this->esc($statePath),
         );

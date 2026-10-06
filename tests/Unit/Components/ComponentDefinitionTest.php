@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Components;
+namespace CtrlField\Tests\Unit\Components;
 
-use FieldForge\Components\ComponentDefinition;
+use CtrlField\Components\ComponentDefinition;
 use PHPUnit\Framework\TestCase;
 
 class ComponentDefinitionTest extends TestCase

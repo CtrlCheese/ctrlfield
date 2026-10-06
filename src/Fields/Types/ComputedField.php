@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Types;
+namespace CtrlField\Fields\Types;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\FieldDefinition;
 
 /**
  * A field whose value is computed server-side from other fields in the same group.
  *
  * Computed fields:
  * - Are not rendered as inputs in the meta box (unless ->showInAdmin() is set)
- * - Are not included in the Alpine fieldforge_payload (never sent from the browser)
- * - Are stored in _fieldforge_data like any other field
+ * - Are not included in the Alpine ctrlfield_payload (never sent from the browser)
+ * - Are stored in _ctrlfield_data like any other field
  * - Are calculated by ComputedFieldsStage after Sanitization, before Persistence
  *
  * Usage:

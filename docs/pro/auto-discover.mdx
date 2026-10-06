@@ -23,7 +23,7 @@ Merges with any manually provided layouts
 ## Enabling auto-discover
 
 ```php
-$flex = (new \FieldForgePro\Fields\FlexibleContentField('page_builder'))
+$flex = (new \CtrlField\Pro\Fields\FlexibleContentField('page_builder'))
     ->autoDiscover()    // ← enables
     ->buttonLabel('Add Section');
 ```
@@ -57,22 +57,22 @@ The filter callback receives and must return `FlexLayout[]`.
 
 add_action('init', function () {
     // 1. Register field presets
-    fieldforge_load_schemas(get_template_directory() . '/fieldforge/presets.php');
+    ctrlfield_load_schemas(get_template_directory() . '/ctrlfield/presets.php');
 
     // 2. Discover components
-    \FieldForge\Components\ComponentRegistry::discover(
+    \CtrlField\Components\ComponentRegistry::discover(
         get_template_directory() . '/components/'
     );
 
     // 3. Register page builder field group (reads ComponentRegistry)
-    fieldforge_load_schemas(get_template_directory() . '/fieldforge/page-builder.php');
+    ctrlfield_load_schemas(get_template_directory() . '/ctrlfield/page-builder.php');
 }, 5);
 ```
 
 ```php
-// fieldforge/page-builder.php
-use FieldForgePro\Fields\FlexibleContentField;
-use FieldForge\Builder\FieldGroup;
+// ctrlfield/page-builder.php
+use CtrlField\Pro\Fields\FlexibleContentField;
+use CtrlField\Builder\FieldGroup;
 
 $flex = (new FlexibleContentField('page_builder'))
     ->label('Page Sections')

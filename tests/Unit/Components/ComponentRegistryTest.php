@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Components;
+namespace CtrlField\Tests\Unit\Components;
 
-use FieldForge\Components\ComponentDefinition;
-use FieldForge\Components\ComponentRegistry;
+use CtrlField\Components\ComponentDefinition;
+use CtrlField\Components\ComponentRegistry;
 use PHPUnit\Framework\TestCase;
 
 class ComponentRegistryTest extends TestCase
@@ -15,7 +15,7 @@ class ComponentRegistryTest extends TestCase
     protected function setUp(): void
     {
         ComponentRegistry::reset();
-        $this->tmpBase = sys_get_temp_dir() . '/ff_registry_test_' . uniqid();
+        $this->tmpBase = sys_get_temp_dir() . '/ctrlf_registry_test_' . uniqid();
         mkdir($this->tmpBase, 0777, true);
     }
 
@@ -127,12 +127,12 @@ class ComponentRegistryTest extends TestCase
         $this->makeComponent('loader', "<?php return null;");
         file_put_contents(
             $this->tmpBase . '/loader/functions.php',
-            "<?php \$GLOBALS['_ff_loader_functions_loaded'] = true;"
+            "<?php \$GLOBALS['_ctrlf_loader_functions_loaded'] = true;"
         );
 
         ComponentRegistry::discover($this->tmpBase);
 
-        $this->assertTrue($GLOBALS['_ff_loader_functions_loaded'] ?? false);
+        $this->assertTrue($GLOBALS['_ctrlf_loader_functions_loaded'] ?? false);
     }
 
     public function test_all_returns_all_registered(): void

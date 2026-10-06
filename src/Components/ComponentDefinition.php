@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Components;
+namespace CtrlField\Components;
 
 /**
  * Value object representing a discovered component.

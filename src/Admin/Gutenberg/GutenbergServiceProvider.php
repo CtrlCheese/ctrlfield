@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Gutenberg;
+namespace CtrlField\Admin\Gutenberg;
 
-use FieldForge\Bootstrap\ServiceProvider;
+use CtrlField\Bootstrap\ServiceProvider;
 
 class GutenbergServiceProvider extends ServiceProvider
 {

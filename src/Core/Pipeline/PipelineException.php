@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Pipeline;
+namespace CtrlField\Core\Pipeline;
 
 use RuntimeException;
 

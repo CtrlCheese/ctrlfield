@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Comment;
+namespace CtrlField\Admin\Comment;
 
-use FieldForge\Admin\MetaBox\MetaBoxRenderer;
-use FieldForge\Builder\AdminContext;
-use FieldForge\Core\Pipeline\SavePipeline;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Storage\CommentMetaAdapter;
+use CtrlField\Admin\MetaBox\MetaBoxRenderer;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Core\Pipeline\SavePipeline;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Storage\CommentMetaAdapter;
 
 /**
- * Registers FieldForge field groups on WordPress comment edit screens.
+ * Registers CtrlField field groups on WordPress comment edit screens.
  * Excluded from PHPStan — references WP functions.
  */
 class CommentMetaRegistrar
@@ -32,8 +32,8 @@ class CommentMetaRegistrar
         }
 
         add_meta_box(
-            'fieldforge-comment-fields',
-            'FieldForge Fields',
+            'ctrlfield-comment-fields',
+            'CtrlField Fields',
             fn() => $this->render($comment),
             'comment',
             'normal',
@@ -55,7 +55,7 @@ class CommentMetaRegistrar
 
     public function save(int $commentId): void
     {
-        if (! isset($_POST['fieldforge_payload'])) {
+        if (! isset($_POST['ctrlfield_payload'])) {
             return;
         }
 
@@ -63,9 +63,9 @@ class CommentMetaRegistrar
             return;
         }
 
-        // Verify the FieldForge nonce explicitly before passing to the pipeline.
-        if (! isset($_POST['_fieldforge_nonce'])
-            || ! wp_verify_nonce(sanitize_key($_POST['_fieldforge_nonce']), 'fieldforge_save')
+        // Verify the CtrlField nonce explicitly before passing to the pipeline.
+        if (! isset($_POST['_ctrlfield_nonce'])
+            || ! wp_verify_nonce(sanitize_key($_POST['_ctrlfield_nonce']), 'ctrlfield_save')
         ) {
             return;
         }

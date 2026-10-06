@@ -20,25 +20,25 @@ test.describe('Repeater field', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('Repeater Test Post');
 
-        // Wait for the FieldForge meta box to appear
-        const container = page.locator('.fieldforge-container').first();
+        // Wait for the CtrlField meta box to appear
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // Fill client_name (required)
         await container.locator('[x-model*="client_name"]').fill('Acme Corp');
 
         // Click "Add Row" in the team_members repeater
-        const addBtn = container.locator('.ff-btn--add').first();
+        const addBtn = container.locator('.ctrlf-btn--add').first();
         await addBtn.click();
         await addBtn.click(); // add two rows
 
         // Fill first row
-        const firstRow = container.locator('.ff-repeater-row').nth(0);
+        const firstRow = container.locator('.ctrlf-repeater-row').nth(0);
         await firstRow.locator('[x-model*="member_name"]').fill('Alice');
         await firstRow.locator('[x-model*="member_role"]').fill('Engineer');
 
         // Fill second row
-        const secondRow = container.locator('.ff-repeater-row').nth(1);
+        const secondRow = container.locator('.ctrlf-repeater-row').nth(1);
         await secondRow.locator('[x-model*="member_name"]').fill('Bob');
         await secondRow.locator('[x-model*="member_role"]').fill('Designer');
 
@@ -48,10 +48,10 @@ test.describe('Repeater field', () => {
 
         // Reload
         await page.reload();
-        await expect(page.locator('.fieldforge-container')).toBeVisible({ timeout: 10_000 });
+        await expect(page.locator('.ctrlfield-container')).toBeVisible({ timeout: 10_000 });
 
         // Verify row data persisted
-        const rows = page.locator('.ff-repeater-row');
+        const rows = page.locator('.ctrlf-repeater-row');
         await expect(rows).toHaveCount(2);
 
         await expect(rows.nth(0).locator('[x-model*="member_name"]')).toHaveValue('Alice');
@@ -64,21 +64,21 @@ test.describe('Repeater field', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('Repeater Order Test');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         await container.locator('[x-model*="client_name"]').fill('Order Corp');
 
-        const addBtn = container.locator('.ff-btn--add').first();
+        const addBtn = container.locator('.ctrlf-btn--add').first();
         await addBtn.click();
         await addBtn.click();
 
-        const rows = container.locator('.ff-repeater-row');
+        const rows = container.locator('.ctrlf-repeater-row');
         await rows.nth(0).locator('[x-model*="member_name"]').fill('First');
         await rows.nth(1).locator('[x-model*="member_name"]').fill('Second');
 
         // Move second row up (it should become first)
-        await rows.nth(1).locator('.ff-btn--up').click();
+        await rows.nth(1).locator('.ctrlf-btn--up').click();
 
         // Verify order changed in the UI
         await expect(rows.nth(0).locator('[x-model*="member_name"]')).toHaveValue('Second');
@@ -89,7 +89,7 @@ test.describe('Repeater field', () => {
         await page.waitForLoadState('networkidle');
         await page.reload();
 
-        const reloadedRows = page.locator('.ff-repeater-row');
+        const reloadedRows = page.locator('.ctrlf-repeater-row');
         await expect(reloadedRows.nth(0).locator('[x-model*="member_name"]')).toHaveValue('Second');
         await expect(reloadedRows.nth(1).locator('[x-model*="member_name"]')).toHaveValue('First');
     });

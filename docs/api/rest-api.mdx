@@ -1,14 +1,14 @@
 # REST API
 
-FieldForge registers REST endpoints for reading and writing field data. Fields must have `->showInRest(true)` to appear in REST responses.
+CtrlField registers REST endpoints for reading and writing field data. Fields must have `->showInRest(true)` to appear in REST responses.
 
-**Namespace:** `fieldforge/v1`
+**Namespace:** `ctrlfield/v1`
 
 ---
 
 ## Post fields
 
-### `GET /wp-json/fieldforge/v1/post/{id}`
+### `GET /wp-json/ctrlfield/v1/post/{id}`
 
 Returns field values for a post.
 
@@ -28,7 +28,7 @@ Returns field values for a post.
 }
 ```
 
-### `PUT /wp-json/fieldforge/v1/post/{id}`
+### `PUT /wp-json/ctrlfield/v1/post/{id}`
 
 Updates field values for a post. The request body is a JSON object of field key → value pairs.
 
@@ -47,8 +47,8 @@ Updates field values for a post. The request body is a JSON object of field key 
 
 ## User meta
 
-### `GET /wp-json/fieldforge/v1/user/{id}`
-### `PUT /wp-json/fieldforge/v1/user/{id}`
+### `GET /wp-json/ctrlfield/v1/user/{id}`
+### `PUT /wp-json/ctrlfield/v1/user/{id}`
 
 Same structure as post endpoints. Requires `edit_user` capability for other users.
 
@@ -56,8 +56,8 @@ Same structure as post endpoints. Requires `edit_user` capability for other user
 
 ## Term meta
 
-### `GET /wp-json/fieldforge/v1/term/{id}`
-### `PUT /wp-json/fieldforge/v1/term/{id}`
+### `GET /wp-json/ctrlfield/v1/term/{id}`
+### `PUT /wp-json/ctrlfield/v1/term/{id}`
 
 Requires the taxonomy-specific `edit_terms` capability.
 
@@ -65,7 +65,7 @@ Requires the taxonomy-specific `edit_terms` capability.
 
 ## Search endpoints
 
-### `GET /wp-json/fieldforge/v1/search/posts`
+### `GET /wp-json/ctrlfield/v1/search/posts`
 
 AJAX post search used by the Post Object and Relationship fields.
 
@@ -75,7 +75,7 @@ AJAX post search used by the Post Object and Relationship fields.
 | `post_type` | string | Post type to search (must be a registered public type) |
 | `per_page` | int | Max results (1–100, default 20) |
 
-### `GET /wp-json/fieldforge/v1/search/terms`
+### `GET /wp-json/ctrlfield/v1/search/terms`
 
 AJAX term search used by the Taxonomy Term field.
 
@@ -85,7 +85,7 @@ AJAX term search used by the Taxonomy Term field.
 | `taxonomy` | string | Taxonomy slug |
 | `per_page` | int | Max results (default 20) |
 
-### `GET /wp-json/fieldforge/v1/search/users`
+### `GET /wp-json/ctrlfield/v1/search/users`
 
 AJAX user search used by the User field.
 
@@ -115,14 +115,14 @@ Fields without `showInRest(true)` are never included in REST responses, regardle
 
 ```bash
 curl -X GET \
-  https://example.com/wp-json/fieldforge/v1/post/42 \
+  https://example.com/wp-json/ctrlfield/v1/post/42 \
   -u "username:application-password"
 ```
 
 **Using cookie auth + nonce (JavaScript):**
 
 ```js
-const response = await fetch('/wp-json/fieldforge/v1/post/42', {
+const response = await fetch('/wp-json/ctrlfield/v1/post/42', {
     headers: {
         'X-WP-Nonce': wpApiSettings.nonce,
     },

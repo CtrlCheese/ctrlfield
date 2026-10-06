@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Security\Contracts;
+namespace CtrlField\Core\Security\Contracts;
 
 interface CapabilityCheckerInterface
 {

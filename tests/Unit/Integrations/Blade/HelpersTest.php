@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Integrations\Blade;
+namespace CtrlField\Tests\Unit\Integrations\Blade;
 
-use FieldForge\Core\Cache\CacheAdapter;
-use FieldForge\Storage\Drivers\PostMetaDriverInterface;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Core\Cache\CacheAdapter;
+use CtrlField\Storage\Drivers\PostMetaDriverInterface;
+use CtrlField\Storage\PostMetaAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests fieldforge_get() and fieldforge_get_all() via a test double that
+ * Tests ctrlfield_get() and ctrlfield_get_all() via a test double that
  * bypasses the WP database — the same approach used in PostMetaAdapterTest.
  *
  * The global helpers call PostMetaAdapter(new WpPostMetaDriver()), so we
@@ -27,34 +27,34 @@ class HelpersTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // fieldforge_get_all() — unit-testable logic
+    // ctrlfield_get_all() — unit-testable logic
     // -------------------------------------------------------------------------
 
-    public function test_fieldforge_get_all_returns_empty_for_zero_id(): void
+    public function test_ctrlfield_get_all_returns_empty_for_zero_id(): void
     {
-        $result = fieldforge_get_all(0);
+        $result = ctrlfield_get_all(0);
         $this->assertSame([], $result);
     }
 
-    public function test_fieldforge_get_all_returns_empty_for_negative_id(): void
+    public function test_ctrlfield_get_all_returns_empty_for_negative_id(): void
     {
-        $result = fieldforge_get_all(-5);
+        $result = ctrlfield_get_all(-5);
         $this->assertSame([], $result);
     }
 
     // -------------------------------------------------------------------------
-    // fieldforge_get() — delegates to fieldforge_get_all()
+    // ctrlfield_get() — delegates to ctrlfield_get_all()
     // -------------------------------------------------------------------------
 
-    public function test_fieldforge_get_returns_null_for_missing_key(): void
+    public function test_ctrlfield_get_returns_null_for_missing_key(): void
     {
-        $value = fieldforge_get('nonexistent_key', 0);
+        $value = ctrlfield_get('nonexistent_key', 0);
         $this->assertNull($value);
     }
 
-    public function test_fieldforge_get_returns_null_for_invalid_post(): void
+    public function test_ctrlfield_get_returns_null_for_invalid_post(): void
     {
-        $value = fieldforge_get('client_name', -1);
+        $value = ctrlfield_get('client_name', -1);
         $this->assertNull($value);
     }
 
@@ -64,15 +64,15 @@ class HelpersTest extends TestCase
 
     public function test_helpers_are_defined(): void
     {
-        $this->assertTrue(function_exists('fieldforge_get'),     'fieldforge_get() must be globally available');
-        $this->assertTrue(function_exists('fieldforge_get_all'), 'fieldforge_get_all() must be globally available');
+        $this->assertTrue(function_exists('ctrlfield_get'),     'ctrlfield_get() must be globally available');
+        $this->assertTrue(function_exists('ctrlfield_get_all'), 'ctrlfield_get_all() must be globally available');
     }
 
     public function test_helpers_use_same_data_source(): void
     {
         // Both helpers should agree: get_all([]) returns [], get('key', 0) returns null
-        $all   = fieldforge_get_all(0);
-        $single = fieldforge_get('any_key', 0);
+        $all   = ctrlfield_get_all(0);
+        $single = ctrlfield_get('any_key', 0);
 
         $this->assertSame([], $all);
         $this->assertNull($single);
@@ -85,7 +85,7 @@ class HelpersTest extends TestCase
     public function test_field_directive_escapes_xss(): void
     {
         // The compiled output of @field is:
-        //   htmlspecialchars((string)(fieldforge_get('key') ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+        //   htmlspecialchars((string)(ctrlfield_get('key') ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
         // We verify the escaping logic directly.
         $dangerous = '<script>alert("xss")</script>';
         $escaped   = htmlspecialchars($dangerous, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

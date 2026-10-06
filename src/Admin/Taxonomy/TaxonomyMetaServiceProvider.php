@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Taxonomy;
+namespace CtrlField\Admin\Taxonomy;
 
-use FieldForge\Bootstrap\ServiceProvider;
+use CtrlField\Bootstrap\ServiceProvider;
 
 class TaxonomyMetaServiceProvider extends ServiceProvider
 {

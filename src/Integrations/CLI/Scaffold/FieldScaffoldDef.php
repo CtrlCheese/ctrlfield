@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Scaffold;
+namespace CtrlField\Integrations\CLI\Scaffold;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\InvalidSlugException;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\UnknownFieldTypeException;
+use CtrlField\Enums\FieldType;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\InvalidSlugException;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\UnknownFieldTypeException;
 
 final class FieldScaffoldDef
 {

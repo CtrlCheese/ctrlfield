@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\REST;
+namespace CtrlField\Integrations\REST;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Core\Pipeline\PipelineException;
-use FieldForge\Core\Pipeline\SavePipeline;
-use FieldForge\Data\FieldDataService;
-use FieldForge\Registry\ContextRegistry;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Core\Pipeline\PipelineException;
+use CtrlField\Core\Pipeline\SavePipeline;
+use CtrlField\Data\FieldDataService;
+use CtrlField\Registry\ContextRegistry;
 
 /**
- * Public REST API controller for FieldForge field data.
+ * Public REST API controller for CtrlField field data.
  *
  * Routes:
- *   GET   /wp-json/fieldforge/v1/post/{post_id}       → field values (opt-in fields)
- *   GET   /wp-json/fieldforge/v1/schema/{post_type}   → field schema definition
- *   PATCH /wp-json/fieldforge/v1/post/{post_id}       → write post fields
- *   PATCH /wp-json/fieldforge/v1/user/{user_id}       → write user fields
- *   PATCH /wp-json/fieldforge/v1/term/{term_id}       → write term fields
+ *   GET   /wp-json/ctrlfield/v1/post/{post_id}       → field values (opt-in fields)
+ *   GET   /wp-json/ctrlfield/v1/schema/{post_type}   → field schema definition
+ *   PATCH /wp-json/ctrlfield/v1/post/{post_id}       → write post fields
+ *   PATCH /wp-json/ctrlfield/v1/user/{user_id}       → write user fields
+ *   PATCH /wp-json/ctrlfield/v1/term/{term_id}       → write term fields
  *
  * Excluded from PHPStan — references WP REST API classes.
  */
 class FieldsController
 {
-    public const NAMESPACE = 'fieldforge/v1';
+    public const NAMESPACE = 'ctrlfield/v1';
 
     public function register(): void
     {

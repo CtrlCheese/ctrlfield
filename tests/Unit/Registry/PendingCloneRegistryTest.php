@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Registry;
+namespace CtrlField\Tests\Unit\Registry;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Fields\Exceptions\UnresolvedCloneException;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\FieldRegistry;
-use FieldForge\Registry\PendingCloneRegistry;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Fields\Exceptions\UnresolvedCloneException;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\FieldRegistry;
+use CtrlField\Registry\PendingCloneRegistry;
 use PHPUnit\Framework\TestCase;
 
 class PendingCloneRegistryTest extends TestCase

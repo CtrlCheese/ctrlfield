@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\RadioField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\RadioField;
 
 final class RadioRenderer extends AbstractRenderer
 {
@@ -17,7 +17,7 @@ final class RadioRenderer extends AbstractRenderer
             foreach ($field->getOptions() as $value => $label) {
                 $id     = $this->esc($this->inputId($field) . '-' . $value);
                 $items .= sprintf(
-                    '<label class="ff-radio-label"><input type="radio" id="%s" value="%s" x-model="%s" class="ff-radio"> %s</label>',
+                    '<label class="ctrlf-radio-label"><input type="radio" id="%s" value="%s" x-model="%s" class="ctrlf-radio"> %s</label>',
                     $id,
                     $this->esc((string) $value),
                     $this->esc($statePath),
@@ -26,6 +26,6 @@ final class RadioRenderer extends AbstractRenderer
             }
         }
 
-        return sprintf('<div class="ff-radios">%s</div>', $items);
+        return sprintf('<div class="ctrlf-radios">%s</div>', $items);
     }
 }

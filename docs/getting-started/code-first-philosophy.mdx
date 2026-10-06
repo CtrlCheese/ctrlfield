@@ -1,6 +1,6 @@
 # The Code-First Philosophy
 
-FieldForge is built on a single principle: **field definitions live in version-controlled PHP files, not in the database.**
+CtrlField is built on a single principle: **field definitions live in version-controlled PHP files, not in the database.**
 
 ---
 
@@ -13,7 +13,7 @@ FieldForge is built on a single principle: **field definitions live in version-c
 - Staging-to-production sync is error-prone
 - No type safety, no autocompletion, no PHPStan
 
-**FieldForge stores only field values in the database.** The schema — which fields exist, their types, labels, conditions — lives entirely in PHP files that you commit to git.
+**CtrlField stores only field values in the database.** The schema — which fields exist, their types, labels, conditions — lives entirely in PHP files that you commit to git.
 
 ---
 
@@ -22,13 +22,13 @@ FieldForge is built on a single principle: **field definitions live in version-c
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Git repo                                               │
-│  ├── fieldforge/                                        │
+│  ├── ctrlfield/                                        │
 │  │   ├── portfolio-details.php   ← your schema         │
 │  │   └── team-meta.php           ← another group       │
 │  └── functions.php               ← loads schemas       │
 └─────────────────────────────────────────────────────────┘
            │
-           │  fieldforge_load_schemas()
+           │  ctrlfield_load_schemas()
            │
            ▼
 ┌─────────────────────────────────────────────────────────┐
@@ -41,8 +41,8 @@ FieldForge is built on a single principle: **field definitions live in version-c
            ▼
 ┌─────────────────────────────────────────────────────────┐
 │  Database (values only)                                 │
-│  _fieldforge_data: {"client_name":"Acme","year":2026}  │
-│  _fieldforge_idx_client_name: "Acme"  ← if indexed     │
+│  _ctrlfield_data: {"client_name":"Acme","year":2026}  │
+│  _ctrlfield_idx_client_name: "Acme"  ← if indexed     │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -55,13 +55,13 @@ When you add a field to an existing group, **old posts are not automatically mig
 To migrate existing posts to the new schema:
 
 ```bash
-wp fieldforge migrate --post-type=portfolio
+wp ctrlfield migrate --post-type=portfolio
 ```
 
 Use `--dry-run` first to see what would change:
 
 ```bash
-wp fieldforge migrate --post-type=portfolio --dry-run
+wp ctrlfield migrate --post-type=portfolio --dry-run
 ```
 
 ---
@@ -70,13 +70,13 @@ wp fieldforge migrate --post-type=portfolio --dry-run
 
 Because schema is in code, every environment (local, staging, production) always has the same field structure as long as it runs the same git commit. There are no "did you sync the DB?" issues.
 
-**Staging environments never consume a Pro activation slot.** FieldForge automatically detects localhost, `*.local`, `*.dev`, `*.staging`, and `*.test` domains.
+**Staging environments never consume a Pro activation slot.** CtrlField automatically detects localhost, `*.local`, `*.dev`, `*.staging`, and `*.test` domains.
 
 ---
 
 ## Type safety
 
-FieldForge leans into PHP 8.2+ features: `readonly` properties, named arguments, enums, and union types. Your editor and PHPStan can verify field usage at analysis time.
+CtrlField leans into PHP 8.2+ features: `readonly` properties, named arguments, enums, and union types. Your editor and PHPStan can verify field usage at analysis time.
 
 ```php
 // PHPStan knows this returns SelectField, not a generic object

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Contracts;
+namespace CtrlField\Fields\Contracts;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Fields\FieldDefinition;
 
 /**
  * Implemented by CloneField (Pro).
@@ -28,8 +28,8 @@ interface ExpandableFieldInterface
      *
      * @param  FieldGroup $sourceGroup the resolved source group
      * @return array<int, FieldDefinition>
-     * @throws \FieldForge\Fields\Exceptions\NonLibraryGroupCloneException if source group has conditions
-     * @throws \FieldForge\Fields\Exceptions\InvalidCloneNestingException  if source group contains a clone
+     * @throws \CtrlField\Fields\Exceptions\NonLibraryGroupCloneException if source group has conditions
+     * @throws \CtrlField\Fields\Exceptions\InvalidCloneNestingException  if source group contains a clone
      */
     public function expand(FieldGroup $sourceGroup): array;
 }

@@ -1,20 +1,20 @@
-# FieldForge
+# CtrlField
 
 **Enterprise-grade code-first custom fields engine for WordPress.**
 
-FieldForge replaces ACF and Carbon Fields with a deterministic, PHP-first schema layer. The database stores values. PHP defines the structure. Schema files live in your theme or project — never locked inside a plugin admin UI.
+CtrlField replaces ACF and Carbon Fields with a deterministic, PHP-first schema layer. The database stores values. PHP defines the structure. Schema files live in your theme or project — never locked inside a plugin admin UI.
 
 ---
 
-## Why FieldForge
+## Why CtrlField
 
-| Problem with ACF / Carbon Fields | FieldForge |
+| Problem with ACF / Carbon Fields | CtrlField |
 |-----------------------------------|-----------|
 | Schema in the database — invisible in git diffs | Schema in PHP — committed alongside the code |
 | UI → export JSON → import → repeat on every environment | Define once in PHP, works everywhere |
 | Row-per-field storage doubles meta rows | Single JSON blob per post |
 | `_reference_key` rows for every field | Eliminated entirely |
-| Silent runtime schema migrations | Explicit CLI only: `wp fieldforge migrate` |
+| Silent runtime schema migrations | Explicit CLI only: `wp ctrlfield migrate` |
 | Global REST API pollution | Opt-in per field: `->showInRest()` |
 
 ---
@@ -24,7 +24,7 @@ FieldForge replaces ACF and Carbon Fields with a deterministic, PHP-first schema
 | Dependency | Minimum |
 |-----------|---------|
 | PHP | 8.2 |
-| WordPress | 6.4 |
+| WordPress | 6.5 |
 | Composer | 2.x |
 
 ---
@@ -32,10 +32,10 @@ FieldForge replaces ACF and Carbon Fields with a deterministic, PHP-first schema
 ## Installation
 
 ```bash
-composer require fieldforge/fieldforge
+composer require ctrlcheese/ctrlfield
 ```
 
-Or place the plugin directory in `wp-content/plugins/fieldforge/` and run:
+Or place the plugin directory in `wp-content/plugins/ctrlfield/` and run:
 
 ```bash
 composer install
@@ -44,7 +44,7 @@ composer install
 Activate via WP admin or WP-CLI:
 
 ```bash
-wp plugin activate fieldforge
+wp plugin activate ctrlfield
 ```
 
 ---
@@ -53,33 +53,33 @@ wp plugin activate fieldforge
 
 Field definitions live in your theme or a project-specific directory — not in the plugin.
 
-**1. Point FieldForge to your schema directory**
+**1. Point CtrlField to your schema directory**
 
 In `wp-config.php`:
 
 ```php
-define('FIELDFORGE_SCHEMA_PATH', get_template_directory() . '/fieldforge/');
+define('CTRLFIELD_SCHEMA_PATH', get_template_directory() . '/ctrlfield/');
 ```
 
 Or via filter in `functions.php` (recommended — no `get_template_directory()` in wp-config):
 
 ```php
-add_filter('fieldforge/schema_paths', function (array $paths): array {
-    $paths[] = get_template_directory() . '/fieldforge/';
+add_filter('ctrlfield/schema_paths', function (array $paths): array {
+    $paths[] = get_template_directory() . '/ctrlfield/';
     return $paths;
 });
 ```
 
 **2. Create a schema file in your theme**
 
-`wp-content/themes/my-theme/fieldforge/portfolio.php`:
+`wp-content/themes/my-theme/ctrlfield/portfolio.php`:
 
 ```php
 <?php
 
-use FieldForge\Builder\CPT;
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Fields\Field;
+use CtrlField\Builder\CPT;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Fields\Field;
 
 add_action('init', static function (): void {
 
@@ -131,13 +131,13 @@ add_action('init', static function (): void {
 
 ```php
 // Single field
-$clientName = fieldforge_get('client_name', $postId);
+$clientName = ctrlfield_get('client_name', $postId);
 
 // All fields for a post
-$fields = fieldforge_get_all($postId);
+$fields = ctrlfield_get_all($postId);
 
 // Options page value
-$tagline = ff_option('site_tagline', 'theme_settings');
+$tagline = ctrlf_option('site_tagline', 'theme_settings');
 ```
 
 **4. Blade directives** (requires Illuminate/View)
@@ -247,7 +247,7 @@ CPT::make('portfolio')
 ### Taxonomy
 
 ```php
-use FieldForge\Builder\Taxonomy;
+use CtrlField\Builder\Taxonomy;
 
 Taxonomy::make('project_category')
     ->label('Category', 'Categories')
@@ -259,12 +259,12 @@ Taxonomy::make('project_category')
 ### Options Page
 
 ```php
-use FieldForge\Builder\OptionsPage;
+use CtrlField\Builder\OptionsPage;
 
 OptionsPage::make('theme_settings')
     ->title('Theme Settings')
     ->menuSlug('theme-settings')
-    ->parent('fieldforge')          // sub-menu under FieldForge
+    ->parent('ctrlfield')          // sub-menu under CtrlField
     ->fields([
         Field::text('site_tagline')->label('Site Tagline'),
         Field::image('site_logo')->label('Logo'),
@@ -299,14 +299,14 @@ OptionsPage::make('theme_settings')
 
 ## Data Storage
 
-All field values are stored as a single JSON blob in `wp_postmeta` under `_fieldforge_data`. Fields marked with `->setIndex()` additionally write a separate `_fieldforge_idx_{key}` row for native `WP_Query` `meta_query` support.
+All field values are stored as a single JSON blob in `wp_postmeta` under `_ctrlfield_data`. Fields marked with `->setIndex()` additionally write a separate `_ctrlfield_idx_{key}` row for native `WP_Query` `meta_query` support.
 
 ```php
 // WP_Query with indexed field
 $query = new WP_Query([
     'post_type'  => 'portfolio',
     'meta_query' => [[
-        'key'   => '_fieldforge_idx_client_name',
+        'key'   => '_ctrlfield_idx_client_name',
         'value' => 'Acme',
     ]],
 ]);
@@ -318,25 +318,25 @@ $query = new WP_Query([
 
 ```php
 // Post fields
-fieldforge_get('key', $postId)
-fieldforge_get_all($postId)
+ctrlfield_get('key', $postId)
+ctrlfield_get_all($postId)
 
 // Options pages
-fieldforge_get_options('key', 'page_slug')
-fieldforge_get_all_options('page_slug')
-ff_option('key', 'page_slug', $default)   // shorthand with default
+ctrlfield_get_options('key', 'page_slug')
+ctrlfield_get_all_options('page_slug')
+ctrlf_option('key', 'page_slug', $default)   // shorthand with default
 
 // User meta
-fieldforge_get_user('key', $userId)
-fieldforge_get_all_user($userId)
+ctrlfield_get_user('key', $userId)
+ctrlfield_get_all_user($userId)
 
 // Term meta
-fieldforge_get_term('key', $termId)
-fieldforge_get_all_term($termId)
+ctrlfield_get_term('key', $termId)
+ctrlfield_get_all_term($termId)
 
 // Theme integration
-fieldforge_load_schemas('/path/to/schema/dir/')
-fieldforge_load_components('/path/to/components/')  // auto-discovers fields.php per component
+ctrlfield_load_schemas('/path/to/schema/dir/')
+ctrlfield_load_components('/path/to/components/')  // auto-discovers fields.php per component
 ```
 
 ---
@@ -344,27 +344,49 @@ fieldforge_load_components('/path/to/components/')  // auto-discovers fields.php
 ## WP-CLI
 
 ```bash
-wp fieldforge migrate              # Run schema migrations
-wp fieldforge migrate --dry-run    # Preview without writing
-wp fieldforge export               # Export PHP schema as JSON artifact
-wp fieldforge import               # Import and validate a JSON artifact
-wp fieldforge validate             # Validate schema against stored versions
+wp ctrlfield migrate              # Run schema migrations
+wp ctrlfield migrate --dry-run    # Preview without writing
+wp ctrlfield export               # Export PHP schema as JSON artifact
+wp ctrlfield import               # Import and validate a JSON artifact
+wp ctrlfield validate             # Validate schema against stored versions
 
-wp fieldforge export --post-type=portfolio > portfolio.csv   # CSV export
-wp fieldforge import portfolio.csv --post-type=portfolio     # CSV import
+wp ctrlfield export --post-type=portfolio > portfolio.csv   # CSV export
+wp ctrlfield import portfolio.csv --post-type=portfolio     # CSV import
 
-wp fieldforge scaffold post-type portfolio \
+wp ctrlfield scaffold post-type portfolio \
     --fields="title:text,client:text,image:image"            # Scaffold CPT + field group
 ```
 
 ---
 
+## Free and Pro
+
+CtrlField is **one plugin**. Everything below ships in it; a Pro license (**CtrlField → Pro License**) unlocks it. Pro code lives in `pro/`.
+
+| Pro feature | Description |
+|---------|-------------|
+| **Visual Field Builder** | Drag-and-drop UI that generates PHP code — never stores schema in the DB |
+| **Flexible Content** | Page builder with named layouts, each with its own sub-fields |
+| **Post Object / Relationship** | AJAX post selectors and true many-to-many pivot tables |
+| **Taxonomy Field** | AJAX term selector with term creation control |
+| **Gallery** | Multi-image field with drag-to-reorder |
+| **Map** | Google, Mapbox, or OpenStreetMap |
+| **Clone Field** | Reuse field groups across multiple contexts without duplication |
+| **Custom Table Storage (CCT)** | One DB row per record — for 50k+ record use cases |
+| **Gutenberg Blocks** | Register any field group as a native block |
+| **Elementor / Bricks / WooCommerce** | Dynamic tags, dynamic data and shop fields |
+| **Audit log, webhooks, field permissions** | Change history, webhook on change, per-role access |
+
+Without a license the site runs the Free feature set and shows no license notices.
+
+---
+
 ## Admin UI
 
-FieldForge adds a **FieldForge** top-level menu in WP Admin with:
+CtrlField adds a **CtrlField** top-level menu in WP Admin with:
 
 - **Schema Inspector** — read-only view of all registered field groups, coverage stats, version mismatch warnings, and CSV export/import buttons.
-- **Visual Builder** — available with FieldForge Pro.
+- **Visual Builder** — available with CtrlField Pro.
 
 ---
 
@@ -374,9 +396,9 @@ FieldForge adds a **FieldForge** top-level menu in WP Admin with:
 |------------|--------|-------|
 | Blade (Illuminate/View) | Core | `@field`, `@repeater` directives |
 | Gutenberg sidebar | Core | React adapter for block editor |
-| Timber / Twig | Core | `ff()`, `ff_all()`, `ff_repeater()` functions |
+| Timber / Twig | Core | `ctrlf()`, `ctrlf_all()`, `ctrlf_repeater()` functions |
 | REST API | Core | Opt-in per field via `->showInRest()` |
-| WP-CLI | Core | `wp fieldforge` commands |
+| WP-CLI | Core | `wp ctrlfield` commands |
 | WPML / Polylang | Core | Per-field translation control |
 | Elementor Dynamic Tags | Pro | 6 tag categories |
 | Bricks Builder | Pro | Dynamic data provider |
@@ -391,11 +413,11 @@ The plugin is the engine. The schema belongs to the project.
 ```
 wp-content/
 ├── plugins/
-│   └── fieldforge/           ← engine only, never edit for client work
+│   └── ctrlfield/           ← engine only, never edit for client work
 └── themes/
     └── my-theme/
-        ├── functions.php     ← one filter to wire up FieldForge
-        └── fieldforge/
+        ├── functions.php     ← one filter to wire up CtrlField
+        └── ctrlfield/
             ├── portfolio.php ← one file per content model
             ├── testimonials.php
             └── theme-options.php
@@ -404,8 +426,8 @@ wp-content/
 `functions.php`:
 
 ```php
-add_filter('fieldforge/schema_paths', function (array $paths): array {
-    $paths[] = get_template_directory() . '/fieldforge/';
+add_filter('ctrlfield/schema_paths', function (array $paths): array {
+    $paths[] = get_template_directory() . '/ctrlfield/';
     return $paths;
 });
 ```
@@ -418,4 +440,4 @@ When the theme moves to a new server, the schema comes with it. No import steps.
 
 GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)
 
-FieldForge Pro (commercial extension) is licensed separately. See [fieldforge.io](https://fieldforge.io).
+Pro features ship inside the same plugin and are unlocked with a CtrlField Pro license from [ctrlcheese.de](https://ctrlcheese.de).

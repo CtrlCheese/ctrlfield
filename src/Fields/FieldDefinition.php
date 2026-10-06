@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields;
+namespace CtrlField\Fields;
 
-use FieldForge\Enums\AdminTab;
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\Conditions\ConditionGroup;
-use FieldForge\Fields\Conditions\ConditionOperator;
-use FieldForge\Fields\Contracts\FieldInterface;
-use FieldForge\Fields\Exceptions\BulkEditOnInvalidTypeException;
-use FieldForge\Fields\Exceptions\DuplicateConditionException;
-use FieldForge\Fields\Exceptions\InvalidOperatorForTypeException;
-use FieldForge\Fields\Exceptions\InvalidWidthException;
-use FieldForge\Fields\Notifications\FieldNotificationConfig;
+use CtrlField\Enums\AdminTab;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Conditions\ConditionGroup;
+use CtrlField\Fields\Conditions\ConditionOperator;
+use CtrlField\Fields\Contracts\FieldInterface;
+use CtrlField\Fields\Exceptions\BulkEditOnInvalidTypeException;
+use CtrlField\Fields\Exceptions\DuplicateConditionException;
+use CtrlField\Fields\Exceptions\InvalidOperatorForTypeException;
+use CtrlField\Fields\Exceptions\InvalidWidthException;
+use CtrlField\Fields\Notifications\FieldNotificationConfig;
 
 abstract class FieldDefinition implements FieldInterface
 {
@@ -353,7 +353,7 @@ abstract class FieldDefinition implements FieldInterface
     // -------------------------------------------------------------------------
 
     /**
-     * Configures how fieldforge_get() transforms the raw stored value on read.
+     * Configures how ctrlfield_get() transforms the raw stored value on read.
      *
      * Supported formats:
      *  image/file  → 'id' (default), 'url', 'array'
@@ -478,7 +478,7 @@ abstract class FieldDefinition implements FieldInterface
 
     /**
      * Returns true for fields that are purely UI organisers (Tab, Accordion, Message, Separator).
-     * UI-only fields are never included in the fieldforge_payload and are not stored.
+     * UI-only fields are never included in the ctrlfield_payload and are not stored.
      */
     public function isUiOnly(): bool
     {
@@ -492,7 +492,7 @@ abstract class FieldDefinition implements FieldInterface
      */
     public function isNumericSort(): bool
     {
-        return in_array($this->getType(), [\FieldForge\Enums\FieldType::NUMBER, \FieldForge\Enums\FieldType::RANGE], true);
+        return in_array($this->getType(), [\CtrlField\Enums\FieldType::NUMBER, \CtrlField\Enums\FieldType::RANGE], true);
     }
 
     /**

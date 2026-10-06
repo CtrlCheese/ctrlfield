@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Scaffold;
+namespace CtrlField\Integrations\CLI\Scaffold;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\FileExistsException;
+use CtrlField\Enums\FieldType;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\FileExistsException;
 
 final class PhpCodeWriter
 {
@@ -17,7 +17,7 @@ final class PhpCodeWriter
 
         $lines[] = '<?php';
         $lines[] = '/**';
-        $lines[] = " * FieldForge — CPT Registration: {$slug}";
+        $lines[] = " * CtrlField — CPT Registration: {$slug}";
         $lines[] = " * Generated: {$date}";
         $lines[] = ' * Edit freely. This file is the source of truth.';
         $lines[] = ' */';
@@ -25,9 +25,9 @@ final class PhpCodeWriter
         $lines[] = 'declare(strict_types=1);';
         $lines[] = '';
 
-        $uses = ['FieldForge\\Builder\\CPT'];
+        $uses = ['CtrlField\\Builder\\CPT'];
         if (! empty($def->fields)) {
-            $uses[] = 'FieldForge\\Fields\\Field';
+            $uses[] = 'CtrlField\\Fields\\Field';
         }
         foreach ($uses as $use) {
             $lines[] = "use {$use};";
@@ -74,7 +74,7 @@ final class PhpCodeWriter
 
         $lines[] = '<?php';
         $lines[] = '/**';
-        $lines[] = " * FieldForge — Taxonomy Registration: {$slug}";
+        $lines[] = " * CtrlField — Taxonomy Registration: {$slug}";
         $lines[] = " * Generated: {$date}";
         $lines[] = ' * Edit freely. This file is the source of truth.';
         $lines[] = ' */';
@@ -82,9 +82,9 @@ final class PhpCodeWriter
         $lines[] = 'declare(strict_types=1);';
         $lines[] = '';
 
-        $uses = ['FieldForge\\Builder\\Taxonomy'];
+        $uses = ['CtrlField\\Builder\\Taxonomy'];
         if (! empty($def->fields)) {
-            $uses[] = 'FieldForge\\Fields\\Field';
+            $uses[] = 'CtrlField\\Fields\\Field';
         }
         foreach ($uses as $use) {
             $lines[] = "use {$use};";
@@ -132,7 +132,7 @@ final class PhpCodeWriter
 
         $lines[] = '<?php';
         $lines[] = '/**';
-        $lines[] = " * FieldForge — Options Page Registration: {$slug}";
+        $lines[] = " * CtrlField — Options Page Registration: {$slug}";
         $lines[] = " * Generated: {$date}";
         $lines[] = ' * Edit freely. This file is the source of truth.';
         $lines[] = ' */';
@@ -140,9 +140,9 @@ final class PhpCodeWriter
         $lines[] = 'declare(strict_types=1);';
         $lines[] = '';
 
-        $uses = ['FieldForge\\Builder\\OptionsPage'];
+        $uses = ['CtrlField\\Builder\\OptionsPage'];
         if (! empty($def->fields)) {
-            $uses[] = 'FieldForge\\Fields\\Field';
+            $uses[] = 'CtrlField\\Fields\\Field';
         }
         foreach ($uses as $use) {
             $lines[] = "use {$use};";
@@ -185,15 +185,15 @@ final class PhpCodeWriter
 
         $lines[] = '<?php';
         $lines[] = '/**';
-        $lines[] = " * FieldForge — Field Group Registration: {$slug}";
+        $lines[] = " * CtrlField — Field Group Registration: {$slug}";
         $lines[] = " * Generated: {$date}";
-        $lines[] = ' * Auto-loaded if placed in FIELDFORGE_SCHEMA_PATH directory.';
+        $lines[] = ' * Auto-loaded if placed in CTRLFIELD_SCHEMA_PATH directory.';
         $lines[] = ' * Otherwise: require_once __DIR__ . \'/' . basename($slug) . '.php\'; in your functions.php';
         $lines[] = ' */';
         $lines[] = '';
         $lines[] = 'declare(strict_types=1);';
         $lines[] = '';
-        $lines[] = 'use FieldForge\\Fields\\Field;';
+        $lines[] = 'use CtrlField\\Fields\\Field;';
         $lines[] = '';
 
         $groupKey = str_replace('-', '_', $slug);
@@ -235,17 +235,17 @@ final class PhpCodeWriter
 
         $lines[] = '<?php';
         $lines[] = '/**';
-        $lines[] = " * FieldForge Pro — ContentTable Registration: {$slug}";
+        $lines[] = " * CtrlField Pro — ContentTable Registration: {$slug}";
         $lines[] = " * Generated: {$date}";
         $lines[] = ' * Edit freely. This file is the source of truth.';
         $lines[] = ' */';
         $lines[] = '';
         $lines[] = 'declare(strict_types=1);';
         $lines[] = '';
-        $lines[] = 'use FieldForgePro\\Builder\\ContentTable;';
+        $lines[] = 'use CtrlField\\Pro\\Builder\\ContentTable;';
 
         if (! empty($def->fields)) {
-            $lines[] = 'use FieldForge\\Fields\\Field;';
+            $lines[] = 'use CtrlField\\Fields\\Field;';
         }
 
         $lines[] = '';

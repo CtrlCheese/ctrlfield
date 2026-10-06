@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Commands;
+namespace CtrlField\Integrations\CLI\Commands;
 
-use FieldForge\Builder\OptionsPage;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Registry\PendingCloneRegistry;
-use FieldForge\Storage\Drivers\WpOptionsDriver;
-use FieldForge\Storage\Drivers\WpPostMetaDriver;
-use FieldForge\Storage\OptionsAdapter;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Builder\OptionsPage;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Registry\PendingCloneRegistry;
+use CtrlField\Storage\Drivers\WpOptionsDriver;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
+use CtrlField\Storage\OptionsAdapter;
+use CtrlField\Storage\PostMetaAdapter;
 
 /**
- * WP-CLI command: wp fieldforge validate
+ * WP-CLI command: wp ctrlfield validate
  *
  * Excluded from PHPStan — references WP_CLI, WP_Query, and WP drivers.
  *
@@ -21,8 +21,8 @@ use FieldForge\Storage\PostMetaAdapter;
  * SchemaVersion::CURRENT without performing any migration.
  *
  * Usage:
- *   wp fieldforge validate
- *   wp fieldforge validate --post-type=portfolio
+ *   wp ctrlfield validate
+ *   wp ctrlfield validate --post-type=portfolio
  */
 class ValidateCommand
 {
@@ -45,7 +45,7 @@ class ValidateCommand
         } else {
             \WP_CLI::warning(
                 sprintf(
-                    '%d mismatch(es) found. Run "wp fieldforge migrate" to upgrade.',
+                    '%d mismatch(es) found. Run "wp ctrlfield migrate" to upgrade.',
                     $issues
                 )
             );
@@ -76,14 +76,14 @@ class ValidateCommand
 
     private function validateSchemaFiles(): int
     {
-        if (! defined('FIELDFORGE_SCHEMA_PATH') || ! is_string(\FIELDFORGE_SCHEMA_PATH)) {
+        if (! defined('CTRLFIELD_SCHEMA_PATH') || ! is_string(\CTRLFIELD_SCHEMA_PATH)) {
             return 0;
         }
 
-        $dir = \FIELDFORGE_SCHEMA_PATH;
+        $dir = \CTRLFIELD_SCHEMA_PATH;
 
         if (! is_dir($dir)) {
-            \WP_CLI::warning("FIELDFORGE_SCHEMA_PATH '{$dir}' does not exist.");
+            \WP_CLI::warning("CTRLFIELD_SCHEMA_PATH '{$dir}' does not exist.");
             return 1;
         }
 

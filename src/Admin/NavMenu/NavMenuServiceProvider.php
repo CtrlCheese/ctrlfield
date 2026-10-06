@@ -2,31 +2,31 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\NavMenu;
+namespace CtrlField\Admin\NavMenu;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Builder\AdminContext;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Data\FieldDataService;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Storage\Drivers\WpPostMetaDriver;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Data\FieldDataService;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
+use CtrlField\Storage\PostMetaAdapter;
 
 /**
- * Renders and saves FieldForge fields on WordPress navigation menu items.
+ * Renders and saves CtrlField fields on WordPress navigation menu items.
  *
  * Fields appear when any FieldGroup is registered with:
  *   ->where('context', '==', 'nav_menu_item')
  *
  * Nav menu items are stored as posts of type nav_menu_item in wp_postmeta,
  * so PostMetaAdapter is used directly (no pipeline — nav menus save via AJAX
- * without a fieldforge_payload or nonce flow).
+ * without a ctrlfield_payload or nonce flow).
  *
  * Excluded from PHPStan — references WP functions.
  */
 final class NavMenuServiceProvider extends ServiceProvider
 {
-    private const NONCE_KEY = 'fieldforge_nav_menu';
+    private const NONCE_KEY = 'ctrlfield_nav_menu';
 
     public function register(): void {}
 
@@ -55,7 +55,7 @@ final class NavMenuServiceProvider extends ServiceProvider
             return;
         }
 
-        wp_nonce_field(self::NONCE_KEY . '_' . $itemId, '_ff_nav_nonce_' . $itemId);
+        wp_nonce_field(self::NONCE_KEY . '_' . $itemId, '_ctrlf_nav_nonce_' . $itemId);
 
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
@@ -65,9 +65,9 @@ final class NavMenuServiceProvider extends ServiceProvider
                 $value = FieldDataService::getInstance()->get($key, $itemId, 'post');
 
                 printf(
-                    '<p class="fieldforge-nav-field description description-wide">'
-                    . '<label for="ff_nav_%1$s_%2$d">%3$s<br>'
-                    . '<input type="text" id="ff_nav_%1$s_%2$d" name="ff_nav[%2$d][%1$s]" value="%4$s" class="widefat">'
+                    '<p class="ctrlfield-nav-field description description-wide">'
+                    . '<label for="ctrlf_nav_%1$s_%2$d">%3$s<br>'
+                    . '<input type="text" id="ctrlf_nav_%1$s_%2$d" name="ctrlf_nav[%2$d][%1$s]" value="%4$s" class="widefat">'
                     . '</label></p>',
                     esc_attr($key),
                     $itemId,
@@ -85,12 +85,12 @@ final class NavMenuServiceProvider extends ServiceProvider
      */
     public function saveFields(int $menuId, int $menuItemDbId, array $args): void
     {
-        if (! isset($_POST['_ff_nav_nonce_' . $menuItemDbId])) {
+        if (! isset($_POST['_ctrlf_nav_nonce_' . $menuItemDbId])) {
             return;
         }
 
         if (! wp_verify_nonce(
-            sanitize_text_field(wp_unslash((string) $_POST['_ff_nav_nonce_' . $menuItemDbId])),
+            sanitize_text_field(wp_unslash((string) $_POST['_ctrlf_nav_nonce_' . $menuItemDbId])),
             self::NONCE_KEY . '_' . $menuItemDbId,
         )) {
             return;
@@ -100,11 +100,11 @@ final class NavMenuServiceProvider extends ServiceProvider
             return;
         }
 
-        if (! isset($_POST['ff_nav'][$menuItemDbId]) || ! is_array($_POST['ff_nav'][$menuItemDbId])) {
+        if (! isset($_POST['ctrlf_nav'][$menuItemDbId]) || ! is_array($_POST['ctrlf_nav'][$menuItemDbId])) {
             return;
         }
 
-        $raw    = $_POST['ff_nav'][$menuItemDbId];
+        $raw    = $_POST['ctrlf_nav'][$menuItemDbId];
         $fields = [];
 
         foreach ($raw as $key => $value) {

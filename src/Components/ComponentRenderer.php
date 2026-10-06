@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Components;
+namespace CtrlField\Components;
 
 /**
  * Renders a component by resolving its template and applying the data filter pipeline.
@@ -13,11 +13,11 @@ namespace FieldForge\Components;
  *   3. PHP    (.php)       — plain include with extract()
  *
  * WordPress filter hooks applied before rendering:
- *   'fieldforge/component_data/{layout_key}'  — per-component data transform
- *   'fieldforge/component_data'               — global data transform (args: $data, $key)
+ *   'ctrlfield/component_data/{layout_key}'  — per-component data transform
+ *   'ctrlfield/component_data'               — global data transform (args: $data, $key)
  *
  * WordPress filter hooks applied after rendering:
- *   'fieldforge/component_render/{layout_key}' — post-render HTML transform (args: $html, $data)
+ *   'ctrlfield/component_render/{layout_key}' — post-render HTML transform (args: $html, $data)
  *
  * All public methods are safe: they return '' instead of throwing when a
  * component or template is missing or when rendering fails.
@@ -42,9 +42,9 @@ final class ComponentRenderer
         // Apply per-component data filters
         if (function_exists('apply_filters')) {
             /** @var array<string, mixed> $section */
-            $section = apply_filters("fieldforge/component_data/{$layoutKey}", $section);
+            $section = apply_filters("ctrlfield/component_data/{$layoutKey}", $section);
             /** @var array<string, mixed> $section */
-            $section = apply_filters('fieldforge/component_data', $section, $layoutKey);
+            $section = apply_filters('ctrlfield/component_data', $section, $layoutKey);
         }
 
         $definition = ComponentRegistry::get($layoutKey);
@@ -53,7 +53,7 @@ final class ComponentRenderer
             $html = '';
             if (function_exists('apply_filters')) {
                 /** @var string $html */
-                $html = apply_filters("fieldforge/component_render/{$layoutKey}", $html, $section);
+                $html = apply_filters("ctrlfield/component_render/{$layoutKey}", $html, $section);
             }
             return $html;
         }
@@ -62,7 +62,7 @@ final class ComponentRenderer
 
         if (function_exists('apply_filters')) {
             /** @var string $html */
-            $html = apply_filters("fieldforge/component_render/{$layoutKey}", $html, $section);
+            $html = apply_filters("ctrlfield/component_render/{$layoutKey}", $html, $section);
         }
 
         return $html;
@@ -72,7 +72,7 @@ final class ComponentRenderer
      * Renders a component by name with explicit data.
      *
      * Injects '_layout' into $data and delegates to render().
-     * Useful for @ffComponent and ff_render() where no section array is available.
+     * Useful for @ctrlfComponent and ctrlf_render() where no section array is available.
      *
      * @param array<string, mixed> $data
      */
@@ -110,8 +110,8 @@ final class ComponentRenderer
      */
     private static function renderBlade(string $path, array $data): string
     {
-        if (class_exists(\FieldForge\Integrations\Blade\ViewServiceProvider::class)) {
-            $compiler = \FieldForge\Integrations\Blade\ViewServiceProvider::compiler();
+        if (class_exists(\CtrlField\Integrations\Blade\ViewServiceProvider::class)) {
+            $compiler = \CtrlField\Integrations\Blade\ViewServiceProvider::compiler();
 
             if ($compiler !== null) {
                 try {

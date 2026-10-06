@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Bootstrap;
+namespace CtrlField\Bootstrap;
 
 abstract class ServiceProvider
 {

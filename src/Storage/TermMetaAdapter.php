@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Storage;
+namespace CtrlField\Storage;
 
-use FieldForge\Core\Cache\CacheAdapter;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Storage\Contracts\StorageAdapterInterface;
+use CtrlField\Core\Cache\CacheAdapter;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Storage\Contracts\StorageAdapterInterface;
 
 /**
- * Stores FieldForge field data in wp_termmeta.
+ * Stores CtrlField field data in wp_termmeta.
  * v2 uses the same JSON blob format as PostMetaAdapter (schema_version + fields).
- * Cache key pattern: fieldforge:term:{termId}
+ * Cache key pattern: ctrlfield:term:{termId}
  */
 class TermMetaAdapter implements StorageAdapterInterface
 {
-    public const META_KEY         = '_fieldforge_data';
-    public const INDEX_KEY_PREFIX = '_fieldforge_idx_';
+    public const META_KEY         = '_ctrlfield_data';
+    public const INDEX_KEY_PREFIX = '_ctrlfield_idx_';
 
     public function __construct(
         private readonly int $currentVersion = SchemaVersion::CURRENT,
@@ -81,7 +81,7 @@ class TermMetaAdapter implements StorageAdapterInterface
         if ($storedVersion < $this->currentVersion) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log(sprintf(
-                    'FieldForge: schema_version mismatch on term %s (stored: %d, current: %d). Run "wp fieldforge migrate".',
+                    'CtrlField: schema_version mismatch on term %s (stored: %d, current: %d). Run "wp ctrlfield migrate".',
                     $id, $storedVersion, $this->currentVersion,
                 ));
             }

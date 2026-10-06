@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Contracts;
+namespace CtrlField\Fields\Contracts;
 
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Fields\FieldDefinition;
 
 /**
  * Implemented by FlexibleContentField (Pro).

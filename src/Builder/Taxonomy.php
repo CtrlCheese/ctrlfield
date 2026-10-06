@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Builder;
+namespace CtrlField\Builder;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\FieldDefinition;
 use InvalidArgumentException;
 
 /**
@@ -32,7 +32,7 @@ final class Taxonomy
     /** @var array<int, string> */
     private array $attachTo = [];
 
-    /** @var array<int, \FieldForge\Fields\FieldDefinition> */
+    /** @var array<int, \CtrlField\Fields\FieldDefinition> */
     private array $termFields = [];
 
     /** @var array<string, self> */
@@ -113,7 +113,7 @@ final class Taxonomy
      * Registers term-level fields for this taxonomy.
      *
      * Limited to text, image, and select in v1.
-     * Data stored in term meta under _fieldforge_term_{key}.
+     * Data stored in term meta under _ctrlfield_term_{key}.
      *
      * @param array<int, FieldDefinition> $fields
      */

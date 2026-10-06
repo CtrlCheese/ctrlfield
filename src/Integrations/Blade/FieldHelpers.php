@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\Blade;
+namespace CtrlField\Integrations\Blade;
 
-use FieldForge\Fields\Field;
-use FieldForge\Fields\Types\SelectField;
-use FieldForge\Fields\Types\CheckboxField;
+use CtrlField\Fields\Field;
+use CtrlField\Fields\Types\SelectField;
+use CtrlField\Fields\Types\CheckboxField;
 
 /**
  * Reusable field builder helpers for themes.
  *
- * These are the FieldForge equivalents of CF3's field_background(),
+ * These are the CtrlField equivalents of CF3's field_background(),
  * field_layout(), field_show_when(), etc. in _base/field-options.php.
  *
  * Usage in a component's fields.php:
- *   use FieldForge\Integrations\Blade\FieldHelpers;
+ *   use CtrlField\Integrations\Blade\FieldHelpers;
  *
  *   Field::group('module_hero')
  *       ->where('post_type', '==', 'page')

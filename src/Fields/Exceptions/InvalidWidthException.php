@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Exceptions;
+namespace CtrlField\Fields\Exceptions;
 
 use InvalidArgumentException;
 

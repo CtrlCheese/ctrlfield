@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Dashboard;
+namespace CtrlField\Admin\Dashboard;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Data\FieldDataService;
-use FieldForge\Registry\FieldRegistry;
-use FieldForge\Storage\Drivers\WpOptionsDriver;
-use FieldForge\Storage\OptionsAdapter;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Data\FieldDataService;
+use CtrlField\Registry\FieldRegistry;
+use CtrlField\Storage\Drivers\WpOptionsDriver;
+use CtrlField\Storage\OptionsAdapter;
 
 /**
  * Registers FieldGroups configured with ->dashboardWidget() as WP Admin Dashboard widgets.
  *
  * Storage uses OptionsAdapter — dashboard widget data is global to the site.
- * Reading: fieldforge_get_options($key, $groupKey)
+ * Reading: ctrlfield_get_options($key, $groupKey)
  *
  * Excluded from PHPStan — references WP dashboard functions.
  */
@@ -36,7 +36,7 @@ final class DashboardWidgetServiceProvider extends ServiceProvider
         }
 
         add_action('wp_dashboard_setup',                       [$this, 'registerWidgets']);
-        add_action('wp_ajax_fieldforge_save_dashboard_widget', [$this, 'saveWidget']);
+        add_action('wp_ajax_ctrlfield_save_dashboard_widget', [$this, 'saveWidget']);
     }
 
     public function registerWidgets(): void
@@ -53,7 +53,7 @@ final class DashboardWidgetServiceProvider extends ServiceProvider
             }
 
             wp_add_dashboard_widget(
-                'fieldforge_widget_' . $group->getKey(),
+                'ctrlfield_widget_' . $group->getKey(),
                 $config->title,
                 function () use ($group): void {
                     $this->renderWidget($group);
@@ -68,7 +68,7 @@ final class DashboardWidgetServiceProvider extends ServiceProvider
 
     public function saveWidget(): void
     {
-        check_ajax_referer('fieldforge_dashboard_widget', 'nonce');
+        check_ajax_referer('ctrlfield_dashboard_widget', 'nonce');
 
         if (! current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Insufficient permissions.'], 403);
@@ -88,8 +88,8 @@ final class DashboardWidgetServiceProvider extends ServiceProvider
 
         foreach ($group->getFields() as $field) {
             $key = $field->getKey();
-            if (isset($_POST['ff_dw_' . $key])) {
-                $fields[$key] = sanitize_text_field((string) $_POST['ff_dw_' . $key]);
+            if (isset($_POST['ctrlf_dw_' . $key])) {
+                $fields[$key] = sanitize_text_field((string) $_POST['ctrlf_dw_' . $key]);
             }
         }
 
@@ -102,9 +102,9 @@ final class DashboardWidgetServiceProvider extends ServiceProvider
     private function renderWidget(FieldGroup $group): void
     {
         $stored = FieldDataService::getInstance()->getAll($group->getKey(), 'options');
-        $nonce  = wp_create_nonce('fieldforge_dashboard_widget');
+        $nonce  = wp_create_nonce('ctrlfield_dashboard_widget');
 
-        echo '<form class="fieldforge-dashboard-widget" data-group="' . esc_attr($group->getKey()) . '" data-nonce="' . esc_attr($nonce) . '">';
+        echo '<form class="ctrlfield-dashboard-widget" data-group="' . esc_attr($group->getKey()) . '" data-nonce="' . esc_attr($nonce) . '">';
 
         foreach ($group->getFields() as $field) {
             $key   = $field->getKey();
@@ -112,7 +112,7 @@ final class DashboardWidgetServiceProvider extends ServiceProvider
             $value = $stored[$key] ?? '';
 
             printf(
-                '<p><label><strong>%s</strong><br><input type="text" name="ff_dw_%s" value="%s" style="width:100%%"></label></p>',
+                '<p><label><strong>%s</strong><br><input type="text" name="ctrlf_dw_%s" value="%s" style="width:100%%"></label></p>',
                 esc_html($label),
                 esc_attr($key),
                 esc_attr((string) $value),

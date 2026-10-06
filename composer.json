@@ -1,6 +1,6 @@
 {
-    "name": "fieldforge/fieldforge",
-    "description": "Enterprise-grade code-first schema engine for WordPress custom fields, CPTs, and taxonomies.",
+    "name": "ctrlcheese/ctrlfield",
+    "description": "Code-first custom fields, CPTs and taxonomies for WordPress, with license-unlocked Pro features.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "FieldForge\\": "src/"
+            "CtrlField\\": "src/"
         },
         "files": [
             "src/Integrations/Blade/helpers.php"
@@ -24,7 +24,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "FieldForge\\Tests\\": "tests/"
+            "CtrlField\\Tests\\": "tests/"
         }
     },
     "config": {
@@ -35,5 +35,9 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "scripts": {
+        "test": "phpunit",
+        "test:pro": "phpunit -c pro/phpunit.xml"
+    }
 }

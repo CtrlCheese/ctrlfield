@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Registry;
+namespace CtrlField\Registry;
 
 /**
  * Pro feature hook-in point.
@@ -10,7 +10,7 @@ namespace FieldForge\Registry;
  * Core never imports Pro code. Pro registers features here at boot time.
  * Core checks existence before delegating rendering or processing.
  *
- * Example (Pro plugin):
+ * Example (Pro, in pro/src):
  *   FeatureRegistry::register('flexible_content', Pro\FlexibleContent::class);
  *
  * Example (Core check):

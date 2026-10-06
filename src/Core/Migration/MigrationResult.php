@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Migration;
+namespace CtrlField\Core\Migration;
 
 /**
  * Output value object from MigrationEngine::run() for a single post.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\Contracts\RendererInterface;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Fields\Contracts\RendererInterface;
+use CtrlField\Fields\FieldDefinition;
 
 abstract class AbstractRenderer implements RendererInterface
 {
@@ -28,11 +28,11 @@ abstract class AbstractRenderer implements RendererInterface
 
     protected function inputId(FieldDefinition $field): string
     {
-        return 'ff-' . $field->getKey();
+        return 'ctrlf-' . $field->getKey();
     }
 
     protected function baseClasses(): string
     {
-        return 'ff-input';
+        return 'ctrlf-input';
     }
 }

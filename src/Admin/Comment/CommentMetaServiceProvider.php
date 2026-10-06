@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Comment;
+namespace CtrlField\Admin\Comment;
 
-use FieldForge\Bootstrap\ServiceProvider;
+use CtrlField\Bootstrap\ServiceProvider;
 
 class CommentMetaServiceProvider extends ServiceProvider
 {

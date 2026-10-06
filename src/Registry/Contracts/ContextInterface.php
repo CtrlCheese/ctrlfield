@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Registry\Contracts;
+namespace CtrlField\Registry\Contracts;
 
-use FieldForge\Builder\AdminContext;
+use CtrlField\Builder\AdminContext;
 
 interface ContextInterface
 {

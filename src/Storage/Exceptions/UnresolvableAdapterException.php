@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Storage\Exceptions;
+namespace CtrlField\Storage\Exceptions;
 
 use RuntimeException;
 

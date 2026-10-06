@@ -1,12 +1,12 @@
 # ComponentRenderer
 
-`ComponentRenderer` resolves and renders a component template. It is the engine behind `@ffSection`, `ff_component()`, and `fieldforge_render_component()`.
+`ComponentRenderer` resolves and renders a component template. It is the engine behind `@ctrlfSection`, `ctrlf_component()`, and `ctrlfield_render_component()`.
 
 ---
 
 ## How templates are resolved
 
-For each component, FieldForge looks for a template in this priority order:
+For each component, CtrlField looks for a template in this priority order:
 
 | Priority | File | Engine |
 |---|---|---|
@@ -23,13 +23,13 @@ The template path is resolved once at `ComponentRegistry::discover()` time and c
 Before the template receives data, two filters are applied:
 
 ```
-$data → fieldforge/component_data/{key} → fieldforge/component_data → template
+$data → ctrlfield/component_data/{key} → ctrlfield/component_data → template
 ```
 
 After rendering, one filter is applied:
 
 ```
-$html → fieldforge/component_render/{key} → caller
+$html → ctrlfield/component_render/{key} → caller
 ```
 
 ---
@@ -54,38 +54,38 @@ Renders a named component with explicit data. Useful outside of a flexible-conte
 
 ```blade
 {{-- Renders each section using its registered component template --}}
-@foreach(fieldforge_get('page_builder') as $section)
-    @ffSection($section)
+@foreach(ctrlfield_get('page_builder') as $section)
+    @ctrlfSection($section)
 @endforeach
 
 {{-- Or render a named component directly --}}
-@ffRender('cta', ['headline' => 'Sign Up Today'])
+@ctrlfRender('cta', ['headline' => 'Sign Up Today'])
 ```
 
 **Twig:**
 
 ```twig
-{% for section in fieldforge_get('page_builder') %}
-    {{ ff_component(section)|raw }}
+{% for section in ctrlfield_get('page_builder') %}
+    {{ ctrlf_component(section)|raw }}
 {% endfor %}
 ```
 
 **PHP:**
 
 ```php
-foreach (fieldforge_get('page_builder') as $section) {
-    fieldforge_render_component($section);
+foreach (ctrlfield_get('page_builder') as $section) {
+    ctrlfield_render_component($section);
 }
 
 // Or with explicit data
-fieldforge_render('cta', ['headline' => 'Sign Up']);
+ctrlfield_render('cta', ['headline' => 'Sign Up']);
 ```
 
 ---
 
 ## Writing a component template
 
-When FieldForge renders a component, it extracts the section data so all field values are available as local variables:
+When CtrlField renders a component, it extracts the section data so all field values are available as local variables:
 
 ```blade
 {{-- components/hero/index.blade.php --}}

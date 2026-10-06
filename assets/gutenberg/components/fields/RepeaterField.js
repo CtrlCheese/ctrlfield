@@ -38,7 +38,7 @@ export function RepeaterField({ field, value, onChange }) {
     };
 
     return (
-        <div className="ff-gb-repeater">
+        <div className="ctrlf-gb-repeater">
             <p style={ { fontSize: '11px', fontWeight: 500, marginBottom: 8 } }>
                 { field.label || field.key }
             </p>
@@ -46,7 +46,7 @@ export function RepeaterField({ field, value, onChange }) {
             { rows.map((row, idx) => (
                 <div
                     key={ idx }
-                    className="ff-gb-repeater-row"
+                    className="ctrlf-gb-repeater-row"
                     style={ {
                         border: '1px solid #dcdcde',
                         borderRadius: 3,

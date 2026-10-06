@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\Blade;
+namespace CtrlField\Integrations\Blade;
 
 /**
  * Handles @field and @field_raw Blade directives.
@@ -20,7 +20,7 @@ final class FieldDirective
     public static function compile(string $expression): string
     {
         return sprintf(
-            '<?php echo htmlspecialchars((string)(fieldforge_get(%s) ?? \'\'), ENT_QUOTES | ENT_SUBSTITUTE, \'UTF-8\'); ?>',
+            '<?php echo htmlspecialchars((string)(ctrlfield_get(%s) ?? \'\'), ENT_QUOTES | ENT_SUBSTITUTE, \'UTF-8\'); ?>',
             $expression
         );
     }
@@ -33,7 +33,7 @@ final class FieldDirective
     public static function compileRaw(string $expression): string
     {
         return sprintf(
-            '<?php echo fieldforge_get(%s) ?? \'\'; ?>',
+            '<?php echo ctrlfield_get(%s) ?? \'\'; ?>',
             $expression
         );
     }

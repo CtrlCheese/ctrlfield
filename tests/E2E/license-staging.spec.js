@@ -16,28 +16,28 @@ const { test, expect } = require('@playwright/test');
 test.describe('License staging mode', () => {
 
     test('settings page is accessible', async ({ page }) => {
-        await page.goto('/wp-admin/admin.php?page=fieldforge-pro-license');
-        await expect(page.locator('.fieldforge-pro-license, .wrap')).toBeVisible({ timeout: 10_000 });
+        await page.goto('/wp-admin/admin.php?page=ctrlfield-pro-license');
+        await expect(page.locator('.ctrlfield-pro-license, .wrap')).toBeVisible({ timeout: 10_000 });
     });
 
     test('entering a key on localhost shows staging badge', async ({ page }) => {
-        await page.goto('/wp-admin/admin.php?page=fieldforge-pro-license');
+        await page.goto('/wp-admin/admin.php?page=ctrlfield-pro-license');
         await expect(page.locator('.wrap')).toBeVisible({ timeout: 10_000 });
 
-        const keyInput = page.locator('#fieldforge_pro_license_key, input[name="license_key"]');
+        const keyInput = page.locator('#ctrlfield_pro_license_key, input[name="license_key"]');
         await expect(keyInput).toBeVisible();
 
         // Fill with a test key — on localhost this should activate as staging
         await keyInput.fill('TEST-STAGING-KEY-E2E-12345');
 
-        await page.locator('#fieldforge-pro-activate, button', { hasText: /activate/i }).first().click();
+        await page.locator('#ctrlfield-pro-activate, button', { hasText: /activate/i }).first().click();
 
         // Wait for AJAX response
         await page.waitForTimeout(2_000);
 
         // After reload, the badge should show staging or active status
         await page.reload();
-        const badge = page.locator('.fieldforge-pro-status-badge, .badge-staging, .badge-valid');
+        const badge = page.locator('.ctrlfield-pro-status-badge, .badge-staging, .badge-valid');
         if (await badge.isVisible()) {
             const text = await badge.textContent();
             // On localhost (wp-env), staging bypass is active
@@ -46,8 +46,8 @@ test.describe('License staging mode', () => {
     });
 
     test('wp-env localhost is detected as staging environment', async ({ page }) => {
-        // The FieldForge staging indicator is exposed in the license page
-        await page.goto('/wp-admin/admin.php?page=fieldforge-pro-license');
+        // The CtrlField staging indicator is exposed in the license page
+        await page.goto('/wp-admin/admin.php?page=ctrlfield-pro-license');
         await expect(page.locator('.wrap')).toBeVisible({ timeout: 10_000 });
 
         // The page title should reference "License"
@@ -59,11 +59,11 @@ test.describe('License staging mode', () => {
         // Navigate to a page that uses Pro features (FlexibleContent)
         await page.goto('/wp-admin/post-new.php?post_type=page');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // The flex content add button should be visible (Pro feature active)
-        const flexAdd = container.locator('.ff-flex-add, button', { hasText: /add (section|layout)/i });
+        const flexAdd = container.locator('.ctrlf-flex-add, button', { hasText: /add (section|layout)/i });
         await expect(flexAdd.first()).toBeVisible();
     });
 

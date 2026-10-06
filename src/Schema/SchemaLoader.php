@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Schema;
+namespace CtrlField\Schema;
 
-use FieldForge\Schema\Exceptions\SchemaDirectoryNotFoundException;
+use CtrlField\Schema\Exceptions\SchemaDirectoryNotFoundException;
 
 final class SchemaLoader
 {
     /**
-     * Load all *.php files in a directory as FieldForge schema definitions.
+     * Load all *.php files in a directory as CtrlField schema definitions.
      * Files are loaded in alphabetical order.
      *
      * @throws SchemaDirectoryNotFoundException if the path does not exist
@@ -18,7 +18,7 @@ final class SchemaLoader
     {
         if (! is_dir($absolutePath)) {
             throw new SchemaDirectoryNotFoundException(
-                "FieldForge schema directory not found: {$absolutePath}"
+                "CtrlField schema directory not found: {$absolutePath}"
             );
         }
 

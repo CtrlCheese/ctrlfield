@@ -46,7 +46,7 @@ Use WordPress's `wp_oembed_get()` to render the embed:
 
 ```blade
 @php
-    $url  = fieldforge_get('promo_video');
+    $url  = ctrlfield_get('promo_video');
     $html = $url ? wp_oembed_get($url, ['width' => 800]) : '';
 @endphp
 
@@ -56,7 +56,7 @@ Use WordPress's `wp_oembed_get()` to render the embed:
 ```
 
 ```php
-$url  = fieldforge_get('promo_video');
+$url  = ctrlfield_get('promo_video');
 $html = $url ? wp_oembed_get($url) : '';
 if ($html) {
     echo wp_kses_post($html);

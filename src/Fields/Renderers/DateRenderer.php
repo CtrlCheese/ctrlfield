@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\DateField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\DateField;
 
 final class DateRenderer extends AbstractRenderer
 {
@@ -20,7 +20,7 @@ final class DateRenderer extends AbstractRenderer
         $roAttr  = $readOnly ? ' disabled' : '';
 
         return sprintf(
-            '<input type="date" id="%s" x-model="%s" class="ff-input ff-input--date"%s%s%s>',
+            '<input type="date" id="%s" x-model="%s" class="ctrlf-input ctrlf-input--date"%s%s%s>',
             $this->esc($this->inputId($field)),
             $this->esc($statePath),
             $minAttr,

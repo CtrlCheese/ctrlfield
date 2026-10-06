@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 
 /**
  * E2E: gallery field — upload images, reorder, save, reload, verify order.
- * Requires wp-env with fieldforge-pro active and a gallery field group.
+ * Requires wp-env with ctrlfield-pro active and a gallery field group.
  *
  * Acceptance criteria (Cycle B-5):
  * - Gallery field renders "Add Images" button
@@ -18,10 +18,10 @@ test.describe('gallery field', () => {
     test('gallery field renders with add images button', async ({ page }) => {
         await page.goto('/wp-admin/post-new.php?post_type=portfolio');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const galleryField = container.locator('.ff-field-gallery, [data-field-type="gallery"]').first();
+        const galleryField = container.locator('.ctrlf-field-gallery, [data-field-type="gallery"]').first();
         await expect(galleryField).toBeVisible();
 
         const addBtn = galleryField.locator('button', { hasText: /add image/i }).first();
@@ -37,7 +37,7 @@ test.describe('gallery field', () => {
 
         // Inject attachment IDs directly into Alpine state (simulates a real upload)
         await page.evaluate(() => {
-            const el = document.querySelector('.fieldforge-container');
+            const el = document.querySelector('.ctrlfield-container');
             if (el && el._x_dataStack) {
                 // Set gallery field to a known array of IDs
                 el._x_dataStack[0].adminState.project_images = [1, 2, 3];
@@ -50,7 +50,7 @@ test.describe('gallery field', () => {
         await page.reload();
 
         // Verify the gallery field has 3 items reloaded
-        const galleryItems = page.locator('.fieldforge-container .ff-gallery-item, [data-gallery-id]');
+        const galleryItems = page.locator('.ctrlfield-container .ctrlf-gallery-item, [data-gallery-id]');
         await expect(galleryItems).toHaveCount(3, { timeout: 10_000 });
     });
 

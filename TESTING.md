@@ -1,4 +1,4 @@
-# FieldForge — Testing Guide
+# CtrlField — Testing Guide
 
 Three layers of automated tests, each targeting a different scope.
 
@@ -9,7 +9,7 @@ Three layers of automated tests, each targeting a different scope.
 **365 tests, zero dependencies on WordPress.**
 
 ```bash
-cd fieldforge/
+cd ctrlfield/
 vendor/bin/phpunit
 ```
 
@@ -69,7 +69,7 @@ vendor/bin/phpunit --configuration phpunit-integration.xml
 ### What's covered
 | Test class | Acceptance criterion |
 |---|---|
-| `SavePostHookTest` | save_post writes to `_fieldforge_data`; indexed fields get separate meta rows; WP_Query meta_query works |
+| `SavePostHookTest` | save_post writes to `_ctrlfield_data`; indexed fields get separate meta rows; WP_Query meta_query works |
 | `AutosaveTest` | Autosave request does NOT write field data |
 | `NonceRejectionTest` | Invalid/missing nonce → no data written |
 
@@ -114,7 +114,7 @@ npx playwright test tests/E2E/repeater.spec.js
 | `wysiwyg.spec.js` | Type in TinyMCE → save → reload → content retrieved; live sync to adminState |
 
 ### Prerequisites for E2E
-The `dev-test.php` registrations must be loaded. Confirm `FIELDFORGE_DEV_TEST: true` is set in `.wp-env.json` (it is by default in this repo).
+The `dev-test.php` registrations must be loaded. Confirm `CTRLFIELD_DEV_TEST: true` is set in `.wp-env.json` (it is by default in this repo).
 
 ---
 

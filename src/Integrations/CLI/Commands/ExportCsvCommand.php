@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Commands;
+namespace CtrlField\Integrations\CLI\Commands;
 
-use FieldForge\Data\CsvExporter;
+use CtrlField\Data\CsvExporter;
 
 /**
- * WP-CLI command: wp fieldforge export-csv
+ * WP-CLI command: wp ctrlfield export-csv
  *
  * Exports post field data as CSV rows for a given post type.
  *
  * Usage:
- *   wp fieldforge export-csv --post-type=portfolio
- *   wp fieldforge export-csv --post-type=portfolio --fields=client_name,status
- *   wp fieldforge export-csv --post-type=portfolio --status=publish > output.csv
+ *   wp ctrlfield export-csv --post-type=portfolio
+ *   wp ctrlfield export-csv --post-type=portfolio --fields=client_name,status
+ *   wp ctrlfield export-csv --post-type=portfolio --status=publish > output.csv
  *
  * Excluded from PHPStan — references WP_CLI not available outside CLI runtime.
  */
@@ -28,7 +28,7 @@ class ExportCsvCommand
     {
         $postType = $assocArgs['post-type'] ?? '';
         if ($postType === '') {
-            \WP_CLI::error('--post-type is required. Usage: wp fieldforge export-csv --post-type=<post_type>');
+            \WP_CLI::error('--post-type is required. Usage: wp ctrlfield export-csv --post-type=<post_type>');
             return;
         }
 

@@ -54,7 +54,7 @@ Field::object('contact')
 ## Template usage
 
 ```blade
-@php $contact = fieldforge_get('contact') @endphp
+@php $contact = ctrlfield_get('contact') @endphp
 
 <p>{{ $contact['name'] }}</p>
 <a href="mailto:{{ $contact['email'] }}">{{ $contact['email'] }}</a>

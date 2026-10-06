@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Data;
+namespace CtrlField\Tests\Unit\Data;
 
-use FieldForge\Data\ReturnFormatDecorator;
-use FieldForge\Fields\Field;
+use CtrlField\Data\ReturnFormatDecorator;
+use CtrlField\Fields\Field;
 use PHPUnit\Framework\TestCase;
 
 class ReturnFormatDecoratorTest extends TestCase
@@ -110,7 +110,7 @@ class ReturnFormatDecoratorTest extends TestCase
 
     public function test_gallery_url_format_returns_array_of_strings(): void
     {
-        $field = $this->makeField(\FieldForge\Enums\FieldType::GALLERY)->returnFormat('url');
+        $field = $this->makeField(\CtrlField\Enums\FieldType::GALLERY)->returnFormat('url');
         $result = ReturnFormatDecorator::apply([4, 8, 15], $field);
 
         $this->assertIsArray($result);
@@ -122,7 +122,7 @@ class ReturnFormatDecoratorTest extends TestCase
 
     public function test_gallery_url_format_with_non_array_returns_empty_array(): void
     {
-        $field  = $this->makeField(\FieldForge\Enums\FieldType::GALLERY)->returnFormat('url');
+        $field  = $this->makeField(\CtrlField\Enums\FieldType::GALLERY)->returnFormat('url');
         $result = ReturnFormatDecorator::apply('not-an-array', $field);
 
         $this->assertSame([], $result);
@@ -130,7 +130,7 @@ class ReturnFormatDecoratorTest extends TestCase
 
     public function test_gallery_array_format_returns_array(): void
     {
-        $field  = $this->makeField(\FieldForge\Enums\FieldType::GALLERY)->returnFormat('array');
+        $field  = $this->makeField(\CtrlField\Enums\FieldType::GALLERY)->returnFormat('array');
         $result = ReturnFormatDecorator::apply([4, 8], $field);
 
         $this->assertIsArray($result);
@@ -142,7 +142,7 @@ class ReturnFormatDecoratorTest extends TestCase
 
     public function test_object_format_on_post_object_single_id_returns_stdclass(): void
     {
-        $field  = $this->makeField(\FieldForge\Enums\FieldType::POST_OBJECT)->returnFormat('object');
+        $field  = $this->makeField(\CtrlField\Enums\FieldType::POST_OBJECT)->returnFormat('object');
         $result = ReturnFormatDecorator::apply(42, $field);
 
         // stubs.php get_post() returns a stdClass with ID matching the int arg
@@ -152,7 +152,7 @@ class ReturnFormatDecoratorTest extends TestCase
 
     public function test_object_format_on_post_object_array_of_ids_returns_array_of_objects(): void
     {
-        $field  = $this->makeField(\FieldForge\Enums\FieldType::POST_OBJECT)->returnFormat('object');
+        $field  = $this->makeField(\CtrlField\Enums\FieldType::POST_OBJECT)->returnFormat('object');
         $result = ReturnFormatDecorator::apply([3, 7, 12], $field);
 
         $this->assertIsArray($result);
@@ -163,7 +163,7 @@ class ReturnFormatDecoratorTest extends TestCase
 
     public function test_relationship_object_format_always_returns_array(): void
     {
-        $field  = $this->makeField(\FieldForge\Enums\FieldType::RELATIONSHIP)->returnFormat('object');
+        $field  = $this->makeField(\CtrlField\Enums\FieldType::RELATIONSHIP)->returnFormat('object');
         $result = ReturnFormatDecorator::apply([1, 2], $field);
 
         $this->assertIsArray($result);
@@ -207,17 +207,17 @@ class ReturnFormatDecoratorTest extends TestCase
     // Helper
     // -------------------------------------------------------------------------
 
-    private function makeField(\FieldForge\Enums\FieldType $type): \FieldForge\Fields\FieldDefinition
+    private function makeField(\CtrlField\Enums\FieldType $type): \CtrlField\Fields\FieldDefinition
     {
-        return new class($type, 'test') extends \FieldForge\Fields\FieldDefinition {
+        return new class($type, 'test') extends \CtrlField\Fields\FieldDefinition {
             public function __construct(
-                private readonly \FieldForge\Enums\FieldType $fieldType,
+                private readonly \CtrlField\Enums\FieldType $fieldType,
                 string $key,
             ) {
                 parent::__construct($key);
             }
 
-            public function getType(): \FieldForge\Enums\FieldType
+            public function getType(): \CtrlField\Enums\FieldType
             {
                 return $this->fieldType;
             }

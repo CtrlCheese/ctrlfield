@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\QuickEdit;
+namespace CtrlField\Admin\QuickEdit;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\FieldDefinition;
 
 /**
  * Renders plain HTML inputs for the WP_List_Table inline edit row.
  *
  * Quick Edit does not support reactive JavaScript — inputs are plain HTML,
- * prefixed with 'ff_qe_' to avoid collisions with other fields.
+ * prefixed with 'ctrlf_qe_' to avoid collisions with other fields.
  *
  * Excluded from PHPStan — references WP escaping functions.
  */
@@ -45,7 +45,7 @@ final class QuickEditRenderer
     private function renderInput(FieldDefinition $field): void
     {
         $key  = $field->getKey();
-        $name = 'ff_qe_' . $key;
+        $name = 'ctrlf_qe_' . $key;
         $def  = $field->getDefinition();
 
         match ($field->getType()) {
@@ -65,7 +65,7 @@ final class QuickEditRenderer
     {
         echo '<input type="' . esc_attr($type) . '" '
             . 'name="' . esc_attr($name) . '" '
-            . 'data-ff-key="' . esc_attr($key) . '" '
+            . 'data-ctrlf-key="' . esc_attr($key) . '" '
             . 'value="" class="ptitle">';
     }
 
@@ -74,8 +74,8 @@ final class QuickEditRenderer
     {
         $options = is_array($def['options'] ?? null) ? $def['options'] : [];
 
-        echo '<select name="' . esc_attr($name) . '" data-ff-key="' . esc_attr($key) . '">';
-        echo '<option value="">— ' . esc_html__('No change', 'fieldforge') . ' —</option>';
+        echo '<select name="' . esc_attr($name) . '" data-ctrlf-key="' . esc_attr($key) . '">';
+        echo '<option value="">— ' . esc_html__('No change', 'ctrlfield') . ' —</option>';
         foreach ($options as $value => $label) {
             echo '<option value="' . esc_attr((string) $value) . '">' . esc_html((string) $label) . '</option>';
         }
@@ -91,7 +91,7 @@ final class QuickEditRenderer
             echo '<label>';
             echo '<input type="checkbox" '
                 . 'name="' . esc_attr($name) . '[]" '
-                . 'data-ff-key="' . esc_attr($key) . '" '
+                . 'data-ctrlf-key="' . esc_attr($key) . '" '
                 . 'value="' . esc_attr((string) $value) . '">';
             echo esc_html((string) $label);
             echo '</label>';
@@ -107,7 +107,7 @@ final class QuickEditRenderer
             echo '<label>';
             echo '<input type="radio" '
                 . 'name="' . esc_attr($name) . '" '
-                . 'data-ff-key="' . esc_attr($key) . '" '
+                . 'data-ctrlf-key="' . esc_attr($key) . '" '
                 . 'value="' . esc_attr((string) $value) . '">';
             echo esc_html((string) $label);
             echo '</label>';

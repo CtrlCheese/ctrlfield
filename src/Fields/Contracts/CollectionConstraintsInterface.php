@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Contracts;
+namespace CtrlField\Fields\Contracts;
 
 /**
  * Implemented by collection-type fields with min/max item constraints

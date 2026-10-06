@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Pipeline\Stages;
+namespace CtrlField\Core\Pipeline\Stages;
 
-use FieldForge\Core\Pipeline\Contracts\StageInterface;
-use FieldForge\Core\Pipeline\PipelineContext;
-use FieldForge\Fields\Types\ComputedField;
+use CtrlField\Core\Pipeline\Contracts\StageInterface;
+use CtrlField\Core\Pipeline\PipelineContext;
+use CtrlField\Fields\Types\ComputedField;
 
 /**
  * Calculates computed field values after Sanitization, before Persistence.
@@ -35,7 +35,7 @@ final class ComputedFieldsStage implements StageInterface
                 try {
                     $computed = $field->compute($context->fields);
                 } catch (\Throwable $e) {
-                    throw new \FieldForge\Core\Pipeline\PipelineException(
+                    throw new \CtrlField\Core\Pipeline\PipelineException(
                         'COMPUTED_FIELD_ERROR',
                         sprintf(
                             'Computed field "%s" callback threw: %s',

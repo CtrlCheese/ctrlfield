@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\REST;
+namespace CtrlField\Integrations\REST;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Storage\UserMetaAdapter;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Storage\UserMetaAdapter;
 
 /**
- * GET /wp-json/fieldforge/v1/user/{user_id}
+ * GET /wp-json/ctrlfield/v1/user/{user_id}
  * Returns fields with showInRest(true) for a user.
  * Excluded from PHPStan — references WP REST API classes.
  */

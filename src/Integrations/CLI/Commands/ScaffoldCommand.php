@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Commands;
+namespace CtrlField\Integrations\CLI\Commands;
 
-use FieldForge\Integrations\CLI\Scaffold\ContentTableScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\CptScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\FileExistsException;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\InvalidSlugException;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\UnknownFieldTypeException;
-use FieldForge\Integrations\CLI\Scaffold\FieldGroupScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\FieldScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\OptionsPageScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\PhpCodeWriter;
-use FieldForge\Integrations\CLI\Scaffold\TaxonomyScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\ContentTableScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\CptScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\FileExistsException;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\InvalidSlugException;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\UnknownFieldTypeException;
+use CtrlField\Integrations\CLI\Scaffold\FieldGroupScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\FieldScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\OptionsPageScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\PhpCodeWriter;
+use CtrlField\Integrations\CLI\Scaffold\TaxonomyScaffoldDef;
 
 /**
- * WP-CLI command: wp fieldforge scaffold
+ * WP-CLI command: wp ctrlfield scaffold
  *
  * Excluded from PHPStan — references WP_CLI which is not available outside CLI runtime.
  *

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Integrations\Blade;
+namespace CtrlField\Tests\Unit\Integrations\Blade;
 
-use FieldForge\Integrations\Blade\RepeaterDirective;
+use CtrlField\Integrations\Blade\RepeaterDirective;
 use PHPUnit\Framework\TestCase;
 
 class RepeaterDirectiveTest extends TestCase
 {
-    public function test_compile_uses_fieldforge_get(): void
+    public function test_compile_uses_ctrlfield_get(): void
     {
         $output = RepeaterDirective::compile("'schedule'");
 
-        $this->assertStringContainsString("fieldforge_get('schedule')", $output);
+        $this->assertStringContainsString("ctrlfield_get('schedule')", $output);
     }
 
     public function test_compile_opens_foreach(): void
@@ -21,8 +21,8 @@ class RepeaterDirectiveTest extends TestCase
         $output = RepeaterDirective::compile("'items'");
 
         $this->assertStringContainsString('foreach', $output);
-        $this->assertStringContainsString('$__ff_rows', $output);
-        $this->assertStringContainsString('$__ff_row', $output);
+        $this->assertStringContainsString('$__ctrlf_rows', $output);
+        $this->assertStringContainsString('$__ctrlf_row', $output);
     }
 
     public function test_compile_calls_extract(): void
@@ -38,7 +38,7 @@ class RepeaterDirectiveTest extends TestCase
         $output = RepeaterDirective::compileEnd();
 
         $this->assertStringContainsString('}', $output);
-        $this->assertStringContainsString('unset($__ff_rows, $__ff_row)', $output);
+        $this->assertStringContainsString('unset($__ctrlf_rows, $__ctrlf_row)', $output);
     }
 
     public function test_open_and_end_form_valid_php(): void
@@ -67,13 +67,13 @@ class RepeaterDirectiveTest extends TestCase
         ];
 
         $collected = [];
-        foreach ($rows as $__ff_row) {
-            extract($__ff_row, EXTR_OVERWRITE);
+        foreach ($rows as $__ctrlf_row) {
+            extract($__ctrlf_row, EXTR_OVERWRITE);
             /** @var string $phase_name */
             /** @var string $due_date */
             $collected[] = $phase_name . ' — ' . $due_date;
         }
-        unset($rows, $__ff_row);
+        unset($rows, $__ctrlf_row);
 
         $this->assertCount(2, $collected);
         $this->assertSame('Discovery — 2026-01-01', $collected[0]);

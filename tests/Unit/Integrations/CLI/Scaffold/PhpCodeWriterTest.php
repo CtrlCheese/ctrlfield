@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Integrations\CLI\Scaffold;
+namespace CtrlField\Tests\Unit\Integrations\CLI\Scaffold;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Integrations\CLI\Scaffold\CptScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\Exceptions\FileExistsException;
-use FieldForge\Integrations\CLI\Scaffold\FieldGroupScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\FieldScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\OptionsPageScaffoldDef;
-use FieldForge\Integrations\CLI\Scaffold\PhpCodeWriter;
-use FieldForge\Integrations\CLI\Scaffold\TaxonomyScaffoldDef;
+use CtrlField\Enums\FieldType;
+use CtrlField\Integrations\CLI\Scaffold\CptScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\Exceptions\FileExistsException;
+use CtrlField\Integrations\CLI\Scaffold\FieldGroupScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\FieldScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\OptionsPageScaffoldDef;
+use CtrlField\Integrations\CLI\Scaffold\PhpCodeWriter;
+use CtrlField\Integrations\CLI\Scaffold\TaxonomyScaffoldDef;
 use PHPUnit\Framework\TestCase;
 
 class PhpCodeWriterTest extends TestCase
@@ -34,7 +34,7 @@ class PhpCodeWriterTest extends TestCase
 
         self::assertStringStartsWith('<?php', $code);
         self::assertStringContainsString("declare(strict_types=1);", $code);
-        self::assertStringContainsString("use FieldForge\\Builder\\CPT;", $code);
+        self::assertStringContainsString("use CtrlField\\Builder\\CPT;", $code);
         self::assertStringContainsString("CPT::make('portfolio')", $code);
         self::assertStringContainsString("->label('Portfolio', 'Projects')", $code);
         self::assertStringContainsString("->supports(['title', 'editor', 'thumbnail'])", $code);
@@ -47,7 +47,7 @@ class PhpCodeWriterTest extends TestCase
         $def    = new CptScaffoldDef('portfolio', 'Portfolio', 'Projects', 'dashicons-admin-post', ['title', 'editor', 'thumbnail'], $fields, false);
         $code   = $this->writer->writeCpt($def);
 
-        self::assertStringContainsString("use FieldForge\\Fields\\Field;", $code);
+        self::assertStringContainsString("use CtrlField\\Fields\\Field;", $code);
         self::assertStringContainsString("Field::group('portfolio_fields')", $code);
         self::assertStringContainsString("->where('post_type', '==', 'portfolio')", $code);
         self::assertStringContainsString("Field::text('client_name')", $code);
@@ -109,7 +109,7 @@ class PhpCodeWriterTest extends TestCase
         $def = new TaxonomyScaffoldDef('category', 'Category', 'Categories', ['portfolio'], true, [], false);
         $code = $this->writer->writeTaxonomy($def);
 
-        self::assertStringContainsString("use FieldForge\\Builder\\Taxonomy;", $code);
+        self::assertStringContainsString("use CtrlField\\Builder\\Taxonomy;", $code);
         self::assertStringContainsString("Taxonomy::make('category')", $code);
         self::assertStringContainsString("->hierarchical()", $code);
         self::assertStringContainsString("->register();", $code);
@@ -137,7 +137,7 @@ class PhpCodeWriterTest extends TestCase
         $def  = new OptionsPageScaffoldDef('agency', 'Agency Settings', 'manage_options', '', [], false);
         $code = $this->writer->writeOptionsPage($def);
 
-        self::assertStringContainsString("use FieldForge\\Builder\\OptionsPage;", $code);
+        self::assertStringContainsString("use CtrlField\\Builder\\OptionsPage;", $code);
         self::assertStringContainsString("OptionsPage::make('agency')", $code);
         self::assertStringContainsString("->register();", $code);
 
@@ -164,7 +164,7 @@ class PhpCodeWriterTest extends TestCase
         $def    = new FieldGroupScaffoldDef('portfolio_seo', 'Portfolio SEO', 'portfolio', null, null, null, $fields, false);
         $code   = $this->writer->writeFieldGroup($def);
 
-        self::assertStringContainsString("use FieldForge\\Fields\\Field;", $code);
+        self::assertStringContainsString("use CtrlField\\Fields\\Field;", $code);
         self::assertStringContainsString("Field::group('portfolio_seo')", $code);
         self::assertStringContainsString("->where('post_type', '==', 'portfolio')", $code);
         self::assertStringContainsString("->register();", $code);
@@ -196,7 +196,7 @@ class PhpCodeWriterTest extends TestCase
 
     public function testWriteFileCreatesFile(): void
     {
-        $path = sys_get_temp_dir() . '/fieldforge_test_' . uniqid() . '.php';
+        $path = sys_get_temp_dir() . '/ctrlfield_test_' . uniqid() . '.php';
         $code = "<?php\n// test\n";
 
         $this->writer->writeFile($code, $path, false);
@@ -209,7 +209,7 @@ class PhpCodeWriterTest extends TestCase
 
     public function testWriteFileThrowsWhenFileExistsWithoutForce(): void
     {
-        $path = sys_get_temp_dir() . '/fieldforge_test_' . uniqid() . '.php';
+        $path = sys_get_temp_dir() . '/ctrlfield_test_' . uniqid() . '.php';
         file_put_contents($path, '<?php');
 
         $this->expectException(FileExistsException::class);
@@ -223,7 +223,7 @@ class PhpCodeWriterTest extends TestCase
 
     public function testWriteFileOverwritesWithForce(): void
     {
-        $path = sys_get_temp_dir() . '/fieldforge_test_' . uniqid() . '.php';
+        $path = sys_get_temp_dir() . '/ctrlfield_test_' . uniqid() . '.php';
         file_put_contents($path, '<?php // old');
 
         $this->writer->writeFile("<?php // new\n", $path, true);
@@ -252,7 +252,7 @@ class PhpCodeWriterTest extends TestCase
 
     private function assertValidPhpSyntax(string $code): void
     {
-        $tmp = sys_get_temp_dir() . '/fieldforge_lint_' . uniqid() . '.php';
+        $tmp = sys_get_temp_dir() . '/ctrlfield_lint_' . uniqid() . '.php';
         file_put_contents($tmp, $code);
 
         exec(sprintf('php -l %s 2>&1', escapeshellarg($tmp)), $output, $exitCode);

@@ -13,10 +13,10 @@ const fs = require('fs');
  * - Dry-run import reports counts without writing
  *
  * These tests interact with the admin tools page or use WP-CLI
- * via the REST API test endpoint exposed in FIELDFORGE_DEV_TEST mode.
+ * via the REST API test endpoint exposed in CTRLFIELD_DEV_TEST mode.
  */
 
-const TOOLS_URL = '/wp-admin/admin.php?page=fieldforge-tools';
+const TOOLS_URL = '/wp-admin/admin.php?page=ctrlfield-tools';
 
 test.describe('CSV import / export', () => {
 
@@ -54,14 +54,14 @@ test.describe('CSV import / export', () => {
         await page.goto(TOOLS_URL);
         await expect(page.locator('.wrap')).toBeVisible({ timeout: 5_000 });
 
-        const fileInput = page.locator('input[type="file"][accept*="csv"], #fieldforge-csv-import');
+        const fileInput = page.locator('input[type="file"][accept*="csv"], #ctrlfield-csv-import');
         if (! await fileInput.isVisible()) {
             test.skip();
             return;
         }
 
         // Create a minimal CSV file in temp
-        const tmpCsv = path.join(os.tmpdir(), 'ff_e2e_import.csv');
+        const tmpCsv = path.join(os.tmpdir(), 'ctrlf_e2e_import.csv');
         fs.writeFileSync(tmpCsv, 'post_id,post_title,post_status,client_name\n0,E2E Import Post,publish,E2E Client\n');
 
         await fileInput.setInputFiles(tmpCsv);
@@ -72,7 +72,7 @@ test.describe('CSV import / export', () => {
             await page.waitForLoadState('networkidle');
 
             // Result message should appear
-            const result = page.locator('.notice, .updated, .fieldforge-import-result');
+            const result = page.locator('.notice, .updated, .ctrlfield-import-result');
             await expect(result.first()).toBeVisible({ timeout: 10_000 });
         }
 
@@ -81,8 +81,8 @@ test.describe('CSV import / export', () => {
     });
 
     test('REST dev-test endpoint reports CSV export schema', async ({ page }) => {
-        // FieldForge exposes a dev REST endpoint when FIELDFORGE_DEV_TEST=true (wp-env config)
-        const response = await page.request.get('/wp-json/fieldforge/v1/schema/list', {
+        // CtrlField exposes a dev REST endpoint when CTRLFIELD_DEV_TEST=true (wp-env config)
+        const response = await page.request.get('/wp-json/ctrlfield/v1/schema/list', {
             headers: { 'X-WP-Nonce': '' },
         });
 

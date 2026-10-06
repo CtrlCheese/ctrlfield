@@ -65,17 +65,17 @@ To send only specific keys:
 
 ## HMAC signature verification
 
-When `$secret` is set, FieldForge adds a `X-FieldForge-Signature` header:
+When `$secret` is set, CtrlField adds a `X-CtrlField-Signature` header:
 
 ```
-X-FieldForge-Signature: sha256=<hmac-sha256-of-body>
+X-CtrlField-Signature: sha256=<hmac-sha256-of-body>
 ```
 
 Verify it on the receiving end:
 
 ```php
 $body      = file_get_contents('php://input');
-$signature = $_SERVER['HTTP_X_FIELDFORGE_SIGNATURE'] ?? '';
+$signature = $_SERVER['HTTP_X_CTRLFIELD_SIGNATURE'] ?? '';
 $expected  = 'sha256=' . hash_hmac('sha256', $body, 'your-secret-key');
 
 if (! hash_equals($expected, $signature)) {
@@ -88,4 +88,4 @@ if (! hash_equals($expected, $signature)) {
 
 ## Non-blocking
 
-Webhooks use `wp_remote_post()` with `blocking: false`. The save request is not delayed — FieldForge does not wait for a response.
+Webhooks use `wp_remote_post()` with `blocking: false`. The save request is not delayed — CtrlField does not wait for a response.

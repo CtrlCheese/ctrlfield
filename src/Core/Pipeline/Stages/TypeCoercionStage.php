@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Pipeline\Stages;
+namespace CtrlField\Core\Pipeline\Stages;
 
-use FieldForge\Core\Pipeline\Contracts\StageInterface;
-use FieldForge\Core\Pipeline\PipelineContext;
-use FieldForge\Core\Pipeline\PipelineException;
-use FieldForge\Core\Pipeline\Traits\BuildsFieldMap;
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\Contracts\FlexibleContentInterface;
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\RangeField;
+use CtrlField\Core\Pipeline\Contracts\StageInterface;
+use CtrlField\Core\Pipeline\PipelineContext;
+use CtrlField\Core\Pipeline\PipelineException;
+use CtrlField\Core\Pipeline\Traits\BuildsFieldMap;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Contracts\FlexibleContentInterface;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\RangeField;
 
 class TypeCoercionStage implements StageInterface
 {

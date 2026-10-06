@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Inspector;
+namespace CtrlField\Admin\Inspector;
 
 /**
- * Registers the FieldForge top-level admin menu and the Schema Inspector page.
+ * Registers the CtrlField top-level admin menu and the Schema Inspector page.
  * Excluded from PHPStan — references WP admin functions.
  */
 final class SchemaInspectorPage
 {
     public function register(): void
     {
-        // Top-level FieldForge menu (the inspector IS the main page).
+        // Top-level CtrlField menu (the inspector IS the main page).
         add_menu_page(
-            page_title: 'FieldForge',
-            menu_title: 'FieldForge',
+            page_title: 'CtrlField',
+            menu_title: 'CtrlField',
             capability: 'manage_options',
-            menu_slug:  'fieldforge',
+            menu_slug:  'ctrlfield',
             callback:   [$this, 'render'],
             icon_url:   'dashicons-database-view',
             position:   65,
@@ -25,11 +25,11 @@ final class SchemaInspectorPage
 
         // Rename the auto-created duplicate submenu entry
         add_submenu_page(
-            parent_slug:  'fieldforge',
+            parent_slug:  'ctrlfield',
             page_title:   'Schema Inspector',
             menu_title:   'Schema Inspector',
             capability:   'manage_options',
-            menu_slug:    'fieldforge',
+            menu_slug:    'ctrlfield',
             callback:     [$this, 'render'],
         );
     }

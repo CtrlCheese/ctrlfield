@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Storage;
+namespace CtrlField\Storage;
 
-use FieldForge\Core\Cache\CacheAdapter;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Storage\Contracts\StorageAdapterInterface;
-use FieldForge\Storage\Drivers\PostMetaDriverInterface;
+use CtrlField\Core\Cache\CacheAdapter;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Storage\Contracts\StorageAdapterInterface;
+use CtrlField\Storage\Drivers\PostMetaDriverInterface;
 use InvalidArgumentException;
 
 class PostMetaAdapter implements StorageAdapterInterface
 {
-    public const META_KEY         = '_fieldforge_data';
-    public const INDEX_KEY_PREFIX = '_fieldforge_idx_';
+    public const META_KEY         = '_ctrlfield_data';
+    public const INDEX_KEY_PREFIX = '_ctrlfield_idx_';
 
     public function __construct(
         private readonly PostMetaDriverInterface $driver,
@@ -50,7 +50,7 @@ class PostMetaAdapter implements StorageAdapterInterface
      * Returns null when:
      * - No data is stored for this post.
      * - The stored schema_version is less than $this->currentVersion
-     *   (data must be migrated first via `wp fieldforge migrate`).
+     *   (data must be migrated first via `wp ctrlfield migrate`).
      * - The stored JSON is malformed or missing the `fields` key.
      *
      * @return array<string, mixed>|null
@@ -92,7 +92,7 @@ class PostMetaAdapter implements StorageAdapterInterface
         if ($storedVersion < $this->currentVersion) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log(sprintf(
-                    'FieldForge: schema_version mismatch on post %d (stored: %d, current: %d). Run "wp fieldforge migrate".',
+                    'CtrlField: schema_version mismatch on post %d (stored: %d, current: %d). Run "wp ctrlfield migrate".',
                     $id,
                     $storedVersion,
                     $this->currentVersion,
@@ -120,7 +120,7 @@ class PostMetaAdapter implements StorageAdapterInterface
      */
     public static function loadSingleField(int $postId, string $fieldKey): mixed
     {
-        $adapter = new self(new \FieldForge\Storage\Drivers\WpPostMetaDriver());
+        $adapter = new self(new \CtrlField\Storage\Drivers\WpPostMetaDriver());
         return ($adapter->load($postId) ?? [])[$fieldKey] ?? null;
     }
 

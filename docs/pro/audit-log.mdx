@@ -8,7 +8,7 @@ Records every field value change in a dedicated database table. Useful for compl
 
 ```php
 // In your schema file or functions.php
-use FieldForgePro\AuditLog\AuditRegistry;
+use CtrlField\Pro\AuditLog\AuditRegistry;
 
 AuditRegistry::register('order_status', retentionDays: 365);
 AuditRegistry::register('price',        retentionDays: 90);
@@ -17,7 +17,7 @@ AuditRegistry::register('price',        retentionDays: 90);
 Or use the helper function:
 
 ```php
-fieldforge_audit_field('order_status', retentionDays: 180);
+ctrlfield_audit_field('order_status', retentionDays: 180);
 ```
 
 ---
@@ -50,7 +50,7 @@ AuditRegistry::all(): array<string, int>  // fieldKey => retentionDays
 
 ## Viewing the audit log
 
-The audit log is available in **WP Admin → FieldForge → Audit Log**.
+The audit log is available in **WP Admin → CtrlField → Audit Log**.
 
 ---
 
@@ -61,14 +61,14 @@ A WP-Cron job runs daily and deletes rows older than the configured `retentionDa
 To manually purge old entries:
 
 ```bash
-wp fieldforge audit-purge
-wp fieldforge audit-purge --field=order_status
+wp ctrlfield audit-purge
+wp ctrlfield audit-purge --field=order_status
 ```
 
 ---
 
 ## Notes
 
-- The audit log table is created on plugin activation. If it is missing, run `wp fieldforge audit-install`.
+- The audit log table is created on plugin activation. If it is missing, run `wp ctrlfield audit-install`.
 - Only value **changes** are logged. Saves where the value does not change produce no log entry.
-- Audit logging does not add measurable overhead to the save pipeline — it runs on the `fieldforge/after_save` hook.
+- Audit logging does not add measurable overhead to the save pipeline — it runs on the `ctrlfield/after_save` hook.

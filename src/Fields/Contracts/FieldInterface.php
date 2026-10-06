@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Contracts;
+namespace CtrlField\Fields\Contracts;
 
-use FieldForge\Enums\FieldType;
+use CtrlField\Enums\FieldType;
 
 interface FieldInterface
 {

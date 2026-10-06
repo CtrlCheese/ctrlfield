@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Builder;
+namespace CtrlField\Builder;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Registry\FieldRegistry;
 
 /**
  * Fluent builder for options pages (global theme/plugin settings).
@@ -15,7 +15,7 @@ use FieldForge\Registry\FieldRegistry;
  * discoverable via ContextRegistry::resolve().
  *
  * The actual add_menu_page() WP call is wired in Cycle 6.
- * Storage uses _fieldforge_options_{key} in wp_options (Cycle 3).
+ * Storage uses _ctrlfield_options_{key} in wp_options (Cycle 3).
  */
 final class OptionsPage
 {

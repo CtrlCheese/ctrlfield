@@ -1,6 +1,6 @@
 # Content Table (Custom Table Storage)
 
-*(FieldForge Pro — Agency tier)*
+*(CtrlField Pro — Agency tier)*
 
 Store field data in a dedicated custom database table instead of `wp_postmeta`. Designed for high-volume content types where `wp_postmeta` becomes a performance bottleneck.
 
@@ -18,8 +18,8 @@ Use Content Table when:
 ## Setup
 
 ```php
-use FieldForge\Builder\FieldGroup;
-use FieldForgePro\Builder\ContentTable;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Pro\Builder\ContentTable;
 
 // Define the table structure
 ContentTable::make('portfolio_data')
@@ -45,27 +45,27 @@ FieldGroup::make('portfolio_details')
 
 ```bash
 # Install or update table schema
-wp fieldforge table install portfolio_data
+wp ctrlfield table install portfolio_data
 
 # Migrate existing wp_postmeta data into the custom table
-wp fieldforge table migrate portfolio_data --post-type=portfolio
+wp ctrlfield table migrate portfolio_data --post-type=portfolio
 
 # Show table schema and row count
-wp fieldforge table status portfolio_data
+wp ctrlfield table status portfolio_data
 ```
 
 ---
 
 ## Querying
 
-Custom table data is always available through the standard `fieldforge_get()` helpers. For direct database queries:
+Custom table data is always available through the standard `ctrlfield_get()` helpers. For direct database queries:
 
 ```php
 global $wpdb;
 
 $results = $wpdb->get_results(
     "SELECT post_id, client_name, year
-     FROM {$wpdb->prefix}fieldforge_portfolio_data
+     FROM {$wpdb->prefix}ctrlfield_portfolio_data
      WHERE project_type = 'web'
      ORDER BY year DESC
      LIMIT 10"
@@ -76,6 +76,6 @@ $results = $wpdb->get_results(
 
 ## Notes
 
-- Field values are still accessible via `fieldforge_get()` — the adapter is transparent.
+- Field values are still accessible via `ctrlfield_get()` — the adapter is transparent.
 - `setIndex()` has no effect on Content Table fields — all columns are queryable directly.
 - Table storage is Agency tier only. Personal tier sites fall back to `wp_postmeta`.

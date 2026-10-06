@@ -1,6 +1,6 @@
 # Gallery
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
 A multi-image picker with drag-to-reorder. Stores an array of attachment IDs.
 
@@ -54,7 +54,7 @@ Field::gallery('screenshots')
 ## Template usage
 
 ```blade
-@foreach(fieldforge_get('screenshots') as $img)
+@foreach(ctrlfield_get('screenshots') as $img)
     <img src="{{ $img['url'] }}" alt="{{ $img['alt'] }}"
          width="{{ $img['width'] }}" height="{{ $img['height'] }}">
 @endforeach
@@ -63,7 +63,7 @@ Field::gallery('screenshots')
 With `returnFormat('url')`:
 
 ```blade
-@foreach(fieldforge_get('screenshots') as $url)
+@foreach(ctrlfield_get('screenshots') as $url)
     <img src="{{ $url }}" alt="Screenshot">
 @endforeach
 ```

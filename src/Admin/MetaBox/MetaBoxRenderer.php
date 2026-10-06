@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\MetaBox;
+namespace CtrlField\Admin\MetaBox;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Renderers\RendererRegistry;
-use FieldForge\Fields\Types\GroupField;
-use FieldForge\Fields\Types\TabField;
-use FieldForge\Storage\Drivers\WpPostMetaDriver;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Renderers\RendererRegistry;
+use CtrlField\Fields\Types\GroupField;
+use CtrlField\Fields\Types\TabField;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
+use CtrlField\Storage\PostMetaAdapter;
 
 /**
  * Outputs the Alpine.js root component for a single FieldGroup meta box.
@@ -19,7 +19,7 @@ use FieldForge\Storage\PostMetaAdapter;
  * Each group is rendered independently so groups can have different
  * labelPlacement, instructionPlacement, and field widths.
  *
- * Payload key: fieldforge_payload[{group_key}] — allows multiple groups
+ * Payload key: ctrlfield_payload[{group_key}] — allows multiple groups
  * on the same post edit screen without $_POST key collisions.
  *
  * Excluded from PHPStan — calls WP functions.
@@ -42,16 +42,16 @@ class MetaBoxRenderer
         $groupKey        = $group->getKey();
         $labelPlacement  = $group->getLabelPlacement();   // 'top' | 'left'
         $instrPlacement  = $group->getInstructionPlacement(); // 'label' | 'field'
-        $containerClass  = 'fieldforge-container ff-label-' . $labelPlacement;
+        $containerClass  = 'ctrlfield-container ctrlf-label-' . $labelPlacement;
 
         ?>
         <div class="<?= esc_attr($containerClass) ?>"
-             x-data="fieldForgeAdmin({ values: <?= $valuesJson ?>, conditions: <?= $conditionsJson ?> })"
+             x-data="ctrlFieldAdmin({ values: <?= $valuesJson ?>, conditions: <?= $conditionsJson ?> })"
              x-cloak>
 
-            <?php wp_nonce_field('fieldforge_save', '_fieldforge_nonce'); ?>
+            <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
 
-            <div class="ff-group-section">
+            <div class="ctrlf-group-section">
                 <?php
                 $tabInfo = $this->extractTabSections($group->getFields());
                 if ($tabInfo['hasTabs']) {
@@ -65,7 +65,7 @@ class MetaBoxRenderer
             </div>
 
             <input type="hidden"
-                   name="fieldforge_payload[<?= esc_attr($groupKey) ?>]"
+                   name="ctrlfield_payload[<?= esc_attr($groupKey) ?>]"
                    :value="JSON.stringify(adminState)">
         </div>
         <?php
@@ -88,17 +88,17 @@ class MetaBoxRenderer
         $conditionsJson = esc_attr(wp_json_encode($conditions, JSON_UNESCAPED_UNICODE) ?: '{}');
 
         ?>
-        <div class="fieldforge-container ff-label-top"
-             x-data="fieldForgeAdmin({ values: <?= $valuesJson ?>, conditions: <?= $conditionsJson ?> })"
+        <div class="ctrlfield-container ctrlf-label-top"
+             x-data="ctrlFieldAdmin({ values: <?= $valuesJson ?>, conditions: <?= $conditionsJson ?> })"
              x-cloak>
 
-            <?php wp_nonce_field('fieldforge_save', '_fieldforge_nonce'); ?>
+            <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
 
             <?php foreach ($groups as $group): ?>
                 <?php if (! empty($group->getFields())): ?>
-                <div class="ff-group-section">
+                <div class="ctrlf-group-section">
                     <?php if ($group->getTitle()): ?>
-                    <h4 class="ff-group-title"><?= esc_html($group->getTitle()) ?></h4>
+                    <h4 class="ctrlf-group-title"><?= esc_html($group->getTitle()) ?></h4>
                     <?php endif; ?>
 
                     <?php foreach ($group->getFields() as $field): ?>
@@ -109,7 +109,7 @@ class MetaBoxRenderer
             <?php endforeach; ?>
 
             <input type="hidden"
-                   name="fieldforge_payload"
+                   name="ctrlfield_payload"
                    :value="JSON.stringify(adminState)">
         </div>
         <?php
@@ -144,24 +144,24 @@ class MetaBoxRenderer
         $renderer     = RendererRegistry::resolve($field->getType());
         $width        = $field->getWidth();
 
-        // CSS class for field width: ff-col-25, ff-col-50, ff-col-75, ff-col-100
-        $widthClass  = $width !== null ? " ff-col-{$width}" : '';
-        $fieldClass  = 'ff-field' . $widthClass;
+        // CSS class for field width: ctrlf-col-25, ctrlf-col-50, ctrlf-col-75, ctrlf-col-100
+        $widthClass  = $width !== null ? " ctrlf-col-{$width}" : '';
+        $fieldClass  = 'ctrlf-field' . $widthClass;
 
         ?>
         <div class="<?= esc_attr($fieldClass) ?>" x-show="isVisible('<?= esc_js($key) ?>')" x-cloak>
-            <label class="ff-label" for="ff-<?= esc_attr($key) ?>">
+            <label class="ctrlf-label" for="ctrlf-<?= esc_attr($key) ?>">
                 <?= esc_html($label) ?>
                 <?php if ($required): ?>
-                    <span class="ff-required" aria-hidden="true">*</span>
+                    <span class="ctrlf-required" aria-hidden="true">*</span>
                 <?php endif; ?>
                 <?php if ($instructions !== '' && $instrPlacement === 'label'): ?>
-                    <span class="ff-instructions"><?= esc_html($instructions) ?></span>
+                    <span class="ctrlf-instructions"><?= esc_html($instructions) ?></span>
                 <?php endif; ?>
             </label>
             <?= $renderer->render($field, $statePath) ?>
             <?php if ($instructions !== '' && $instrPlacement === 'field'): ?>
-                <p class="ff-instructions"><?= esc_html($instructions) ?></p>
+                <p class="ctrlf-instructions"><?= esc_html($instructions) ?></p>
             <?php endif; ?>
         </div>
         <?php
@@ -228,10 +228,10 @@ class MetaBoxRenderer
         $escapedGroup = esc_js($groupKey);
 
         ?>
-        <div class="ff-tabs">
-            <div class="ff-tabs-nav">
+        <div class="ctrlf-tabs">
+            <div class="ctrlf-tabs-nav">
                 <?php foreach ($sections as $section): ?>
-                    <button type="button" class="ff-tab-btn"
+                    <button type="button" class="ctrlf-tab-btn"
                         :class="{'is-active': (activeTabs['<?= $escapedGroup ?>'] ?? '<?= esc_js($sections[0]['key']) ?>') === '<?= esc_js($section['key']) ?>'}"
                         @click="activeTabs['<?= $escapedGroup ?>'] = '<?= esc_js($section['key']) ?>'">
                         <?= esc_html($section['label']) ?>
@@ -244,7 +244,7 @@ class MetaBoxRenderer
             <?php endforeach; ?>
 
             <?php foreach ($sections as $section): ?>
-                <div class="ff-tab-panel"
+                <div class="ctrlf-tab-panel"
                      x-show="(activeTabs['<?= $escapedGroup ?>'] ?? '<?= esc_js($sections[0]['key']) ?>') === '<?= esc_js($section['key']) ?>'">
                     <?php foreach ($section['fields'] as $field): ?>
                         <?php $this->renderField($field, $labelPlacement, $instrPlacement); ?>

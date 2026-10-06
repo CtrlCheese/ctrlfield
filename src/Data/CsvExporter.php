@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Data;
+namespace CtrlField\Data;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Registry\FieldRegistry;
 
 /**
  * Exports post field data as CSV rows.
@@ -15,7 +15,7 @@ use FieldForge\Registry\FieldRegistry;
 final class CsvExporter
 {
     /**
-     * Exports posts of a given type and their FieldForge field values.
+     * Exports posts of a given type and their CtrlField field values.
      *
      * @param string[] $fieldKeys  Empty = all fields registered for this post type.
      * @return \Generator<string>  Yields the header row first, then one row per post.

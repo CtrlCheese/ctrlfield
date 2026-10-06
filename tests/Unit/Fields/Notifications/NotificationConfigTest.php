@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Fields\Notifications;
+namespace CtrlField\Tests\Unit\Fields\Notifications;
 
-use FieldForge\Fields\Field;
-use FieldForge\Fields\Notifications\FieldNotificationConfig;
+use CtrlField\Fields\Field;
+use CtrlField\Fields\Notifications\FieldNotificationConfig;
 use PHPUnit\Framework\TestCase;
 
 class NotificationConfigTest extends TestCase

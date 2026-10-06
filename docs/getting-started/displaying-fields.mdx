@@ -1,6 +1,6 @@
 # Displaying Fields
 
-FieldForge provides first-class support for Blade (via Sage/Roots), Twig (via Timber), and plain PHP templates. The REST API is available for headless setups.
+CtrlField provides first-class support for Blade (via Sage/Roots), Twig (via Timber), and plain PHP templates. The REST API is available for headless setups.
 
 ---
 
@@ -8,23 +8,23 @@ FieldForge provides first-class support for Blade (via Sage/Roots), Twig (via Ti
 
 | Function | What it returns |
 |---|---|
-| `fieldforge_get('key')` | Single field value for the current post |
-| `fieldforge_get('key', $postId)` | Single field value for a specific post |
-| `fieldforge_get_all()` | All field values for the current post |
-| `fieldforge_get_user('key', $userId)` | User meta field |
-| `fieldforge_get_term('key', $termId)` | Term meta field |
-| `fieldforge_get_options('key', 'page-slug')` | Options page field |
-| `ff_option('key', 'page-slug', $default)` | Options field with fallback |
+| `ctrlfield_get('key')` | Single field value for the current post |
+| `ctrlfield_get('key', $postId)` | Single field value for a specific post |
+| `ctrlfield_get_all()` | All field values for the current post |
+| `ctrlfield_get_user('key', $userId)` | User meta field |
+| `ctrlfield_get_term('key', $termId)` | Term meta field |
+| `ctrlfield_get_options('key', 'page-slug')` | Options page field |
+| `ctrlf_option('key', 'page-slug', $default)` | Options field with fallback |
 
 ---
 
 ## Blade
 
-FieldForge ships a Blade integration via `ViewServiceProvider`. Register it in `functions.php`:
+CtrlField ships a Blade integration via `ViewServiceProvider`. Register it in `functions.php`:
 
 ```php
 add_action('after_setup_theme', function () {
-    \FieldForge\Integrations\Blade\ViewServiceProvider::register(
+    \CtrlField\Integrations\Blade\ViewServiceProvider::register(
         get_template_directory() . '/views',
         get_template_directory() . '/cache/views',
     );
@@ -34,13 +34,13 @@ add_action('after_setup_theme', function () {
 **Reading a field:**
 
 ```blade
-{{ fieldforge_get('client_name') }}
+{{ ctrlfield_get('client_name') }}
 ```
 
 **Checking and rendering an image:**
 
 ```blade
-@php $hero = fieldforge_get('hero_image') @endphp
+@php $hero = ctrlfield_get('hero_image') @endphp
 
 @if($hero)
     <img src="{{ $hero['url'] }}" alt="{{ $hero['alt'] }}"
@@ -51,7 +51,7 @@ add_action('after_setup_theme', function () {
 **Repeater:**
 
 ```blade
-@foreach(fieldforge_get('team_members') as $member)
+@foreach(ctrlfield_get('team_members') as $member)
     <div>
         <strong>{{ $member['name'] }}</strong>
         <span>{{ $member['role'] }}</span>
@@ -62,8 +62,8 @@ add_action('after_setup_theme', function () {
 **Rendering a FlexibleContent page builder (Pro):**
 
 ```blade
-@foreach(fieldforge_get('page_builder') as $section)
-    @ffSection($section)
+@foreach(ctrlfield_get('page_builder') as $section)
+    @ctrlfSection($section)
 @endforeach
 ```
 
@@ -71,24 +71,24 @@ add_action('after_setup_theme', function () {
 
 ## Twig (Timber)
 
-FieldForge functions are global in Twig when Timber is active:
+CtrlField functions are global in Twig when Timber is active:
 
 ```twig
-{{ fieldforge_get('client_name') }}
+{{ ctrlfield_get('client_name') }}
 
-{% set hero = fieldforge_get('hero_image') %}
+{% set hero = ctrlfield_get('hero_image') %}
 {% if hero %}
     <img src="{{ hero.url }}" alt="{{ hero.alt }}">
 {% endif %}
 
 {# Repeater #}
-{% for member in fieldforge_get('team_members') %}
+{% for member in ctrlfield_get('team_members') %}
     <p>{{ member.name }} — {{ member.role }}</p>
 {% endfor %}
 
 {# FlexibleContent (Pro) #}
-{% for section in fieldforge_get('page_builder') %}
-    {{ ff_component(section)|raw }}
+{% for section in ctrlfield_get('page_builder') %}
+    {{ ctrlf_component(section)|raw }}
 {% endfor %}
 ```
 
@@ -98,8 +98,8 @@ FieldForge functions are global in Twig when Timber is active:
 
 ```php
 <?php
-$clientName = fieldforge_get('client_name');
-$hero       = fieldforge_get('hero_image'); // array
+$clientName = ctrlfield_get('client_name');
+$hero       = ctrlfield_get('hero_image'); // array
 
 echo esc_html($clientName);
 
@@ -117,11 +117,11 @@ if ($hero) {
 
 ## REST API
 
-FieldForge registers a REST endpoint for every field group where at least one field has `->showInRest(true)`:
+CtrlField registers a REST endpoint for every field group where at least one field has `->showInRest(true)`:
 
 ```
-GET /wp-json/fieldforge/v1/post/{id}
-PUT /wp-json/fieldforge/v1/post/{id}
+GET /wp-json/ctrlfield/v1/post/{id}
+PUT /wp-json/ctrlfield/v1/post/{id}
 ```
 
 **Expose a field via REST:**

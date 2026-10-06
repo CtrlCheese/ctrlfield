@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\CheckboxField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\CheckboxField;
 
 final class CheckboxRenderer extends AbstractRenderer
 {
@@ -17,7 +17,7 @@ final class CheckboxRenderer extends AbstractRenderer
             foreach ($field->getOptions() as $value => $label) {
                 $id     = $this->esc($this->inputId($field) . '-' . $value);
                 $items .= sprintf(
-                    '<label class="ff-checkbox-label"><input type="checkbox" id="%s" value="%s" x-model="%s" class="ff-checkbox"> %s</label>',
+                    '<label class="ctrlf-checkbox-label"><input type="checkbox" id="%s" value="%s" x-model="%s" class="ctrlf-checkbox"> %s</label>',
                     $id,
                     $this->esc((string) $value),
                     $this->esc($statePath),
@@ -26,6 +26,6 @@ final class CheckboxRenderer extends AbstractRenderer
             }
         }
 
-        return sprintf('<div class="ff-checkboxes">%s</div>', $items);
+        return sprintf('<div class="ctrlf-checkboxes">%s</div>', $items);
     }
 }

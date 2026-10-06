@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Admin\Attachment;
+namespace CtrlField\Tests\Unit\Admin\Attachment;
 
-use FieldForge\Admin\Attachment\AttachmentModalServiceProvider;
-use FieldForge\Bootstrap\ServiceContainer;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Admin\Attachment\AttachmentModalServiceProvider;
+use CtrlField\Bootstrap\ServiceContainer;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 class AttachmentModalServiceProviderTest extends TestCase
@@ -39,7 +39,7 @@ class AttachmentModalServiceProviderTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function test_render_modal_fields_appends_ff_keys(): void
+    public function test_render_modal_fields_appends_ctrlf_keys(): void
     {
         Field::group('media_meta')
             ->where('post_type', '==', 'attachment')
@@ -55,11 +55,11 @@ class AttachmentModalServiceProviderTest extends TestCase
         $formFields  = [];
         $result      = $provider->renderModalFields($formFields, $post);
 
-        $this->assertArrayHasKey('ff_photographer', $result);
-        $this->assertArrayHasKey('ff_license', $result);
-        $this->assertSame('Photographer Credit', $result['ff_photographer']['label']);
-        $this->assertSame('html', $result['ff_photographer']['input']);
-        $this->assertStringContainsString('ff_photographer', $result['ff_photographer']['html']);
+        $this->assertArrayHasKey('ctrlf_photographer', $result);
+        $this->assertArrayHasKey('ctrlf_license', $result);
+        $this->assertSame('Photographer Credit', $result['ctrlf_photographer']['label']);
+        $this->assertSame('html', $result['ctrlf_photographer']['input']);
+        $this->assertStringContainsString('ctrlf_photographer', $result['ctrlf_photographer']['html']);
     }
 
     public function test_render_modal_fields_preserves_existing_form_fields(): void
@@ -77,10 +77,10 @@ class AttachmentModalServiceProviderTest extends TestCase
         $result     = $provider->renderModalFields($formFields, $post);
 
         $this->assertArrayHasKey('caption', $result);
-        $this->assertArrayHasKey('ff_alt_text', $result);
+        $this->assertArrayHasKey('ctrlf_alt_text', $result);
     }
 
-    public function test_save_modal_fields_returns_post_unchanged_when_no_ff_keys(): void
+    public function test_save_modal_fields_returns_post_unchanged_when_no_ctrlf_keys(): void
     {
         $provider   = new AttachmentModalServiceProvider(new ServiceContainer());
         $post       = ['ID' => 5, 'post_title' => 'Test'];
@@ -95,7 +95,7 @@ class AttachmentModalServiceProviderTest extends TestCase
     {
         $provider   = new AttachmentModalServiceProvider(new ServiceContainer());
         $post       = [];
-        $attachment = ['ff_photographer' => 'John Doe'];
+        $attachment = ['ctrlf_photographer' => 'John Doe'];
 
         $result = $provider->saveModalFields($post, $attachment);
 

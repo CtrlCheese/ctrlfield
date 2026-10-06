@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\REST;
+namespace CtrlField\Integrations\REST;
 
-use FieldForge\Bootstrap\ServiceProvider;
+use CtrlField\Bootstrap\ServiceProvider;
 
 /**
- * Registers the public-facing FieldForge REST routes on rest_api_init.
+ * Registers the public-facing CtrlField REST routes on rest_api_init.
  *
  * Routes registered:
- *   GET fieldforge/v1/post/{post_id}      — showInRest field values
- *   GET fieldforge/v1/schema/{post_type}  — public schema (types + labels)
- *   GET fieldforge/v1/user/{user_id}      — user fields with showInRest(true)
- *   GET fieldforge/v1/term/{term_id}      — term fields with showInRest(true)
+ *   GET ctrlfield/v1/post/{post_id}      — showInRest field values
+ *   GET ctrlfield/v1/schema/{post_type}  — public schema (types + labels)
+ *   GET ctrlfield/v1/user/{user_id}      — user fields with showInRest(true)
+ *   GET ctrlfield/v1/term/{term_id}      — term fields with showInRest(true)
  */
 class RestServiceProvider extends ServiceProvider
 {

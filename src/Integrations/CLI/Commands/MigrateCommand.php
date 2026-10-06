@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Commands;
+namespace CtrlField\Integrations\CLI\Commands;
 
-use FieldForge\Core\Migration\MigrationEngine;
-use FieldForge\Core\Migration\MigrationRecord;
-use FieldForge\Core\Migration\MigrationResult;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Storage\Drivers\WpPostMetaDriver;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Core\Migration\MigrationEngine;
+use CtrlField\Core\Migration\MigrationRecord;
+use CtrlField\Core\Migration\MigrationResult;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
+use CtrlField\Storage\PostMetaAdapter;
 
 /**
- * WP-CLI command: wp fieldforge migrate
+ * WP-CLI command: wp ctrlfield migrate
  *
  * Excluded from PHPStan — references WP_CLI, WP_Query, and WP drivers.
  *
  * Usage:
- *   wp fieldforge migrate
- *   wp fieldforge migrate --dry-run
- *   wp fieldforge migrate --post-type=portfolio
+ *   wp ctrlfield migrate
+ *   wp ctrlfield migrate --dry-run
+ *   wp ctrlfield migrate --post-type=portfolio
  */
 class MigrateCommand
 {

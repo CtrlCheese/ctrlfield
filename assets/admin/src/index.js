@@ -1,15 +1,15 @@
-// CSS is compiled separately by @tailwindcss/cli → assets/admin/fieldforge.css
+// CSS is compiled separately by @tailwindcss/cli → assets/admin/ctrlfield.css
 import Alpine from 'alpinejs';
 import { evaluateCondition } from './conditionEvaluator.js';
 
 // -----------------------------------------------------------------------
-// fieldForgeAdmin — single root Alpine component for the meta box
+// ctrlFieldAdmin — single root Alpine component for the meta box
 // -----------------------------------------------------------------------
 
 document.addEventListener('alpine:init', () => {
-    Alpine.data('fieldForgeAdmin', ({ values, conditions }) => ({
+    Alpine.data('ctrlFieldAdmin', ({ values, conditions }) => ({
 
-        /** Reactive field state — serialised into fieldforge_payload on save. */
+        /** Reactive field state — serialised into ctrlfield_payload on save. */
         adminState: {},
 
         /** Cache of attachment URLs fetched from WP (id → url). */
@@ -35,8 +35,8 @@ document.addEventListener('alpine:init', () => {
             // Deep-clone so we don't mutate the JSON passed from PHP.
             this.adminState = JSON.parse(JSON.stringify(values));
 
-            // Pre-populate attachment URLs from fieldforgeData (PHP-localised).
-            const phData = window.fieldforgeData ?? {};
+            // Pre-populate attachment URLs from ctrlfieldData (PHP-localised).
+            const phData = window.ctrlfieldData ?? {};
             this.attachmentUrls = phData.attachments ?? {};
 
             // WYSIWYG bridge is initialised after the DOM + TinyMCE are ready.
@@ -111,7 +111,7 @@ document.addEventListener('alpine:init', () => {
          */
         openMediaLibrary(callback, type = 'image') {
             if (typeof wp === 'undefined' || !wp.media) {
-                console.warn('FieldForge: wp.media is not available.');
+                console.warn('CtrlField: wp.media is not available.');
                 return;
             }
 
@@ -149,15 +149,15 @@ document.addEventListener('alpine:init', () => {
         // -------------------------------------------------------------------
 
         /**
-         * Iterates all [data-fieldforge-wysiwyg] wrappers and attaches a
+         * Iterates all [data-ctrlfield-wysiwyg] wrappers and attaches a
          * TinyMCE change listener that keeps adminState in sync.
          * Retries every 200ms until TinyMCE initialises (WP loads it async).
          */
         initWysiwygs() {
-            this.$el.querySelectorAll('[data-fieldforge-wysiwyg]').forEach(wrapper => {
-                const fieldKey  = wrapper.dataset.fieldforgeWysiwyg;
+            this.$el.querySelectorAll('[data-ctrlfield-wysiwyg]').forEach(wrapper => {
+                const fieldKey  = wrapper.dataset.ctrlfieldWysiwyg;
                 const statePath = wrapper.dataset.statepath;
-                const editorId  = 'ff_wysiwyg_' + fieldKey;
+                const editorId  = 'ctrlf_wysiwyg_' + fieldKey;
 
                 const tryBind = setInterval(() => {
                     const editor = window.tinymce?.get(editorId);
@@ -188,12 +188,12 @@ document.addEventListener('alpine:init', () => {
         // -------------------------------------------------------------------
 
         /**
-         * Initialises CodeMirror on all [data-fieldforge-code] wrappers.
+         * Initialises CodeMirror on all [data-ctrlfield-code] wrappers.
          * Called in init() after the DOM is ready.
          */
         initCodeEditors() {
-            this.$el.querySelectorAll('[data-fieldforge-code]').forEach(wrap => {
-                const fieldKey = wrap.dataset.fieldforgeCode;
+            this.$el.querySelectorAll('[data-ctrlfield-code]').forEach(wrap => {
+                const fieldKey = wrap.dataset.ctrlfieldCode;
                 const textarea = wrap.querySelector('textarea');
                 if (!textarea || typeof wp === 'undefined' || !wp.CodeMirror) return;
 
@@ -225,7 +225,7 @@ document.addEventListener('alpine:init', () => {
         // -------------------------------------------------------------------
 
         /**
-         * Search WordPress users via the FieldForge REST endpoint.
+         * Search WordPress users via the CtrlField REST endpoint.
          * Debounced via Alpine's @input.debounce modifier in the rendered HTML.
          *
          * @param {string}   query    Search string (min 2 chars).
@@ -238,7 +238,7 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
 
-            const phData = window.fieldforgeData ?? {};
+            const phData = window.ctrlfieldData ?? {};
             const params = new URLSearchParams({ search: query, per_page: 20 });
 
             if (Array.isArray(roles) && roles.length > 0) {
@@ -247,7 +247,7 @@ document.addEventListener('alpine:init', () => {
 
             try {
                 const res = await fetch(
-                    `${phData.restUrl ?? ''}fieldforge/v1/search/users?${params}`,
+                    `${phData.restUrl ?? ''}ctrlfield/v1/search/users?${params}`,
                     { headers: { 'X-WP-Nonce': phData.restNonce ?? '' } },
                 );
                 const data = await res.json();
@@ -316,7 +316,7 @@ document.addEventListener('alpine:init', () => {
             this.flexPickerOpen[key]    = true;
             this.flexPickerSearch[key]  = '';
             this.$nextTick(() => {
-                document.querySelector(`[data-ff-picker="${key}"] .ff-picker-search`)?.focus();
+                document.querySelector(`[data-ctrlf-picker="${key}"] .ctrlf-picker-search`)?.focus();
             });
         },
         closeFlexPicker(key) {

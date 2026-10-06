@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Sanitizers;
+namespace CtrlField\Fields\Sanitizers;
 
-use FieldForge\Fields\Contracts\SanitizerInterface;
+use CtrlField\Fields\Contracts\SanitizerInterface;
 
 final class RangeSanitizer implements SanitizerInterface
 {

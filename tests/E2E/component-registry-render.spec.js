@@ -18,39 +18,39 @@ test.describe('ComponentRegistry render', () => {
     test('component picker shows at least one card', async ({ page }) => {
         await page.goto(PAGE_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const addBtn = container.locator('.ff-flex-add, button', { hasText: /add/i }).first();
+        const addBtn = container.locator('.ctrlf-flex-add, button', { hasText: /add/i }).first();
         if (! await addBtn.isVisible()) {
             test.skip();
             return;
         }
 
         await addBtn.click();
-        await expect(page.locator('.ff-picker-modal')).toBeVisible({ timeout: 5_000 });
+        await expect(page.locator('.ctrlf-picker-modal')).toBeVisible({ timeout: 5_000 });
 
-        const cards = page.locator('.ff-picker-card');
+        const cards = page.locator('.ctrlf-picker-card');
         expect(await cards.count()).toBeGreaterThan(0);
     });
 
     test('category tabs filter the component grid', async ({ page }) => {
         await page.goto(PAGE_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const addBtn = container.locator('.ff-flex-add, button', { hasText: /add/i }).first();
+        const addBtn = container.locator('.ctrlf-flex-add, button', { hasText: /add/i }).first();
         if (! await addBtn.isVisible()) {
             test.skip();
             return;
         }
 
         await addBtn.click();
-        await expect(page.locator('.ff-picker-modal')).toBeVisible({ timeout: 5_000 });
+        await expect(page.locator('.ctrlf-picker-modal')).toBeVisible({ timeout: 5_000 });
 
         // Category tabs (All + any registered categories)
-        const tabs = page.locator('.ff-picker-tab');
+        const tabs = page.locator('.ctrlf-picker-tab');
         const tabCount = await tabs.count();
 
         if (tabCount <= 1) {
@@ -59,13 +59,13 @@ test.describe('ComponentRegistry render', () => {
             return;
         }
 
-        const totalCards = await page.locator('.ff-picker-card').count();
+        const totalCards = await page.locator('.ctrlf-picker-card').count();
 
         // Click the second tab (first non-All category)
         await tabs.nth(1).click();
         await page.waitForTimeout(300);
 
-        const filteredCards = await page.locator('.ff-picker-card').count();
+        const filteredCards = await page.locator('.ctrlf-picker-card').count();
         // Filtered count should be <= total
         expect(filteredCards).toBeLessThanOrEqual(totalCards);
     });
@@ -73,29 +73,29 @@ test.describe('ComponentRegistry render', () => {
     test('selecting a component creates a layout row with sub-fields', async ({ page }) => {
         await page.goto(PAGE_URL);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const addBtn = container.locator('.ff-flex-add, button', { hasText: /add/i }).first();
+        const addBtn = container.locator('.ctrlf-flex-add, button', { hasText: /add/i }).first();
         if (! await addBtn.isVisible()) {
             test.skip();
             return;
         }
 
-        const rowsBefore = await container.locator('.ff-flex-row').count();
+        const rowsBefore = await container.locator('.ctrlf-flex-row').count();
 
         await addBtn.click();
-        await expect(page.locator('.ff-picker-card').first()).toBeVisible({ timeout: 5_000 });
-        await page.locator('.ff-picker-card').first().click();
+        await expect(page.locator('.ctrlf-picker-card').first()).toBeVisible({ timeout: 5_000 });
+        await page.locator('.ctrlf-picker-card').first().click();
 
-        const rowsAfter = await container.locator('.ff-flex-row').count();
+        const rowsAfter = await container.locator('.ctrlf-flex-row').count();
         expect(rowsAfter).toBe(rowsBefore + 1);
 
         // Expand the new row and verify sub-fields are visible
-        const newRow = container.locator('.ff-flex-row').last();
-        await newRow.locator('.ff-flex-toggle').click();
+        const newRow = container.locator('.ctrlf-flex-row').last();
+        await newRow.locator('.ctrlf-flex-toggle').click();
 
-        const subFields = newRow.locator('.ff-field');
+        const subFields = newRow.locator('.ctrlf-field');
         // A component should have at least one field
         expect(await subFields.count()).toBeGreaterThanOrEqual(0);
     });
@@ -107,17 +107,17 @@ test.describe('ComponentRegistry render', () => {
         const postTitle  = 'ComponentRegistry E2E ' + Date.now();
         await titleInput.fill(postTitle);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
-        const addBtn = container.locator('.ff-flex-add, button', { hasText: /add/i }).first();
+        const addBtn = container.locator('.ctrlf-flex-add, button', { hasText: /add/i }).first();
         if (! await addBtn.isVisible()) {
             test.skip();
             return;
         }
 
         await addBtn.click();
-        const firstCard = page.locator('.ff-picker-card').first();
+        const firstCard = page.locator('.ctrlf-picker-card').first();
         await expect(firstCard).toBeVisible({ timeout: 5_000 });
         await firstCard.click();
 

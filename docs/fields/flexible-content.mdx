@@ -1,6 +1,6 @@
 # Flexible Content
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
 A page-builder style field. Users pick from a list of component layouts and arrange them in any order. Each layout has its own set of sub-fields.
 
@@ -54,8 +54,8 @@ Label for the "Add" button. Default: `'Add layout'`.
 ## Example
 
 ```php
-use FieldForgePro\Fields\FlexibleContentField;
-use FieldForgePro\Fields\FlexLayout;
+use CtrlField\Pro\Fields\FlexibleContentField;
+use CtrlField\Pro\Fields\FlexLayout;
 
 FlexibleContentField::make('page_builder')
     ->label('Page Sections')
@@ -76,14 +76,14 @@ FlexibleContentField::make('page_builder')
 ## Template usage
 
 ```blade
-@foreach(fieldforge_get('page_builder') as $section)
-    @ffSection($section)
+@foreach(ctrlfield_get('page_builder') as $section)
+    @ctrlfSection($section)
 @endforeach
 ```
 
 ```twig
-{% for section in fieldforge_get('page_builder') %}
-    {{ ff_component(section)|raw }}
+{% for section in ctrlfield_get('page_builder') %}
+    {{ ctrlf_component(section)|raw }}
 {% endfor %}
 ```
 

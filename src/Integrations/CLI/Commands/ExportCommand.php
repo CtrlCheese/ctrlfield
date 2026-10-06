@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\CLI\Commands;
+namespace CtrlField\Integrations\CLI\Commands;
 
-use FieldForge\Builder\CPT;
-use FieldForge\Builder\OptionsPage;
-use FieldForge\Builder\Taxonomy;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Builder\CPT;
+use CtrlField\Builder\OptionsPage;
+use CtrlField\Builder\Taxonomy;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Registry\FieldRegistry;
 
 /**
- * WP-CLI command: wp fieldforge export
+ * WP-CLI command: wp ctrlfield export
  *
  * Excluded from PHPStan — references WP_CLI not available outside CLI runtime.
  *
  * Usage:
- *   wp fieldforge export
- *   wp fieldforge export --file=<path>
+ *   wp ctrlfield export
+ *   wp ctrlfield export --file=<path>
  */
 class ExportCommand
 {

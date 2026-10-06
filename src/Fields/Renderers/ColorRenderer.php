@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\ColorField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\ColorField;
 
 final class ColorRenderer extends AbstractRenderer
 {
@@ -16,7 +16,7 @@ final class ColorRenderer extends AbstractRenderer
         $roAttr   = $readOnly ? ' disabled' : '';
 
         $picker = sprintf(
-            '<input type="color" id="%s" x-model="%s" class="ff-input ff-input--color"%s>',
+            '<input type="color" id="%s" x-model="%s" class="ctrlf-input ctrlf-input--color"%s>',
             $this->esc($this->inputId($field)),
             $this->esc($statePath),
             $roAttr,
@@ -29,7 +29,7 @@ final class ColorRenderer extends AbstractRenderer
         $swatches = '';
         foreach ($palette as $hex) {
             $swatches .= sprintf(
-                '<button type="button" class="ff-color-swatch" style="background:%s" @click="%s = \'%s\'" title="%s"></button>',
+                '<button type="button" class="ctrlf-color-swatch" style="background:%s" @click="%s = \'%s\'" title="%s"></button>',
                 $this->esc($hex),
                 $this->esc($statePath),
                 $this->esc($hex),
@@ -38,7 +38,7 @@ final class ColorRenderer extends AbstractRenderer
         }
 
         return sprintf(
-            '<div class="ff-color-wrap">%s<div class="ff-color-palette">%s</div></div>',
+            '<div class="ctrlf-color-wrap">%s<div class="ctrlf-color-palette">%s</div></div>',
             $picker,
             $swatches,
         );

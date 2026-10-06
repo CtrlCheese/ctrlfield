@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Pipeline\Contracts;
+namespace CtrlField\Core\Pipeline\Contracts;
 
-use FieldForge\Core\Pipeline\PipelineContext;
-use FieldForge\Core\Pipeline\PipelineException;
+use CtrlField\Core\Pipeline\PipelineContext;
+use CtrlField\Core\Pipeline\PipelineException;
 
 interface StageInterface
 {

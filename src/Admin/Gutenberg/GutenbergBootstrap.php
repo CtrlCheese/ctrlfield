@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Gutenberg;
+namespace CtrlField\Admin\Gutenberg;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Rest\FieldValueController;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Rest\FieldValueController;
 
 /**
  * Registers the REST routes and conditionally enqueues the Gutenberg React bundle.
@@ -48,26 +48,26 @@ class GutenbergBootstrap
             return;
         }
 
-        $distPath = FIELDFORGE_PATH . 'assets/gutenberg/dist/';
+        $distPath = CTRLFIELD_PATH . 'assets/gutenberg/dist/';
         $assetFile = $distPath . 'index.asset.php';
 
         $asset = file_exists($assetFile)
             ? (array) require $assetFile
-            : ['dependencies' => [], 'version' => FIELDFORGE_VERSION];
+            : ['dependencies' => [], 'version' => CTRLFIELD_VERSION];
 
         /** @var string[] $dependencies */
         $dependencies = is_array($asset['dependencies'] ?? null) ? $asset['dependencies'] : [];
-        $version      = is_string($asset['version'] ?? null) ? $asset['version'] : FIELDFORGE_VERSION;
+        $version      = is_string($asset['version'] ?? null) ? $asset['version'] : CTRLFIELD_VERSION;
 
         wp_enqueue_script(
-            'fieldforge-gutenberg',
-            FIELDFORGE_URL . 'assets/gutenberg/dist/index.js',
+            'ctrlfield-gutenberg',
+            CTRLFIELD_URL . 'assets/gutenberg/dist/index.js',
             $dependencies,
             $version,
             true,
         );
 
-        wp_localize_script('fieldforge-gutenberg', 'fieldforgeGutenberg', [
+        wp_localize_script('ctrlfield-gutenberg', 'ctrlfieldGutenberg', [
             'restBase' => rest_url(FieldValueController::NAMESPACE . '/editor/post/'),
             'nonce'    => wp_create_nonce('wp_rest'),
             'postType' => $postType,

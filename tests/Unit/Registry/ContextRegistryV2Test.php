@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Registry;
+namespace CtrlField\Tests\Unit\Registry;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Registry\Contracts\ContextInterface;
-use FieldForge\Registry\Exceptions\DuplicateContextKeyException;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Registry\Contracts\ContextInterface;
+use CtrlField\Registry\Exceptions\DuplicateContextKeyException;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 class ContextRegistryV2Test extends TestCase
@@ -139,34 +139,34 @@ class ContextRegistryV2Test extends TestCase
     public function test_adapter_resolver_post_type(): void
     {
         $group = Field::group('pg')->where('post_type', '==', 'post')->fields([]);
-        $adapter = \FieldForge\Storage\StorageAdapterResolver::resolve($group);
-        $this->assertInstanceOf(\FieldForge\Storage\PostMetaAdapter::class, $adapter);
+        $adapter = \CtrlField\Storage\StorageAdapterResolver::resolve($group);
+        $this->assertInstanceOf(\CtrlField\Storage\PostMetaAdapter::class, $adapter);
     }
 
     public function test_adapter_resolver_user_profile(): void
     {
         $group = Field::group('ug')->where('context', '==', 'user_profile')->fields([]);
-        $adapter = \FieldForge\Storage\StorageAdapterResolver::resolve($group);
-        $this->assertInstanceOf(\FieldForge\Storage\UserMetaAdapter::class, $adapter);
+        $adapter = \CtrlField\Storage\StorageAdapterResolver::resolve($group);
+        $this->assertInstanceOf(\CtrlField\Storage\UserMetaAdapter::class, $adapter);
     }
 
     public function test_adapter_resolver_comment(): void
     {
         $group = Field::group('cg')->where('context', '==', 'comment')->fields([]);
-        $adapter = \FieldForge\Storage\StorageAdapterResolver::resolve($group);
-        $this->assertInstanceOf(\FieldForge\Storage\CommentMetaAdapter::class, $adapter);
+        $adapter = \CtrlField\Storage\StorageAdapterResolver::resolve($group);
+        $this->assertInstanceOf(\CtrlField\Storage\CommentMetaAdapter::class, $adapter);
     }
 
     public function test_adapter_resolver_taxonomy(): void
     {
         $group = Field::group('tg')->where('taxonomy', '==', 'category')->fields([]);
-        $adapter = \FieldForge\Storage\StorageAdapterResolver::resolve($group);
-        $this->assertInstanceOf(\FieldForge\Storage\TermMetaAdapter::class, $adapter);
+        $adapter = \CtrlField\Storage\StorageAdapterResolver::resolve($group);
+        $this->assertInstanceOf(\CtrlField\Storage\TermMetaAdapter::class, $adapter);
     }
 
     public function test_adapter_resolver_throws_for_mixed_backends(): void
     {
-        $this->expectException(\FieldForge\Storage\Exceptions\UnresolvableAdapterException::class);
+        $this->expectException(\CtrlField\Storage\Exceptions\UnresolvableAdapterException::class);
 
         // A group spanning post and user contexts is ambiguous
         $group = Field::group('mixed')
@@ -176,6 +176,6 @@ class ContextRegistryV2Test extends TestCase
             ])
             ->fields([]);
 
-        \FieldForge\Storage\StorageAdapterResolver::resolve($group);
+        \CtrlField\Storage\StorageAdapterResolver::resolve($group);
     }
 }

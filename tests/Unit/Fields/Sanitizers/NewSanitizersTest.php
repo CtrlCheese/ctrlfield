@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Fields\Sanitizers;
+namespace CtrlField\Tests\Unit\Fields\Sanitizers;
 
-use FieldForge\Fields\Sanitizers\ColorSanitizer;
-use FieldForge\Fields\Sanitizers\DateSanitizer;
-use FieldForge\Fields\Sanitizers\DateTimeSanitizer;
-use FieldForge\Fields\Sanitizers\LinkSanitizer;
-use FieldForge\Fields\Sanitizers\OembedSanitizer;
-use FieldForge\Fields\Sanitizers\RangeSanitizer;
-use FieldForge\Fields\Sanitizers\TimeSanitizer;
+use CtrlField\Fields\Sanitizers\ColorSanitizer;
+use CtrlField\Fields\Sanitizers\DateSanitizer;
+use CtrlField\Fields\Sanitizers\DateTimeSanitizer;
+use CtrlField\Fields\Sanitizers\LinkSanitizer;
+use CtrlField\Fields\Sanitizers\OembedSanitizer;
+use CtrlField\Fields\Sanitizers\RangeSanitizer;
+use CtrlField\Fields\Sanitizers\TimeSanitizer;
 use PHPUnit\Framework\TestCase;
 
 class NewSanitizersTest extends TestCase

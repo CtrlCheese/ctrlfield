@@ -58,13 +58,13 @@ Field::trueFalse('maintenance_mode')
 ## Template usage
 
 ```blade
-@if(fieldforge_get('is_featured'))
+@if(ctrlfield_get('is_featured'))
     <span class="badge">Featured</span>
 @endif
 ```
 
 ```php
-if (fieldforge_get('is_featured')) {
+if (ctrlfield_get('is_featured')) {
     // show featured badge
 }
 ```

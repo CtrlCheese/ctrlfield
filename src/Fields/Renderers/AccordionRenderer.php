@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\AccordionField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\AccordionField;
 
 /**
  * Opens the accordion wrapper. AccordionEndRenderer closes it.
@@ -22,12 +22,12 @@ final class AccordionRenderer extends AbstractRenderer
         $openJs = $isOpen ? 'true' : 'false';
 
         return sprintf(
-            '<div class="ff-accordion" x-data="{ open: %s }">'
-            . '<button type="button" class="ff-accordion-toggle" @click="open = !open">'
+            '<div class="ctrlf-accordion" x-data="{ open: %s }">'
+            . '<button type="button" class="ctrlf-accordion-toggle" @click="open = !open">'
             . '<span>%s</span>'
-            . '<span class="ff-accordion-icon" :class="{\'is-open\': open}">&#9662;</span>'
+            . '<span class="ctrlf-accordion-icon" :class="{\'is-open\': open}">&#9662;</span>'
             . '</button>'
-            . '<div class="ff-accordion-content" x-show="open">',
+            . '<div class="ctrlf-accordion-content" x-show="open">',
             $openJs,
             $label,
         );

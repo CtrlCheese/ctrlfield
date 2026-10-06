@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\OembedField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\OembedField;
 
 final class OembedRenderer extends AbstractRenderer
 {
@@ -17,7 +17,7 @@ final class OembedRenderer extends AbstractRenderer
         $id       = $this->esc($this->inputId($field));
 
         $input = sprintf(
-            '<input type="url" id="%s" x-model="%s" placeholder="https://" class="ff-input ff-input--url"%s @blur="fieldforgeOembedPreview(\'%s\', $el.value, %d)">',
+            '<input type="url" id="%s" x-model="%s" placeholder="https://" class="ctrlf-input ctrlf-input--url"%s @blur="ctrlfieldOembedPreview(\'%s\', $el.value, %d)">',
             $id,
             $this->esc($statePath),
             $roAttr,
@@ -26,11 +26,11 @@ final class OembedRenderer extends AbstractRenderer
         );
 
         $preview = sprintf(
-            '<div id="%s-preview" class="ff-oembed-preview" x-show="%s !== \'\'"></div>',
+            '<div id="%s-preview" class="ctrlf-oembed-preview" x-show="%s !== \'\'"></div>',
             $id,
             $this->esc($statePath),
         );
 
-        return sprintf('<div class="ff-oembed-wrap">%s%s</div>', $input, $preview);
+        return sprintf('<div class="ctrlf-oembed-wrap">%s%s</div>', $input, $preview);
     }
 }

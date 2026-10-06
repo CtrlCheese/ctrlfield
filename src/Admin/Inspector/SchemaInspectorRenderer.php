@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Inspector;
+namespace CtrlField\Admin\Inspector;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Data\CsvExporter;
-use FieldForge\Data\CsvImporter;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Data\CsvExporter;
+use CtrlField\Data\CsvImporter;
+use CtrlField\Registry\FieldRegistry;
 
 /**
  * Renders the Schema Inspector admin page.
@@ -23,7 +23,7 @@ final class SchemaInspectorRenderer
         $totalMismatch = 0;
 
         echo '<div class="wrap">';
-        echo '<h1>FieldForge — Schema Inspector</h1>';
+        echo '<h1>CtrlField — Schema Inspector</h1>';
 
         if (empty($groups)) {
             echo '<p>No field groups registered. Define groups in PHP and include them via <code>SchemaLoader</code> or your theme\'s <code>functions.php</code>.</p>';
@@ -42,7 +42,7 @@ final class SchemaInspectorRenderer
         // Version mismatch banner
         if ($totalMismatch > 0) {
             printf(
-                '<div class="notice notice-warning"><p><strong>⚠ %d post%s with schema_version mismatch detected.</strong> Run <code>wp fieldforge migrate</code> to update.</p></div>',
+                '<div class="notice notice-warning"><p><strong>⚠ %d post%s with schema_version mismatch detected.</strong> Run <code>wp ctrlfield migrate</code> to update.</p></div>',
                 $totalMismatch,
                 $totalMismatch === 1 ? '' : 's',
             );
@@ -106,21 +106,21 @@ final class SchemaInspectorRenderer
         $csvCell = '—';
         if ($postType !== null) {
             $exportUrl = add_query_arg([
-                'page'          => 'fieldforge-inspector',
-                'action'        => 'fieldforge_export_csv',
+                'page'          => 'ctrlfield-inspector',
+                'action'        => 'ctrlfield_export_csv',
                 'group'         => $key,
-                '_fieldforge_nonce' => wp_create_nonce('fieldforge_csv_export_' . $key),
+                '_ctrlfield_nonce' => wp_create_nonce('ctrlfield_csv_export_' . $key),
             ], admin_url('admin.php'));
 
             $csvCell = sprintf(
                 '<a href="%s" class="button button-small">Export CSV</a>'
                 . ' <label class="button button-small" style="cursor:pointer;margin:0">'
                 . 'Import CSV'
-                . '<input type="file" accept=".csv" style="display:none" data-ff-group="%s" data-ff-nonce="%s">'
+                . '<input type="file" accept=".csv" style="display:none" data-ctrlf-group="%s" data-ctrlf-nonce="%s">'
                 . '</label>',
                 esc_url($exportUrl),
                 esc_attr($key),
-                esc_attr((string) wp_create_nonce('fieldforge_csv_import_' . $key)),
+                esc_attr((string) wp_create_nonce('ctrlfield_csv_import_' . $key)),
             );
         }
 
@@ -208,7 +208,7 @@ final class SchemaInspectorRenderer
 
         $withData = (int) $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM {$wpdb->postmeta}
-             WHERE meta_key = '_fieldforge_data'
+             WHERE meta_key = '_ctrlfield_data'
              AND post_id IN (
                  SELECT ID FROM {$wpdb->posts}
                  WHERE post_type = %s AND post_status = 'publish'
@@ -241,7 +241,7 @@ final class SchemaInspectorRenderer
 
         $count = (int) $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM {$wpdb->postmeta}
-             WHERE meta_key = '_fieldforge_data'
+             WHERE meta_key = '_ctrlfield_data'
              AND post_id IN (SELECT ID FROM {$wpdb->posts} WHERE post_type = %s)
              AND CAST(JSON_EXTRACT(meta_value, '$.schema_version') AS UNSIGNED) < %d",
             $postType,
@@ -286,10 +286,10 @@ final class SchemaInspectorRenderer
         // Handle inline CSV export (direct download from admin page)
         $action = $_GET['action'] ?? '';
         $group  = $_GET['group']  ?? '';
-        $nonce  = $_GET['_fieldforge_nonce'] ?? '';
+        $nonce  = $_GET['_ctrlfield_nonce'] ?? '';
 
-        if ($action === 'fieldforge_export_csv' && is_string($group) && $group !== '') {
-            if (! wp_verify_nonce((string) $nonce, 'fieldforge_csv_export_' . $group)) {
+        if ($action === 'ctrlfield_export_csv' && is_string($group) && $group !== '') {
+            if (! wp_verify_nonce((string) $nonce, 'ctrlfield_csv_export_' . $group)) {
                 wp_die('Security check failed.', 403);
             }
 

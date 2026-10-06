@@ -1,14 +1,14 @@
 <?php
 /**
- * FieldForge — CPT Registration: portfolio
+ * CtrlField — CPT Registration: portfolio
  * Generated: DATE
  * Edit freely. This file is the source of truth.
  */
 
 declare(strict_types=1);
 
-use FieldForge\Builder\CPT;
-use FieldForge\Fields\Field;
+use CtrlField\Builder\CPT;
+use CtrlField\Fields\Field;
 
 CPT::make('portfolio')
     ->label('Portfolio', 'Projects')

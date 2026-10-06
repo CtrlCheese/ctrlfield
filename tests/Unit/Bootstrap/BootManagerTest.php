@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Bootstrap;
+namespace CtrlField\Tests\Unit\Bootstrap;
 
-use FieldForge\Bootstrap\BootManager;
-use FieldForge\Bootstrap\ServiceContainer;
+use CtrlField\Bootstrap\BootManager;
+use CtrlField\Bootstrap\ServiceContainer;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -17,7 +17,7 @@ class BootManagerTest extends TestCase
         $this->resetBootManager();
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('FieldForge has not been booted');
+        $this->expectExceptionMessage('CtrlField has not been booted');
 
         BootManager::container();
     }

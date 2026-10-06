@@ -2,7 +2,7 @@
 const { defineConfig, devices } = require('@playwright/test');
 
 /**
- * FieldForge E2E test configuration.
+ * CtrlField E2E test configuration.
  *
  * Tests run against a live wp-env environment.
  * Start it with:  npx @wordpress/env start

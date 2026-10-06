@@ -195,7 +195,7 @@ if (! function_exists('sanitize_text_field')) {
 if (! function_exists('wp_mail')) {
     function wp_mail(mixed $to, string $subject, string $message, mixed $headers = '', mixed $attachments = []): bool
     {
-        $GLOBALS['_ff_wp_mail_calls'][] = [
+        $GLOBALS['_ctrlf_wp_mail_calls'][] = [
             'to'      => $to,
             'subject' => $subject,
             'message' => $message,

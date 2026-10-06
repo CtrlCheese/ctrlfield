@@ -11,7 +11,7 @@ const { test, expect } = require('@playwright/test');
  */
 
 const POST_URL = '/wp-admin/post-new.php?post_type=portfolio';
-const AUDIT_URL = '/wp-admin/admin.php?page=fieldforge-audit-log';
+const AUDIT_URL = '/wp-admin/admin.php?page=ctrlfield-audit-log';
 
 test.describe('Audit log', () => {
 
@@ -24,7 +24,7 @@ test.describe('Audit log', () => {
         // If the page loads without a 404
         const is404 = await page.locator('.error-404, h1', { hasText: /not found/i }).isVisible();
         if (! is404) {
-            await expect(page.locator('.wrap, .fieldforge-audit')).toBeVisible();
+            await expect(page.locator('.wrap, .ctrlfield-audit')).toBeVisible();
         }
     });
 
@@ -35,7 +35,7 @@ test.describe('Audit log', () => {
         const postTitle = 'Audit Log E2E ' + Date.now();
         await titleInput.fill(postTitle);
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // Fill any field (audited fields are configured in the schema)
@@ -49,9 +49,9 @@ test.describe('Audit log', () => {
 
         // Navigate to audit log and check for a new entry
         await page.goto(AUDIT_URL);
-        const logEntries = page.locator('.fieldforge-audit-row, tr.audit-entry, .wp-list-table tbody tr');
+        const logEntries = page.locator('.ctrlfield-audit-row, tr.audit-entry, .wp-list-table tbody tr');
         // If the audit log page is registered, there should be entries
-        if (await page.locator('.fieldforge-audit, .audit-log-table').isVisible()) {
+        if (await page.locator('.ctrlfield-audit, .audit-log-table').isVisible()) {
             // At least one row should exist after our save
             expect(await logEntries.count()).toBeGreaterThanOrEqual(0);
         }
@@ -63,7 +63,7 @@ test.describe('Audit log', () => {
         const titleInput = page.locator('#title, #post-title-0 input').first();
         await titleInput.fill('Audit Diff E2E ' + Date.now());
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         const firstInput = container.locator('[x-model]').first();
@@ -83,8 +83,8 @@ test.describe('Audit log', () => {
 
         // The audit log should now have an entry with old=before, new=after
         await page.goto(AUDIT_URL);
-        if (await page.locator('.fieldforge-audit, .audit-log-table').isVisible()) {
-            const newestEntry = page.locator('.fieldforge-audit-row, tr.audit-entry').first();
+        if (await page.locator('.ctrlfield-audit, .audit-log-table').isVisible()) {
+            const newestEntry = page.locator('.ctrlfield-audit-row, tr.audit-entry').first();
             if (await newestEntry.isVisible()) {
                 const text = await newestEntry.textContent();
                 expect(text).toBeTruthy();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Builder;
+namespace CtrlField\Builder;
 
 /**
  * Immutable configuration for a FieldGroup registered as a WP Dashboard widget.

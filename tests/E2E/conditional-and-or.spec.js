@@ -16,7 +16,7 @@ test.describe('AND / OR conditional logic', () => {
     test('AND group hides field when only one condition matches', async ({ page }) => {
         await page.goto('/wp-admin/post-new.php?post_type=portfolio');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // project_type = 'web' (one condition meets) — year field hidden if AND group needs both
@@ -31,7 +31,7 @@ test.describe('AND / OR conditional logic', () => {
     test('OR group shows field when at least one condition is met', async ({ page }) => {
         await page.goto('/wp-admin/post-new.php?post_type=portfolio');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         // client_contact is shown when project_type == 'web'
@@ -42,7 +42,7 @@ test.describe('AND / OR conditional logic', () => {
     test('v1 visibleWhen still works with new condition engine', async ({ page }) => {
         await page.goto('/wp-admin/post-new.php?post_type=portfolio');
 
-        const container = page.locator('.fieldforge-container').first();
+        const container = page.locator('.ctrlfield-container').first();
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         const dependentField = container.locator('[x-show*="client_contact"]');

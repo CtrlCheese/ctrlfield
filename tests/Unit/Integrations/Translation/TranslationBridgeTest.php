@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Integrations\Translation;
+namespace CtrlField\Tests\Unit\Integrations\Translation;
 
-use FieldForge\Integrations\Translation\TranslationBridge;
+use CtrlField\Integrations\Translation\TranslationBridge;
 use PHPUnit\Framework\TestCase;
 
 /**

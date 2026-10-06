@@ -42,10 +42,10 @@ Field::icon('section_icon')
 ## Template usage
 
 ```blade
-<span class="dashicons {{ fieldforge_get('section_icon') }}"></span>
+<span class="dashicons {{ ctrlfield_get('section_icon') }}"></span>
 ```
 
 ```php
-$iconSlug = fieldforge_get('section_icon');
+$iconSlug = ctrlfield_get('section_icon');
 printf('<span class="dashicons %s"></span>', esc_attr($iconSlug));
 ```

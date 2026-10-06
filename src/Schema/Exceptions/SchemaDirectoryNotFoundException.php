@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Schema\Exceptions;
+namespace CtrlField\Schema\Exceptions;
 
 final class SchemaDirectoryNotFoundException extends \RuntimeException {}

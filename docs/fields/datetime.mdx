@@ -60,7 +60,7 @@ Field::datetime('scheduled_at')
 ## Template usage
 
 ```blade
-@php $dt = fieldforge_get('scheduled_at') @endphp
+@php $dt = ctrlfield_get('scheduled_at') @endphp
 @if($dt)
     {{ $dt->format('D, M j \a\t g:ia') }}  {{-- Mon, Jun 1 at 2:30pm --}}
 @endif

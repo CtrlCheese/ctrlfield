@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Notifications;
+namespace CtrlField\Core\Notifications;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Fields\Notifications\FieldNotificationConfig;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Fields\Notifications\FieldNotificationConfig;
 
 /**
  * Sends emails when a field value changes to a configured trigger value.
  *
- * Hooked onto fieldforge/after_save via MetaBoxServiceProvider.
+ * Hooked onto ctrlfield/after_save via MetaBoxServiceProvider.
  * Reads old values BEFORE the save and compares against new values.
  *
  * Excluded from PHPStan — references wp_mail and WP helper functions.

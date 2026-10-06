@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Registry\Resolvers;
+namespace CtrlField\Registry\Resolvers;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Registry\Contracts\ContextInterface;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Registry\Contracts\ContextInterface;
 
 final class TaxonomyResolver implements ContextInterface
 {

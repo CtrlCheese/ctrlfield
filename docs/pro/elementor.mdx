@@ -1,33 +1,33 @@
 # Elementor Integration
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
-Exposes FieldForge field values as Elementor Dynamic Tags, making them available in Elementor's text, image, URL, and other controls.
+Exposes CtrlField field values as Elementor Dynamic Tags, making them available in Elementor's text, image, URL, and other controls.
 
 ---
 
 ## Requirements
 
 - Elementor 3.x or Elementor Pro
-- FieldForge Pro active
+- CtrlField Pro active
 
 ---
 
 ## Usage
 
-Once active, FieldForge fields appear in Elementor's Dynamic Data menu under the **FieldForge** group.
+Once active, CtrlField fields appear in Elementor's Dynamic Data menu under the **CtrlField** group.
 
-**Text field:** Use in any Elementor text control → Dynamic → FieldForge Fields → select your field.
+**Text field:** Use in any Elementor text control → Dynamic → CtrlField Fields → select your field.
 
-**Image field:** Use in Image widget → Image source → Dynamic → FieldForge Fields → select your image field.
+**Image field:** Use in Image widget → Image source → Dynamic → CtrlField Fields → select your image field.
 
-**URL field:** Use in Button widget → Link → Dynamic → FieldForge Fields → select your URL field.
+**URL field:** Use in Button widget → Link → Dynamic → CtrlField Fields → select your URL field.
 
 ---
 
 ## Supported Elementor controls
 
-| Elementor control type | FieldForge field types |
+| Elementor control type | CtrlField field types |
 |---|---|
 | Text | Text, Email, URL, Select, Radio, TrueFalse, Number |
 | Image | Image |
@@ -40,5 +40,5 @@ Once active, FieldForge fields appear in Elementor's Dynamic Data menu under the
 ## Notes
 
 - The Elementor integration registers dynamic tags lazily — they only boot when `class_exists('Elementor\Plugin')` is true.
-- Values are read via `fieldforge_get()` and passed directly to Elementor's rendering pipeline. `returnFormat` decorators are applied.
-- Elementor's post loop (Posts widget, Archive Loop) is supported — FieldForge reads field values for the loop's current post.
+- Values are read via `ctrlfield_get()` and passed directly to Elementor's rendering pipeline. `returnFormat` decorators are applied.
+- Elementor's post loop (Posts widget, Archive Loop) is supported — CtrlField reads field values for the loop's current post.

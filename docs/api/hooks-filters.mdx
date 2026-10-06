@@ -1,37 +1,37 @@
 # Hooks & Filters
 
-All FieldForge action and filter hooks, in the order they fire.
+All CtrlField action and filter hooks, in the order they fire.
 
 ---
 
 ## Pipeline hooks
 
-### `fieldforge/before_save`
+### `ctrlfield/before_save`
 
 Fires before the save pipeline processes a post's fields.
 
 ```php
-add_action('fieldforge/before_save', function (int $postId, array $rawPost): void {
+add_action('ctrlfield/before_save', function (int $postId, array $rawPost): void {
     // $rawPost is the raw $_POST data
 }, 10, 2);
 ```
 
-### `fieldforge/after_save`
+### `ctrlfield/after_save`
 
 Fires after all fields have been persisted.
 
 ```php
-add_action('fieldforge/after_save', function (int $postId, array $fields): void {
+add_action('ctrlfield/after_save', function (int $postId, array $fields): void {
     // $fields is the sanitized+persisted field map
 }, 10, 2);
 ```
 
-### `fieldforge/pipeline/input_fields`
+### `ctrlfield/pipeline/input_fields`
 
 Filter the incoming field payload before the pipeline validates and sanitizes it. Use to enforce field-level permissions or strip fields programmatically.
 
 ```php
-add_filter('fieldforge/pipeline/input_fields', function (array $fields, int $postId): array {
+add_filter('ctrlfield/pipeline/input_fields', function (array $fields, int $postId): array {
     unset($fields['internal_notes']); // always strip this key
     return $fields;
 }, 10, 2);
@@ -41,25 +41,25 @@ add_filter('fieldforge/pipeline/input_fields', function (array $fields, int $pos
 
 ## Component hooks
 
-### `fieldforge/component_registered`
+### `ctrlfield/component_registered`
 
 Fires once per component after `ComponentRegistry::discover()` registers it.
 
 ```php
-add_action('fieldforge/component_registered', function (
+add_action('ctrlfield/component_registered', function (
     string $key,
-    \FieldForge\Components\ComponentDefinition $def,
+    \CtrlField\Components\ComponentDefinition $def,
 ): void {
     // log or extend component metadata
 }, 10, 2);
 ```
 
-### `fieldforge/components_loaded`
+### `ctrlfield/components_loaded`
 
 Fires once after all components have been discovered.
 
 ```php
-add_action('fieldforge/components_loaded', function (): void {
+add_action('ctrlfield/components_loaded', function (): void {
     // safe to query ComponentRegistry::all() here
 });
 ```
@@ -68,33 +68,33 @@ add_action('fieldforge/components_loaded', function (): void {
 
 ## Component render filters
 
-### `fieldforge/component_data/{key}`
+### `ctrlfield/component_data/{key}`
 
 Filters the section data array before rendering a specific component. `{key}` is the component's layout key.
 
 ```php
-add_filter('fieldforge/component_data/hero', function (array $data): array {
+add_filter('ctrlfield/component_data/hero', function (array $data): array {
     $data['computed_cta'] = get_option('site_cta_fallback');
     return $data;
 });
 ```
 
-### `fieldforge/component_data`
+### `ctrlfield/component_data`
 
 Same as above but fires for every component. Receives the data and key.
 
 ```php
-add_filter('fieldforge/component_data', function (array $data, string $key): array {
+add_filter('ctrlfield/component_data', function (array $data, string $key): array {
     return $data;
 }, 10, 2);
 ```
 
-### `fieldforge/component_render/{key}`
+### `ctrlfield/component_render/{key}`
 
 Filters the rendered HTML of a specific component after rendering.
 
 ```php
-add_filter('fieldforge/component_render/cta', function (string $html, array $data): string {
+add_filter('ctrlfield/component_render/cta', function (string $html, array $data): string {
     return '<div class="section-wrapper">' . $html . '</div>';
 }, 10, 2);
 ```
@@ -103,12 +103,12 @@ add_filter('fieldforge/component_render/cta', function (string $html, array $dat
 
 ## FlexibleContent filter
 
-### `fieldforge/flexible_content/layouts`
+### `ctrlfield/flexible_content/layouts`
 
 Filters the resolved layout list before a FlexibleContent field registers itself.
 
 ```php
-add_filter('fieldforge/flexible_content/layouts', function (
+add_filter('ctrlfield/flexible_content/layouts', function (
     array $layouts,
     string $fieldKey,
 ): array {
@@ -124,12 +124,12 @@ add_filter('fieldforge/flexible_content/layouts', function (
 
 ## Blade hooks
 
-### `fieldforge/blade_ready`
+### `ctrlfield/blade_ready`
 
 Fires when the Blade compiler is ready. Use to register custom Blade directives.
 
 ```php
-add_action('fieldforge/blade_ready', function (\Illuminate\View\Compilers\BladeCompiler $compiler): void {
+add_action('ctrlfield/blade_ready', function (\Illuminate\View\Compilers\BladeCompiler $compiler): void {
     $compiler->directive('uppercase', function (string $expr): string {
         return "<?php echo strtoupper($expr); ?>";
     });

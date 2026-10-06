@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Registry;
+namespace CtrlField\Registry;
 
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Fields\Exceptions\UnresolvedCloneException;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Fields\Exceptions\UnresolvedCloneException;
 
 /**
  * Holds FieldGroups whose CloneField sources are not yet registered.

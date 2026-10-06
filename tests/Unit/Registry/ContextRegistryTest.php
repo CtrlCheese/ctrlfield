@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Registry;
+namespace CtrlField\Tests\Unit\Registry;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Builder\FieldGroup;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Builder\FieldGroup;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 class ContextRegistryTest extends TestCase

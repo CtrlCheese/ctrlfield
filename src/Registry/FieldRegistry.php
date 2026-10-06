@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Registry;
+namespace CtrlField\Registry;
 
-use FieldForge\Bootstrap\Exceptions\NotFoundException;
-use FieldForge\Builder\Exceptions\DuplicateGroupKeyException;
-use FieldForge\Builder\FieldGroup;
+use CtrlField\Bootstrap\Exceptions\NotFoundException;
+use CtrlField\Builder\Exceptions\DuplicateGroupKeyException;
+use CtrlField\Builder\FieldGroup;
 
 class FieldRegistry
 {

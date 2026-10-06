@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\DateTimeField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\DateTimeField;
 
 final class DateTimeRenderer extends AbstractRenderer
 {
@@ -21,7 +21,7 @@ final class DateTimeRenderer extends AbstractRenderer
         $roAttr  = $readOnly ? ' disabled' : '';
 
         return sprintf(
-            '<input type="datetime-local" id="%s" x-model="%s" class="ff-input ff-input--datetime"%s%s%s>',
+            '<input type="datetime-local" id="%s" x-model="%s" class="ctrlf-input ctrlf-input--datetime"%s%s%s>',
             $this->esc($this->inputId($field)),
             $this->esc($statePath),
             $minAttr,

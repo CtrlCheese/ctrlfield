@@ -1,6 +1,6 @@
 # ComponentRegistry
 
-Auto-discovers and registers page components from a directory. This is the foundation of FieldForge's page-builder system.
+Auto-discovers and registers page components from a directory. This is the foundation of CtrlField's page-builder system.
 
 ---
 
@@ -9,7 +9,7 @@ Auto-discovers and registers page components from a directory. This is the found
 ```php
 // functions.php
 add_action('init', function () {
-    \FieldForge\Components\ComponentRegistry::discover(
+    \CtrlField\Components\ComponentRegistry::discover(
         get_template_directory() . '/components/'
     );
 }, 5);
@@ -45,9 +45,9 @@ Each component's `fields.php` must return a `FlexLayout` instance:
 
 ```php
 // components/hero/fields.php
-use FieldForgePro\Fields\FlexLayout;
-use FieldForge\Fields\Field;
-use FieldForge\Fields\FieldPresets;
+use CtrlField\Pro\Fields\FlexLayout;
+use CtrlField\Fields\Field;
+use CtrlField\Fields\FieldPresets;
 
 return FlexLayout::make('hero')
     ->label('Hero Banner')
@@ -81,7 +81,7 @@ return [
 
 ```php
 // components/hero/functions.php
-add_filter('fieldforge/component_data/hero', function (array $data): array {
+add_filter('ctrlfield/component_data/hero', function (array $data): array {
     // Merge in computed or global values
     $data['site_name'] = get_bloginfo('name');
     return $data;
@@ -117,19 +117,19 @@ ComponentRegistry::reset(): void  // tests only
 ## Rendering in templates
 
 ```blade
-@foreach(fieldforge_get('page_builder') as $section)
-    @ffSection($section)
+@foreach(ctrlfield_get('page_builder') as $section)
+    @ctrlfSection($section)
 @endforeach
 ```
 
 ```twig
-{% for section in fieldforge_get('page_builder') %}
-    {{ ff_component(section)|raw }}
+{% for section in ctrlfield_get('page_builder') %}
+    {{ ctrlf_component(section)|raw }}
 {% endfor %}
 ```
 
 ```php
-foreach (fieldforge_get('page_builder') as $section) {
-    fieldforge_render_component($section);
+foreach (ctrlfield_get('page_builder') as $section) {
+    ctrlfield_render_component($section);
 }
 ```

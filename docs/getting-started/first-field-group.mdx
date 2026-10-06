@@ -6,12 +6,12 @@ This guide walks you through creating a field group for a `portfolio` post type,
 
 ## 1. Create the schema file
 
-Create `fieldforge/portfolio-details.php` in your theme:
+Create `ctrlfield/portfolio-details.php` in your theme:
 
 ```php
 <?php
 
-use FieldForge\Fields\Field;
+use CtrlField\Fields\Field;
 
 Field::group('portfolio_details')
     ->title('Portfolio Details')
@@ -49,7 +49,7 @@ In `functions.php`:
 
 ```php
 add_action('init', function () {
-    fieldforge_load_schemas(get_template_directory() . '/fieldforge/');
+    ctrlfield_load_schemas(get_template_directory() . '/ctrlfield/');
 }, 5);
 ```
 
@@ -70,10 +70,10 @@ Navigate to **Portfolio → Add New** in the WP admin. The "Portfolio Details" m
 <h1>{{ get_the_title() }}</h1>
 
 @php
-    $client    = fieldforge_get('client_name');
-    $type      = fieldforge_get('project_type');
-    $launched  = fieldforge_get('launch_date');  // \DateTime object
-    $hero      = fieldforge_get('hero_image');   // ['id', 'url', 'width', 'height', 'alt']
+    $client    = ctrlfield_get('client_name');
+    $type      = ctrlfield_get('project_type');
+    $launched  = ctrlfield_get('launch_date');  // \DateTime object
+    $hero      = ctrlfield_get('hero_image');   // ['id', 'url', 'width', 'height', 'alt']
 @endphp
 
 @if($hero)
@@ -91,8 +91,8 @@ Navigate to **Portfolio → Add New** in the WP admin. The "Portfolio Details" m
 
 ```php
 <?php
-$client = fieldforge_get('client_name');
-$hero   = fieldforge_get('hero_image'); // array with url, width, height, alt
+$client = ctrlfield_get('client_name');
+$hero   = ctrlfield_get('hero_image'); // array with url, width, height, alt
 ?>
 <p><?= esc_html($client) ?></p>
 ```
@@ -106,7 +106,7 @@ Because `client_name` has `->setIndex(true)`, you can use standard `WP_Query` me
 ```php
 $query = new WP_Query([
     'post_type'  => 'portfolio',
-    'meta_key'   => '_fieldforge_idx_client_name',
+    'meta_key'   => '_ctrlfield_idx_client_name',
     'meta_value' => 'Acme Corp',
 ]);
 ```

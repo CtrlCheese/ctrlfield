@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Types;
+namespace CtrlField\Fields\Types;
 
-use FieldForge\Enums\FieldType;
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\FieldDefinition;
 
 /**
  * Compound field storing { url, title, target } as a JSON object.

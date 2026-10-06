@@ -23,6 +23,13 @@ phpstan.neon
 # Dev-only scripts
 bin
 
+# Pro dev files (the Visual Builder ships only build/)
+pro/tests
+pro/phpunit.xml
+pro/assets/builder/src
+pro/assets/builder/package.json
+pro/assets/builder/package-lock.json
+
 # Docs e meta
 docs
 README.md

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Rest;
+namespace CtrlField\Rest;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Core\Pipeline\SavePipeline;
-use FieldForge\Data\FieldDataService;
-use FieldForge\Registry\ContextRegistry;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Core\Pipeline\SavePipeline;
+use CtrlField\Data\FieldDataService;
+use CtrlField\Registry\ContextRegistry;
 
 /**
- * REST controller for fieldforge/v1/post/{id}.
+ * REST controller for ctrlfield/v1/post/{id}.
  *
  * GET  → returns schema + stored values for the post.
  * POST → accepts a JSON payload, runs it through the save pipeline.
@@ -19,7 +19,7 @@ use FieldForge\Registry\ContextRegistry;
  */
 class FieldValueController
 {
-    public const NAMESPACE = 'fieldforge/v1';
+    public const NAMESPACE = 'ctrlfield/v1';
     public const ROUTE     = '/editor/post/(?P<id>\d+)';  // editor-only; public API is at /post/{id}
 
     public function register(): void

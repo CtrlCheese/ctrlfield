@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Fields\Renderers;
+namespace CtrlField\Tests\Unit\Fields\Renderers;
 
-use FieldForge\Fields\Field;
-use FieldForge\Fields\Renderers\CheckboxRenderer;
-use FieldForge\Fields\Renderers\EmailRenderer;
-use FieldForge\Fields\Renderers\GroupRenderer;
-use FieldForge\Fields\Renderers\ImageRenderer;
-use FieldForge\Fields\Renderers\NumberRenderer;
-use FieldForge\Fields\Renderers\RadioRenderer;
-use FieldForge\Fields\Renderers\RepeaterRenderer;
-use FieldForge\Fields\Renderers\SelectRenderer;
-use FieldForge\Fields\Renderers\TextareaRenderer;
-use FieldForge\Fields\Renderers\TextRenderer;
-use FieldForge\Fields\Renderers\UrlRenderer;
+use CtrlField\Fields\Field;
+use CtrlField\Fields\Renderers\CheckboxRenderer;
+use CtrlField\Fields\Renderers\EmailRenderer;
+use CtrlField\Fields\Renderers\GroupRenderer;
+use CtrlField\Fields\Renderers\ImageRenderer;
+use CtrlField\Fields\Renderers\NumberRenderer;
+use CtrlField\Fields\Renderers\RadioRenderer;
+use CtrlField\Fields\Renderers\RepeaterRenderer;
+use CtrlField\Fields\Renderers\SelectRenderer;
+use CtrlField\Fields\Renderers\TextareaRenderer;
+use CtrlField\Fields\Renderers\TextRenderer;
+use CtrlField\Fields\Renderers\UrlRenderer;
 use PHPUnit\Framework\TestCase;
 
 class RenderersTest extends TestCase
@@ -30,7 +30,7 @@ class RenderersTest extends TestCase
         // Single quotes in Alpine expressions must NOT be entity-encoded.
         $this->assertStringContainsString("x-model=\"adminState['client_name']\"", $html);
         $this->assertStringContainsString('type="text"', $html);
-        $this->assertStringContainsString('id="ff-client_name"', $html);
+        $this->assertStringContainsString('id="ctrlf-client_name"', $html);
     }
 
     public function test_textarea_renderer(): void
@@ -112,7 +112,7 @@ class RenderersTest extends TestCase
 
         $this->assertStringContainsString('openMediaLibrary', $html);
         $this->assertStringContainsString('x-model=', $html);
-        $this->assertStringContainsString('ff-image-field', $html);
+        $this->assertStringContainsString('ctrlf-image-field', $html);
     }
 
     public function test_group_renderer_renders_sub_fields(): void
@@ -125,7 +125,7 @@ class RenderersTest extends TestCase
             "adminState['info']"
         );
 
-        $this->assertStringContainsString('ff-group', $html);
+        $this->assertStringContainsString('ctrlf-group', $html);
         $this->assertStringContainsString("adminState['info']['first_name']", $html);
         $this->assertStringContainsString("adminState['info']['last_name']", $html);
         $this->assertStringContainsString('First Name', $html);

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Storage;
+namespace CtrlField\Storage;
 
-use FieldForge\Core\Cache\CacheAdapter;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Storage\Contracts\StorageAdapterInterface;
-use FieldForge\Storage\Drivers\OptionsDriverInterface;
+use CtrlField\Core\Cache\CacheAdapter;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Storage\Contracts\StorageAdapterInterface;
+use CtrlField\Storage\Drivers\OptionsDriverInterface;
 use InvalidArgumentException;
 
 class OptionsAdapter implements StorageAdapterInterface
 {
-    public const KEY_PREFIX         = '_fieldforge_options_';
+    public const KEY_PREFIX         = '_ctrlfield_options_';
     public const AUTOLOAD_THRESHOLD = 50 * 1024; // 50 KB
 
     public function __construct(
@@ -75,7 +75,7 @@ class OptionsAdapter implements StorageAdapterInterface
         if ($storedVersion < SchemaVersion::CURRENT) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log(sprintf(
-                    'FieldForge: schema_version mismatch on options page "%s" (stored: %d, current: %d). Run "wp fieldforge migrate".',
+                    'CtrlField: schema_version mismatch on options page "%s" (stored: %d, current: %d). Run "wp ctrlfield migrate".',
                     $id,
                     $storedVersion,
                     SchemaVersion::CURRENT,

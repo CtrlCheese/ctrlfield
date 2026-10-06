@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\REST;
+namespace CtrlField\Integrations\REST;
 
 /**
  * Read-only AJAX-search endpoints consumed by PostObjectField and TaxonomyField (Pro).
@@ -11,13 +11,13 @@ namespace FieldForge\Integrations\REST;
  * Excluded from PHPStan — references WP REST API classes.
  *
  * Routes:
- *   GET /wp-json/fieldforge/v1/search/posts?post_type=portfolio&search=acme&per_page=20&page=1
- *   GET /wp-json/fieldforge/v1/search/terms?taxonomy=category&search=design&per_page=20&hide_empty=1
- *   GET /wp-json/fieldforge/v1/search/users?search=john&roles=editor,author&per_page=20
+ *   GET /wp-json/ctrlfield/v1/search/posts?post_type=portfolio&search=acme&per_page=20&page=1
+ *   GET /wp-json/ctrlfield/v1/search/terms?taxonomy=category&search=design&per_page=20&hide_empty=1
+ *   GET /wp-json/ctrlfield/v1/search/users?search=john&roles=editor,author&per_page=20
  */
 final class SearchController
 {
-    public const NAMESPACE = 'fieldforge/v1';
+    public const NAMESPACE = 'ctrlfield/v1';
 
     public function register(): void
     {

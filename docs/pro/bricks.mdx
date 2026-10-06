@@ -1,49 +1,49 @@
 # Bricks Integration
 
-*(FieldForge Pro)*
+*(CtrlField Pro)*
 
-Exposes FieldForge field values as Bricks Dynamic Data tags.
+Exposes CtrlField field values as Bricks Dynamic Data tags.
 
 ---
 
 ## Requirements
 
 - Bricks Builder (any version with Dynamic Data API)
-- FieldForge Pro active
+- CtrlField Pro active
 
 ---
 
 ## Usage
 
-FieldForge fields are available in Bricks as `{fieldforge:field_key}` tags.
+CtrlField fields are available in Bricks as `{ctrlfield:field_key}` tags.
 
 **In Bricks text/heading elements:**
 ```
-{fieldforge:client_name}
+{ctrlfield:client_name}
 ```
 
 **In image elements:**
 ```
-{fieldforge:hero_image}
+{ctrlfield:hero_image}
 ```
 (When the field has `returnFormat('url')`, the URL is returned directly. Otherwise the attachment URL is fetched from the stored ID.)
 
 **In links:**
 ```
-{fieldforge:website}
+{ctrlfield:website}
 ```
 
 ---
 
 ## Tag format
 
-All FieldForge tags use the prefix `fieldforge:`:
+All CtrlField tags use the prefix `ctrlfield:`:
 
 ```
-{fieldforge:field_key}
+{ctrlfield:field_key}
 ```
 
-Tags are resolved via `fieldforge_get($fieldKey, $postId)` in the context of the currently rendered post.
+Tags are resolved via `ctrlfield_get($fieldKey, $postId)` in the context of the currently rendered post.
 
 ---
 

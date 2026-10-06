@@ -46,13 +46,13 @@ Field::wysiwyg('content')
 Always use `{!! !!}` (Blade) or `|raw` (Twig) since the value is HTML:
 
 ```blade
-{!! fieldforge_get('content') !!}
+{!! ctrlfield_get('content') !!}
 ```
 
 ```twig
-{{ fieldforge_get('content')|raw }}
+{{ ctrlfield_get('content')|raw }}
 ```
 
 ```php
-echo wp_kses_post(fieldforge_get('content'));
+echo wp_kses_post(ctrlfield_get('content'));
 ```

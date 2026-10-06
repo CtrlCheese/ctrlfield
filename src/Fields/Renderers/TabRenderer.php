@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
+use CtrlField\Fields\FieldDefinition;
 
 /**
  * Tab fields are rendered entirely by MetaBoxRenderer's tab-grouping logic.

@@ -5,9 +5,9 @@ import { PanelBody, Spinner, Notice }                from '@wordpress/components
 import apiFetch                                      from '@wordpress/api-fetch';
 import { FieldInput }                                from './FieldInput';
 
-const { restBase, nonce, postType } = window.fieldforgeGutenberg ?? {};
+const { restBase, nonce, postType } = window.ctrlfieldGutenberg ?? {};
 
-export function FieldForgePanel({ postId }) {
+export function CtrlFieldPanel({ postId }) {
     const [schema, setSchema]   = useState([]);
     const [values, setValues]   = useState({});
     const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ export function FieldForgePanel({ postId }) {
                 setSchema(s ?? []);
                 setValues(v ?? {});
             })
-            .catch(() => setNotice({ type: 'error', message: 'Could not load FieldForge data.' }))
+            .catch(() => setNotice({ type: 'error', message: 'Could not load CtrlField data.' }))
             .finally(() => setLoading(false));
     }, [postId]);
 
@@ -56,7 +56,7 @@ export function FieldForgePanel({ postId }) {
             headers: { 'X-WP-Nonce': nonce },
             data:   { payload: JSON.stringify(values) },
         })
-            .then(() => setNotice({ type: 'success', message: 'FieldForge data saved.' }))
+            .then(() => setNotice({ type: 'success', message: 'CtrlField data saved.' }))
             .catch(err => {
                 const msg = err?.message ?? 'Save failed.';
                 setNotice({ type: 'error', message: msg });

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\SiteHealth;
+namespace CtrlField\Admin\SiteHealth;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Registry\FieldRegistry;
 
 /**
- * Registers FieldForge data in WordPress Site Health → Info panel.
+ * Registers CtrlField data in WordPress Site Health → Info panel.
  */
 final class SiteHealthServiceProvider extends ServiceProvider
 {
@@ -33,19 +33,19 @@ final class SiteHealthServiceProvider extends ServiceProvider
             $fieldCount += count($g->getFields());
         }
 
-        $proStatus = defined('FIELDFORGE_PRO_VERSION')
-            ? 'Active (v' . FIELDFORGE_PRO_VERSION . ')'
+        $proStatus = defined('CTRLFIELD_PRO_VERSION')
+            ? 'Active (v' . CTRLFIELD_PRO_VERSION . ')'
             : 'Not installed';
 
-        $info['fieldforge'] = [
-            'label'  => 'FieldForge',
+        $info['ctrlfield'] = [
+            'label'  => 'CtrlField',
             'fields' => [
-                'version'     => ['label' => 'Version',                    'value' => defined('FIELDFORGE_VERSION') ? FIELDFORGE_VERSION : 'unknown'],
+                'version'     => ['label' => 'Version',                    'value' => defined('CTRLFIELD_VERSION') ? CTRLFIELD_VERSION : 'unknown'],
                 'php_min'     => ['label' => 'PHP Requirement',            'value' => '8.2+'],
                 'wp_min'      => ['label' => 'WP Requirement',             'value' => '6.4+'],
                 'group_count' => ['label' => 'Registered field groups',    'value' => count($groups)],
                 'field_count' => ['label' => 'Total fields registered',    'value' => $fieldCount],
-                'pro_status'  => ['label' => 'FieldForge Pro',             'value' => $proStatus],
+                'pro_status'  => ['label' => 'CtrlField Pro',             'value' => $proStatus],
             ],
         ];
 

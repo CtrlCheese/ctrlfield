@@ -5,30 +5,31 @@
 | Requirement | Minimum |
 |---|---|
 | PHP | 8.2+ |
-| WordPress | 6.4+ |
+| WordPress | 6.5+ |
 | Composer | 2.x |
 
 ---
 
-## Install FieldForge Core (Free)
+## Install CtrlField
+
+CtrlField is a single plugin. Free and Pro are the same install — a Pro license unlocks the Pro features.
 
 **Via Composer:**
 
 ```bash
-composer require fieldforge/fieldforge
+composer require ctrlcheese/ctrlfield
 ```
 
-**Via WordPress.org:** Search for "FieldForge" in **Plugins → Add New**.
+**Via zip:** download `ctrlfield.zip` from [ctrlcheese.de](https://ctrlcheese.de), then **Plugins → Add New → Upload Plugin**.
 
 ---
 
-## Install FieldForge Pro
+## Unlock Pro
 
-1. Purchase at **fieldforge.io/pricing**
-2. Download `fieldforge-pro.zip` from your account area
-3. In WordPress: **Plugins → Add New → Upload Plugin**
-4. Upload the zip and click **Activate**
-5. Enter your license key under **FieldForge → Pro License**
+1. Purchase a license at [ctrlcheese.de](https://ctrlcheese.de)
+2. Enter your license key under **CtrlField → Pro License**
+
+No second plugin to install: flexible content, relational fields, the Visual Builder and the integrations switch on as soon as the license is valid.
 
 ---
 
@@ -38,7 +39,7 @@ After activation, load your field schemas from `functions.php`:
 
 ```php
 add_action('init', function () {
-    fieldforge_load_schemas(get_template_directory() . '/fieldforge/');
+    ctrlfield_load_schemas(get_template_directory() . '/ctrlfield/');
 }, 5);
 ```
 
@@ -48,7 +49,7 @@ Any `.php` file inside that directory is auto-loaded. Each file should register 
 
 ## Verify the installation
 
-Navigate to **FieldForge → Schema Inspector** in the WP admin. If your groups appear there, the plugin is working correctly.
+Navigate to **CtrlField → Schema Inspector** in the WP admin. If your groups appear there, the plugin is working correctly.
 
 ---
 

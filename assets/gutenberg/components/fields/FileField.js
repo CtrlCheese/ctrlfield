@@ -5,7 +5,7 @@ export function FileField({ field, value, onChange }) {
     const attachmentId = Number(value) || 0;
 
     return (
-        <div className="ff-gb-file-field">
+        <div className="ctrlf-gb-file-field">
             <p style={ { fontSize: '11px', fontWeight: 500, marginBottom: 4 } }>
                 { field.label || field.key }
             </p>

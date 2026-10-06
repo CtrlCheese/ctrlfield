@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Fields\Renderers;
+namespace CtrlField\Fields\Renderers;
 
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Fields\Types\LinkField;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\LinkField;
 
 final class LinkRenderer extends AbstractRenderer
 {
@@ -17,14 +17,14 @@ final class LinkRenderer extends AbstractRenderer
         $id         = $this->esc($this->inputId($field));
 
         $urlInput = sprintf(
-            '<input type="url" id="%s-url" x-model="%s.url" placeholder="https://" class="ff-input ff-input--url"%s>',
+            '<input type="url" id="%s-url" x-model="%s.url" placeholder="https://" class="ctrlf-input ctrlf-input--url"%s>',
             $id,
             $this->esc($statePath),
             $roAttr,
         );
 
         $titleInput = sprintf(
-            '<input type="text" id="%s-title" x-model="%s.title" placeholder="Link text" class="ff-input ff-input--text"%s>',
+            '<input type="text" id="%s-title" x-model="%s.title" placeholder="Link text" class="ctrlf-input ctrlf-input--text"%s>',
             $id,
             $this->esc($statePath),
             $roAttr,
@@ -33,7 +33,7 @@ final class LinkRenderer extends AbstractRenderer
         $targetToggle = '';
         if ($showTarget) {
             $targetToggle = sprintf(
-                '<label class="ff-link-target"><input type="checkbox" %s x-bind:checked="%s.target === \'_blank\'" @change="%s.target = $event.target.checked ? \'_blank\' : \'_self\'"> Open in new tab</label>',
+                '<label class="ctrlf-link-target"><input type="checkbox" %s x-bind:checked="%s.target === \'_blank\'" @change="%s.target = $event.target.checked ? \'_blank\' : \'_self\'"> Open in new tab</label>',
                 $roAttr,
                 $this->esc($statePath),
                 $this->esc($statePath),
@@ -41,7 +41,7 @@ final class LinkRenderer extends AbstractRenderer
         }
 
         return sprintf(
-            '<div class="ff-link-wrap"><div class="ff-link-row ff-link-row--url">%s</div><div class="ff-link-row ff-link-row--title">%s</div>%s</div>',
+            '<div class="ctrlf-link-wrap"><div class="ctrlf-link-row ctrlf-link-row--url">%s</div><div class="ctrlf-link-row ctrlf-link-row--title">%s</div>%s</div>',
             $urlInput,
             $titleInput,
             $targetToggle,

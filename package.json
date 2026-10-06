@@ -1,11 +1,11 @@
 {
-  "name": "fieldforge",
+  "name": "ctrlfield",
   "private": true,
   "scripts": {
     "build":          "npm run build:admin && npm run build:gutenberg",
-    "build:admin":    "vite build && npx @tailwindcss/cli -i assets/admin/src/index.css -o assets/admin/fieldforge.css --minify",
+    "build:admin":    "vite build && npx @tailwindcss/cli -i assets/admin/src/index.css -o assets/admin/ctrlfield.css --minify",
     "build:gutenberg":"wp-scripts build assets/gutenberg/index.js --output-path=assets/gutenberg/dist",
-    "dev:admin":      "concurrently \"vite build --watch\" \"npx @tailwindcss/cli -i assets/admin/src/index.css -o assets/admin/fieldforge.css --watch\"",
+    "dev:admin":      "concurrently \"vite build --watch\" \"npx @tailwindcss/cli -i assets/admin/src/index.css -o assets/admin/ctrlfield.css --watch\"",
     "dev:gutenberg":  "wp-scripts start assets/gutenberg/index.js --output-path=assets/gutenberg/dist",
     "test:js":        "vitest run",
     "test:js:watch":  "vitest",

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Integration;
+namespace CtrlField\Tests\Integration;
 
-use FieldForge\Core\Cache\CacheAdapter;
-use FieldForge\Storage\Drivers\WpPostMetaDriver;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Core\Cache\CacheAdapter;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
+use CtrlField\Storage\PostMetaAdapter;
 use WP_UnitTestCase;
 
 /**
- * Integration: save_post hook writes field data to _fieldforge_data.
+ * Integration: save_post hook writes field data to _ctrlfield_data.
  *
  * Run with:
  *   npx @wordpress/env run tests-cli vendor/bin/phpunit \
@@ -29,14 +29,14 @@ class SavePostHookTest extends WP_UnitTestCase
     }
 
     // -------------------------------------------------------------------------
-    // Acceptance: save_post writes to _fieldforge_data
+    // Acceptance: save_post writes to _ctrlfield_data
     // -------------------------------------------------------------------------
 
     public function test_save_post_persists_field_payload(): void
     {
-        $postId = $this->factory->post->create(['post_type' => 'ff_test_post']);
+        $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
-        // Build a valid fieldforge_payload
+        // Build a valid ctrlfield_payload
         $payload = json_encode([
             'title_extra' => 'Integration Test',
             'score'       => 42,
@@ -44,8 +44,8 @@ class SavePostHookTest extends WP_UnitTestCase
         ]);
 
         // Simulate the form POST — set up $_POST with nonce and payload
-        $_POST['fieldforge_nonce']   = wp_create_nonce('fieldforge_save_' . $postId);
-        $_POST['fieldforge_payload'] = $payload;
+        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['ctrlfield_payload'] = $payload;
 
         // Trigger save_post (MetaBoxServiceProvider has this hooked)
         do_action('save_post', $postId, get_post($postId), true);
@@ -53,26 +53,26 @@ class SavePostHookTest extends WP_UnitTestCase
         CacheAdapter::flush();
         $stored = $this->adapter->load($postId);
 
-        $this->assertIsArray($stored, '_fieldforge_data should contain an array after save.');
+        $this->assertIsArray($stored, '_ctrlfield_data should contain an array after save.');
         $this->assertSame('Integration Test', $stored['title_extra']);
         $this->assertSame(42, $stored['score']);
     }
 
     // -------------------------------------------------------------------------
-    // Acceptance: stored in _fieldforge_data, NOT a separate field per key
+    // Acceptance: stored in _ctrlfield_data, NOT a separate field per key
     // -------------------------------------------------------------------------
 
     public function test_data_stored_in_single_json_blob_key(): void
     {
-        $postId = $this->factory->post->create(['post_type' => 'ff_test_post']);
+        $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
-        $_POST['fieldforge_nonce']   = wp_create_nonce('fieldforge_save_' . $postId);
-        $_POST['fieldforge_payload'] = json_encode(['title_extra' => 'Blob Test', 'score' => 0, 'hidden_field' => '']);
+        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Blob Test', 'score' => 0, 'hidden_field' => '']);
 
         do_action('save_post', $postId, get_post($postId), true);
 
         $rawMeta = get_post_meta($postId, PostMetaAdapter::META_KEY, true);
-        $this->assertIsString($rawMeta, '_fieldforge_data must be a single JSON string.');
+        $this->assertIsString($rawMeta, '_ctrlfield_data must be a single JSON string.');
 
         $decoded = json_decode($rawMeta, true);
         $this->assertArrayHasKey('schema_version', $decoded);
@@ -85,10 +85,10 @@ class SavePostHookTest extends WP_UnitTestCase
 
     public function test_indexed_field_written_to_idx_meta_key(): void
     {
-        $postId = $this->factory->post->create(['post_type' => 'ff_test_post']);
+        $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
-        $_POST['fieldforge_nonce']   = wp_create_nonce('fieldforge_save_' . $postId);
-        $_POST['fieldforge_payload'] = json_encode(['title_extra' => 'Indexed', 'score' => 99, 'hidden_field' => '']);
+        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Indexed', 'score' => 99, 'hidden_field' => '']);
 
         do_action('save_post', $postId, get_post($postId), true);
 
@@ -102,15 +102,15 @@ class SavePostHookTest extends WP_UnitTestCase
 
     public function test_wp_query_meta_query_finds_indexed_field(): void
     {
-        $postId = $this->factory->post->create(['post_type' => 'ff_test_post']);
+        $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
-        $_POST['fieldforge_nonce']   = wp_create_nonce('fieldforge_save_' . $postId);
-        $_POST['fieldforge_payload'] = json_encode(['title_extra' => 'Queryable', 'score' => 77, 'hidden_field' => '']);
+        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Queryable', 'score' => 77, 'hidden_field' => '']);
 
         do_action('save_post', $postId, get_post($postId), true);
 
         $query = new \WP_Query([
-            'post_type'  => 'ff_test_post',
+            'post_type'  => 'ctrlf_test_post',
             'meta_query' => [[
                 'key'     => PostMetaAdapter::INDEX_KEY_PREFIX . 'score',
                 'value'   => 77,
@@ -129,11 +129,11 @@ class SavePostHookTest extends WP_UnitTestCase
 
     public function test_hidden_field_value_preserved_on_save(): void
     {
-        $postId = $this->factory->post->create(['post_type' => 'ff_test_post']);
+        $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
         // First save: include hidden_field value
-        $_POST['fieldforge_nonce']   = wp_create_nonce('fieldforge_save_' . $postId);
-        $_POST['fieldforge_payload'] = json_encode([
+        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['ctrlfield_payload'] = json_encode([
             'title_extra'  => 'Preserving',
             'score'        => 0,
             'hidden_field' => 'Secret value',
@@ -143,8 +143,8 @@ class SavePostHookTest extends WP_UnitTestCase
         CacheAdapter::flush();
 
         // Second save: hidden_field ABSENT from payload (field is hidden in UI)
-        $_POST['fieldforge_nonce']   = wp_create_nonce('fieldforge_save_' . $postId);
-        $_POST['fieldforge_payload'] = json_encode([
+        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['ctrlfield_payload'] = json_encode([
             'title_extra' => 'Updated',
             'score'       => 1,
             // hidden_field intentionally omitted
@@ -160,7 +160,7 @@ class SavePostHookTest extends WP_UnitTestCase
 
     public function tearDown(): void
     {
-        unset($_POST['fieldforge_nonce'], $_POST['fieldforge_payload']);
+        unset($_POST['ctrlfield_nonce'], $_POST['ctrlfield_payload']);
         parent::tearDown();
     }
 }

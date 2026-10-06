@@ -9,16 +9,16 @@ An offline license is a JWT token that validates entirely on-device — no API c
 Define the constant in `wp-config.php`:
 
 ```php
-define('FIELDFORGE_OFFLINE_TOKEN', 'your-jwt-token-here');
+define('CTRLFIELD_OFFLINE_TOKEN', 'your-jwt-token-here');
 ```
 
-FieldForge detects this constant at boot and skips the LemonSqueezy validation flow. The license settings page shows **"Active (Offline)"**.
+CtrlField detects this constant at boot and skips the LemonSqueezy validation flow. The license settings page shows **"Active (Offline)"**.
 
 ---
 
 ## Obtaining an offline token
 
-Contact support at fieldforge.io/support with your purchase email. Offline tokens are issued on request to Pro subscribers.
+Contact support at ctrlcheese.de/support with your purchase email. Offline tokens are issued on request to Pro subscribers.
 
 Tokens are RSA-signed JWTs and cannot be forged. Each token encodes:
 
@@ -30,9 +30,9 @@ Tokens are RSA-signed JWTs and cannot be forged. Each token encodes:
 
 ## Token validation
 
-When `FIELDFORGE_OFFLINE_TOKEN` is defined:
+When `CTRLFIELD_OFFLINE_TOKEN` is defined:
 
-1. FieldForge decodes the JWT using the bundled public key
+1. CtrlField decodes the JWT using the bundled public key
 2. Verifies the `domain` claim matches `home_url()`
 3. Checks the `exp` claim has not passed
 4. Sets the tier from the `tier` claim

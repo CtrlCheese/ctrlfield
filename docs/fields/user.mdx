@@ -61,7 +61,7 @@ Field::user('reviewers')
 
 ```blade
 @php
-    $userId = fieldforge_get('assigned_to');
+    $userId = ctrlfield_get('assigned_to');
     $user   = $userId ? get_userdata($userId) : null;
 @endphp
 
@@ -73,7 +73,7 @@ Field::user('reviewers')
 **Multiple users:**
 
 ```blade
-@foreach(fieldforge_get('reviewers') as $uid)
+@foreach(ctrlfield_get('reviewers') as $uid)
     @php $u = get_userdata($uid) @endphp
     <span>{{ $u->display_name }}</span>
 @endforeach

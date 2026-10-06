@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Bootstrap;
+namespace CtrlField\Bootstrap;
 
-use FieldForge\Registry\PendingCloneRegistry;
-use FieldForge\Schema\SchemaLoader;
+use CtrlField\Registry\PendingCloneRegistry;
+use CtrlField\Schema\SchemaLoader;
 use RuntimeException;
 
 class BootManager
@@ -36,7 +36,7 @@ class BootManager
     public static function container(): ServiceContainer
     {
         if (self::$container === null) {
-            throw new RuntimeException('FieldForge has not been booted. Ensure plugins_loaded has fired.');
+            throw new RuntimeException('CtrlField has not been booted. Ensure plugins_loaded has fired.');
         }
 
         return self::$container;
@@ -51,24 +51,24 @@ class BootManager
     private static function providers(): array
     {
         return [
-            \FieldForge\Integrations\WordPress\WordPressServiceProvider::class,
-            \FieldForge\Admin\MetaBox\MetaBoxServiceProvider::class,
-            \FieldForge\Admin\Gutenberg\GutenbergServiceProvider::class,
-            \FieldForge\Admin\UserMeta\UserMetaServiceProvider::class,
-            \FieldForge\Admin\Comment\CommentMetaServiceProvider::class,
-            \FieldForge\Admin\Taxonomy\TaxonomyMetaServiceProvider::class,
-            \FieldForge\Admin\Columns\ColumnsServiceProvider::class,
-            \FieldForge\Admin\QuickEdit\QuickEditServiceProvider::class,
-            \FieldForge\Admin\Attachment\AttachmentModalServiceProvider::class,
-            \FieldForge\Admin\NavMenu\NavMenuServiceProvider::class,
-            \FieldForge\Admin\Dashboard\DashboardWidgetServiceProvider::class,
-            \FieldForge\Admin\Inspector\InspectorServiceProvider::class,
-            \FieldForge\Admin\SiteHealth\SiteHealthServiceProvider::class,
-            \FieldForge\Integrations\Blade\ViewServiceProvider::class,
-            \FieldForge\Integrations\REST\RestServiceProvider::class,
-            \FieldForge\Integrations\CLI\CliServiceProvider::class,
-            \FieldForge\Integrations\Timber\TimberServiceProvider::class,
-            \FieldForge\Integrations\Translation\TranslationServiceProvider::class,
+            \CtrlField\Integrations\WordPress\WordPressServiceProvider::class,
+            \CtrlField\Admin\MetaBox\MetaBoxServiceProvider::class,
+            \CtrlField\Admin\Gutenberg\GutenbergServiceProvider::class,
+            \CtrlField\Admin\UserMeta\UserMetaServiceProvider::class,
+            \CtrlField\Admin\Comment\CommentMetaServiceProvider::class,
+            \CtrlField\Admin\Taxonomy\TaxonomyMetaServiceProvider::class,
+            \CtrlField\Admin\Columns\ColumnsServiceProvider::class,
+            \CtrlField\Admin\QuickEdit\QuickEditServiceProvider::class,
+            \CtrlField\Admin\Attachment\AttachmentModalServiceProvider::class,
+            \CtrlField\Admin\NavMenu\NavMenuServiceProvider::class,
+            \CtrlField\Admin\Dashboard\DashboardWidgetServiceProvider::class,
+            \CtrlField\Admin\Inspector\InspectorServiceProvider::class,
+            \CtrlField\Admin\SiteHealth\SiteHealthServiceProvider::class,
+            \CtrlField\Integrations\Blade\ViewServiceProvider::class,
+            \CtrlField\Integrations\REST\RestServiceProvider::class,
+            \CtrlField\Integrations\CLI\CliServiceProvider::class,
+            \CtrlField\Integrations\Timber\TimberServiceProvider::class,
+            \CtrlField\Integrations\Translation\TranslationServiceProvider::class,
         ];
     }
 
@@ -93,12 +93,12 @@ class BootManager
     {
         add_action('init', static function (): void {
             // 1. Constant-defined path (wp-config.php / wp-env config).
-            $paths = defined('FIELDFORGE_SCHEMA_PATH') ? [(string) FIELDFORGE_SCHEMA_PATH] : [];
+            $paths = defined('CTRLFIELD_SCHEMA_PATH') ? [(string) CTRLFIELD_SCHEMA_PATH] : [];
 
             // 2. Filter — themes/plugins add their own schema directories:
-            //    add_filter('fieldforge/schema_paths', fn($p) => [...$p, get_template_directory() . '/fieldforge/']);
+            //    add_filter('ctrlfield/schema_paths', fn($p) => [...$p, get_template_directory() . '/ctrlfield/']);
             /** @var string[] $paths */
-            $paths = (array) apply_filters('fieldforge/schema_paths', $paths);
+            $paths = (array) apply_filters('ctrlfield/schema_paths', $paths);
 
             foreach ($paths as $path) {
                 if (is_string($path) && $path !== '') {
@@ -114,9 +114,9 @@ class BootManager
                     foreach ($groups as $group) {
                         if (defined('WP_DEBUG') && WP_DEBUG) {
                             error_log(
-                                "FieldForge: Group '{$group->getKey()}' has an unresolved CloneField "
+                                "CtrlField: Group '{$group->getKey()}' has an unresolved CloneField "
                                 . "waiting for source '{$sourceKey}'. "
-                                . 'Run `wp fieldforge validate` for details.'
+                                . 'Run `wp ctrlfield validate` for details.'
                             );
                         }
                     }

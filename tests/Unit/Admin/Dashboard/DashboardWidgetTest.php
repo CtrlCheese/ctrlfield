@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Admin\Dashboard;
+namespace CtrlField\Tests\Unit\Admin\Dashboard;
 
-use FieldForge\Bootstrap\ServiceContainer;
-use FieldForge\Admin\Dashboard\DashboardWidgetServiceProvider;
-use FieldForge\Builder\DashboardWidgetConfig;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Bootstrap\ServiceContainer;
+use CtrlField\Admin\Dashboard\DashboardWidgetServiceProvider;
+use CtrlField\Builder\DashboardWidgetConfig;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 class DashboardWidgetTest extends TestCase

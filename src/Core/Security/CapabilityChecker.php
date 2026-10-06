@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Security;
+namespace CtrlField\Core\Security;
 
-use FieldForge\Core\Security\Contracts\CapabilityCheckerInterface;
+use CtrlField\Core\Security\Contracts\CapabilityCheckerInterface;
 
 /**
  * Production wrapper around current_user_can().

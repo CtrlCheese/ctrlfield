@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\QuickEdit;
+namespace CtrlField\Admin\QuickEdit;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Builder\AdminContext;
-use FieldForge\Core\Pipeline\SavePipeline;
-use FieldForge\Fields\FieldDefinition;
-use FieldForge\Registry\ContextRegistry;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Core\Pipeline\SavePipeline;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Registry\ContextRegistry;
 
 /**
  * Registers Quick Edit and Bulk Edit UI and save hooks.
  *
- * Quick Edit inputs use the 'ff_qe_{key}' name prefix to avoid collisions.
- * On save_post, these values are merged into a synthetic fieldforge_payload
+ * Quick Edit inputs use the 'ctrlf_qe_{key}' name prefix to avoid collisions.
+ * On save_post, these values are merged into a synthetic ctrlfield_payload
  * and passed through the existing SavePipeline (sans nonce — WP provides
  * the inline edit nonce via _inline_edit).
  *
@@ -33,12 +33,12 @@ final class QuickEditServiceProvider extends ServiceProvider
         add_action('quick_edit_custom_box', [$this, 'renderQuickEditFields'], 10, 2);
         add_action('bulk_edit_custom_box',  [$this, 'renderBulkEditFields'],  10, 2);
         add_action('save_post',             [$this, 'saveQuickEditFields']);
-        add_action('wp_ajax_fieldforge_bulk_edit', [$this, 'saveBulkEditFields']);
+        add_action('wp_ajax_ctrlfield_bulk_edit', [$this, 'saveBulkEditFields']);
     }
 
     public function renderQuickEditFields(string $columnName, string $postType): void
     {
-        if (! str_starts_with($columnName, 'ff_')) {
+        if (! str_starts_with($columnName, 'ctrlf_')) {
             return;
         }
 
@@ -52,7 +52,7 @@ final class QuickEditServiceProvider extends ServiceProvider
 
     public function renderBulkEditFields(string $columnName, string $postType): void
     {
-        if (! str_starts_with($columnName, 'ff_')) {
+        if (! str_starts_with($columnName, 'ctrlf_')) {
             return;
         }
 
@@ -96,10 +96,10 @@ final class QuickEditServiceProvider extends ServiceProvider
             return;
         }
 
-        // Pass the FieldForge nonce from POST so NonceValidationStage can verify it.
+        // Pass the CtrlField nonce from POST so NonceValidationStage can verify it.
         $rawPost = [
-            'fieldforge_payload' => $jsonPayload,
-            '_fieldforge_nonce'  => $_POST['_fieldforge_nonce'] ?? '',
+            'ctrlfield_payload' => $jsonPayload,
+            '_ctrlfield_nonce'  => $_POST['_ctrlfield_nonce'] ?? '',
         ];
 
         SavePipeline::run($postId, $rawPost, contextOverride: new AdminContext(postType: $postType));
@@ -107,7 +107,7 @@ final class QuickEditServiceProvider extends ServiceProvider
 
     public function saveBulkEditFields(): void
     {
-        check_ajax_referer('fieldforge_bulk_edit', 'nonce');
+        check_ajax_referer('ctrlfield_bulk_edit', 'nonce');
 
         $postIds = isset($_POST['post_ids']) && is_array($_POST['post_ids'])
             ? array_map('absint', $_POST['post_ids'])
@@ -133,7 +133,7 @@ final class QuickEditServiceProvider extends ServiceProvider
                 continue;
             }
 
-            $rawPost = ['fieldforge_payload' => $jsonPayload];
+            $rawPost = ['ctrlfield_payload' => $jsonPayload];
             SavePipeline::run($postId, $rawPost, contextOverride: new AdminContext(postType: $postType));
             $updated++;
         }
@@ -190,7 +190,7 @@ final class QuickEditServiceProvider extends ServiceProvider
     }
 
     /**
-     * Extracts 'ff_qe_*' values from $_POST into a plain key→value map.
+     * Extracts 'ctrlf_qe_*' values from $_POST into a plain key→value map.
      *
      * @return array<string, mixed>
      */
@@ -199,11 +199,11 @@ final class QuickEditServiceProvider extends ServiceProvider
         $fields = [];
 
         foreach ($_POST as $name => $value) {
-            if (! str_starts_with((string) $name, 'ff_qe_')) {
+            if (! str_starts_with((string) $name, 'ctrlf_qe_')) {
                 continue;
             }
 
-            $key = substr((string) $name, 6); // strip 'ff_qe_'
+            $key = substr((string) $name, 6); // strip 'ctrlf_qe_'
             if ($key === '') {
                 continue;
             }

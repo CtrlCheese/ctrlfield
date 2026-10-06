@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\Inspector;
+namespace CtrlField\Admin\Inspector;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Data\CsvImporter;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Data\CsvImporter;
+use CtrlField\Registry\FieldRegistry;
 
 final class InspectorServiceProvider extends ServiceProvider
 {
@@ -22,14 +22,14 @@ final class InspectorServiceProvider extends ServiceProvider
             (new SchemaInspectorPage())->register();
         });
 
-        add_action('wp_ajax_fieldforge_import_csv', [$this, 'handleCsvImport']);
+        add_action('wp_ajax_ctrlfield_import_csv', [$this, 'handleCsvImport']);
     }
 
     public function handleCsvImport(): void
     {
         $group = isset($_POST['group']) ? sanitize_key((string) $_POST['group']) : '';
 
-        if (! check_ajax_referer('fieldforge_csv_import_' . $group, 'nonce', false)) {
+        if (! check_ajax_referer('ctrlfield_csv_import_' . $group, 'nonce', false)) {
             wp_send_json_error(['message' => 'Security check failed.'], 403);
             return;
         }

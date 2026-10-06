@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\Translation;
+namespace CtrlField\Integrations\Translation;
 
-use FieldForge\Builder\AdminContext;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Storage\Drivers\WpPostMetaDriver;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
+use CtrlField\Storage\PostMetaAdapter;
 
 /**
  * Handles synchronisation of shared (non-translatable) fields across translations,
- * and copies _fieldforge_data when a new translation is created.
+ * and copies _ctrlfield_data when a new translation is created.
  *
  * Excluded from PHPStan — references WP functions.
  */
@@ -26,7 +26,7 @@ final class TranslationSyncHandler
     private static array $saving = [];
 
     /**
-     * Fired on `fieldforge/after_save`.
+     * Fired on `ctrlfield/after_save`.
      * Writes shared field values to all sibling translations.
      *
      * @param array<string, mixed> $savedFields  The flat fields array from PipelineContext::$fields.
@@ -75,7 +75,7 @@ final class TranslationSyncHandler
     }
 
     /**
-     * Fired on `pll_after_copy` — copies _fieldforge_data when Polylang creates a translation.
+     * Fired on `pll_after_copy` — copies _ctrlfield_data when Polylang creates a translation.
      */
     public function onPolylangCopy(int $fromId, bool $isSyncEnabled, int $toId): void
     {
@@ -83,7 +83,7 @@ final class TranslationSyncHandler
     }
 
     /**
-     * Fired on `wpml_after_copy_meta` — copies _fieldforge_data when WPML creates a translation.
+     * Fired on `wpml_after_copy_meta` — copies _ctrlfield_data when WPML creates a translation.
      *
      * @param array<string, mixed> $postedData
      */

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Integrations\Translation;
+namespace CtrlField\Integrations\Translation;
 
 /**
  * Abstraction layer over WPML and Polylang.

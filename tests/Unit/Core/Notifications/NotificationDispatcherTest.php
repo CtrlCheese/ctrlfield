@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Tests\Unit\Core\Notifications;
+namespace CtrlField\Tests\Unit\Core\Notifications;
 
-use FieldForge\Core\Notifications\NotificationDispatcher;
-use FieldForge\Fields\Field;
-use FieldForge\Registry\FieldRegistry;
+use CtrlField\Core\Notifications\NotificationDispatcher;
+use CtrlField\Fields\Field;
+use CtrlField\Registry\FieldRegistry;
 use PHPUnit\Framework\TestCase;
 
 class NotificationDispatcherTest extends TestCase
@@ -14,13 +14,13 @@ class NotificationDispatcherTest extends TestCase
     protected function setUp(): void
     {
         FieldRegistry::reset();
-        $GLOBALS['_ff_wp_mail_calls'] = [];
+        $GLOBALS['_ctrlf_wp_mail_calls'] = [];
     }
 
     protected function tearDown(): void
     {
         FieldRegistry::reset();
-        unset($GLOBALS['_ff_wp_mail_calls']);
+        unset($GLOBALS['_ctrlf_wp_mail_calls']);
     }
 
     public function test_dispatch_sends_email_when_value_matches(): void
@@ -42,7 +42,7 @@ class NotificationDispatcherTest extends TestCase
             [$group],
         );
 
-        $calls = $GLOBALS['_ff_wp_mail_calls'] ?? [];
+        $calls = $GLOBALS['_ctrlf_wp_mail_calls'] ?? [];
         $this->assertCount(1, $calls);
         $this->assertSame('hr@company.com', $calls[0]['to']);
     }
@@ -61,7 +61,7 @@ class NotificationDispatcherTest extends TestCase
         $dispatcher = new NotificationDispatcher();
         $dispatcher->dispatch(42, ['status' => 'approved'], ['status' => 'approved'], [$group]);
 
-        $this->assertEmpty($GLOBALS['_ff_wp_mail_calls'] ?? []);
+        $this->assertEmpty($GLOBALS['_ctrlf_wp_mail_calls'] ?? []);
     }
 
     public function test_dispatch_does_not_send_when_value_does_not_match_to_value(): void
@@ -79,7 +79,7 @@ class NotificationDispatcherTest extends TestCase
         // Changed to 'rejected', not 'approved'
         $dispatcher->dispatch(42, ['status' => 'pending'], ['status' => 'rejected'], [$group]);
 
-        $this->assertEmpty($GLOBALS['_ff_wp_mail_calls'] ?? []);
+        $this->assertEmpty($GLOBALS['_ctrlf_wp_mail_calls'] ?? []);
     }
 
     public function test_dispatch_sends_with_callable_to(): void
@@ -101,7 +101,7 @@ class NotificationDispatcherTest extends TestCase
         $dispatcher = new NotificationDispatcher();
         $dispatcher->dispatch(99, ['status' => 'pending'], ['status' => 'approved'], [$group]);
 
-        $calls = $GLOBALS['_ff_wp_mail_calls'] ?? [];
+        $calls = $GLOBALS['_ctrlf_wp_mail_calls'] ?? [];
         $this->assertCount(1, $calls);
         $this->assertSame('user99@test.com', $calls[0]['to']);
     }
@@ -119,7 +119,7 @@ class NotificationDispatcherTest extends TestCase
         $dispatcher = new NotificationDispatcher();
         $dispatcher->dispatch(1, ['title' => 'Old'], ['title' => 'New'], [$group]);
 
-        $calls = $GLOBALS['_ff_wp_mail_calls'] ?? [];
+        $calls = $GLOBALS['_ctrlf_wp_mail_calls'] ?? [];
         $this->assertCount(1, $calls);
     }
 
@@ -137,7 +137,7 @@ class NotificationDispatcherTest extends TestCase
         $dispatcher = new NotificationDispatcher();
         $dispatcher->dispatch(42, ['status' => 'pending'], ['status' => 'approved'], [$group]);
 
-        $calls = $GLOBALS['_ff_wp_mail_calls'] ?? [];
+        $calls = $GLOBALS['_ctrlf_wp_mail_calls'] ?? [];
         $this->assertCount(1, $calls);
         $this->assertSame('Approved post 42', $calls[0]['subject']);
     }

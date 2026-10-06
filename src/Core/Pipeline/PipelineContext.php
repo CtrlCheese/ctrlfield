@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Core\Pipeline;
+namespace CtrlField\Core\Pipeline;
 
-use FieldForge\Builder\FieldGroup;
+use CtrlField\Builder\FieldGroup;
 
 /**
  * Mutable carrier of state through all pipeline stages.

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace FieldForge\Admin\MetaBox;
+namespace CtrlField\Admin\MetaBox;
 
-use FieldForge\Bootstrap\ServiceProvider;
-use FieldForge\Builder\AdminContext;
-use FieldForge\Core\Migration\SchemaVersion;
-use FieldForge\Core\Notifications\NotificationDispatcher;
-use FieldForge\Core\Pipeline\SavePipeline;
-use FieldForge\Data\FieldDataService;
-use FieldForge\Registry\ContextRegistry;
-use FieldForge\Storage\Drivers\WpPostMetaDriver;
-use FieldForge\Storage\PostMetaAdapter;
+use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Builder\AdminContext;
+use CtrlField\Core\Migration\SchemaVersion;
+use CtrlField\Core\Notifications\NotificationDispatcher;
+use CtrlField\Core\Pipeline\SavePipeline;
+use CtrlField\Data\FieldDataService;
+use CtrlField\Registry\ContextRegistry;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
+use CtrlField\Storage\PostMetaAdapter;
 
 /**
  * Boots the meta box UI and the save_post pipeline hook.
@@ -50,14 +50,14 @@ class MetaBoxServiceProvider extends ServiceProvider
         add_action('save_post', [$this, 'onSavePost']);
 
         // Notification dispatcher — registered once, reads from $preludeSavedFields
-        add_action('fieldforge/after_save', [$this, 'dispatchNotifications'], 10, 2);
+        add_action('ctrlfield/after_save', [$this, 'dispatchNotifications'], 10, 2);
 
         // Revision snapshots (X-3)
         add_action('_wp_put_post_revision', [$this, 'onPutRevision']);
         add_action('wp_restore_post_revision', [$this, 'onRestoreRevision'], 10, 2);
 
         // Oembed live preview for OembedField admin UI
-        add_action('wp_ajax_fieldforge_oembed_preview', [$this, 'onOembedPreview']);
+        add_action('wp_ajax_ctrlfield_oembed_preview', [$this, 'onOembedPreview']);
     }
 
     public function enqueueAssets(string $hook): void
@@ -66,28 +66,28 @@ class MetaBoxServiceProvider extends ServiceProvider
             return;
         }
 
-        $base    = FIELDFORGE_URL . 'assets/admin/';
-        $version = FIELDFORGE_VERSION;
+        $base    = CTRLFIELD_URL . 'assets/admin/';
+        $version = CTRLFIELD_VERSION;
 
         wp_enqueue_style(
-            'fieldforge-admin',
-            $base . 'fieldforge.css',
+            'ctrlfield-admin',
+            $base . 'ctrlfield.css',
             [],
             $version,
         );
 
         wp_enqueue_script(
-            'fieldforge-admin',
-            $base . 'fieldforge.js',
+            'ctrlfield-admin',
+            $base . 'ctrlfield.js',
             [],
             $version,
             true, // load in footer
         );
 
         // Pass attachment URLs and nonces to Alpine
-        wp_localize_script('fieldforge-admin', 'fieldforgeData', [
+        wp_localize_script('ctrlfield-admin', 'ctrlfieldData', [
             'attachments' => $this->resolveAttachmentUrls(),
-            'oembedNonce' => wp_create_nonce('fieldforge_oembed'),
+            'oembedNonce' => wp_create_nonce('ctrlfield_oembed'),
             'ajaxUrl'     => admin_url('admin-ajax.php'),
             'restUrl'     => rest_url(),
             'restNonce'   => wp_create_nonce('wp_rest'),
@@ -111,7 +111,7 @@ class MetaBoxServiceProvider extends ServiceProvider
             return;
         }
 
-        if (! isset($_POST['fieldforge_payload'])) {
+        if (! isset($_POST['ctrlfield_payload'])) {
             return;
         }
 
@@ -119,12 +119,12 @@ class MetaBoxServiceProvider extends ServiceProvider
         $this->preludeSavedFields[$postId] = FieldDataService::getInstance()->getAll($postId, 'post');
 
         // Run the pipeline once per submitted group payload.
-        // Each meta box emits fieldforge_payload[group_key] = JSON.
-        // Legacy single-payload format (fieldforge_payload = JSON) is also supported.
+        // Each meta box emits ctrlfield_payload[group_key] = JSON.
+        // Legacy single-payload format (ctrlfield_payload = JSON) is also supported.
         $payloads = $this->extractPayloads($_POST);
 
         foreach ($payloads as $jsonPayload) {
-            SavePipeline::run($postId, array_merge($_POST, ['fieldforge_payload' => $jsonPayload]));
+            SavePipeline::run($postId, array_merge($_POST, ['ctrlfield_payload' => $jsonPayload]));
         }
     }
 
@@ -175,7 +175,7 @@ class MetaBoxServiceProvider extends ServiceProvider
 
     public function onOembedPreview(): void
     {
-        check_ajax_referer('fieldforge_oembed', 'nonce');
+        check_ajax_referer('ctrlfield_oembed', 'nonce');
 
         if (! current_user_can('edit_posts')) {
             wp_send_json_error(['message' => 'Insufficient permissions.'], 403);
@@ -204,8 +204,8 @@ class MetaBoxServiceProvider extends ServiceProvider
     /**
      * Extracts one JSON string per submitted group from $_POST.
      *
-     * New format: fieldforge_payload[group_key] = JSON string (one per meta box).
-     * Legacy format: fieldforge_payload = JSON string (single meta box, backward compat).
+     * New format: ctrlfield_payload[group_key] = JSON string (one per meta box).
+     * Legacy format: ctrlfield_payload = JSON string (single meta box, backward compat).
      *
      * @param  array<string, mixed> $post
      * @return list<string>
@@ -213,17 +213,17 @@ class MetaBoxServiceProvider extends ServiceProvider
     private function extractPayloads(array $post): array
     {
         // New per-group array format
-        if (isset($post['fieldforge_payload']) && is_array($post['fieldforge_payload'])) {
+        if (isset($post['ctrlfield_payload']) && is_array($post['ctrlfield_payload'])) {
             return array_values(
                 array_filter(
-                    array_map(static fn($v) => is_string($v) ? $v : null, $post['fieldforge_payload']),
+                    array_map(static fn($v) => is_string($v) ? $v : null, $post['ctrlfield_payload']),
                 )
             );
         }
 
         // Legacy single-payload format
-        if (isset($post['fieldforge_payload']) && is_string($post['fieldforge_payload'])) {
-            return [$post['fieldforge_payload']];
+        if (isset($post['ctrlfield_payload']) && is_string($post['ctrlfield_payload'])) {
+            return [$post['ctrlfield_payload']];
         }
 
         return [];
