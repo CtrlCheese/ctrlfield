@@ -1,6 +1,6 @@
 # Select
 
-A dropdown select. Single selection or multiple selections.
+A dropdown select (single value). For several values use `Field::checkbox()`.
 
 ---
 
@@ -17,27 +17,11 @@ Field::select(string $key): SelectField
 ```
 Associative array of `value => label`. Required.
 
-```php
-->multiple(bool $m = true): static
-```
-Allow multiple selections. Stored as array of values.
-
-```php
-->allowNull(bool $allow = true): static
-```
-Include an empty "— Select —" option.
-
-```php
-->ajaxSearch(bool $ajax = true): static
-```
-Enable AJAX-powered option search for large option sets.
-
 ---
 
 ## Storage
 
-- Single: `"active"` (string)
-- Multiple: `["php", "js"]` (array of strings)
+- `"active"` (string)
 
 ---
 

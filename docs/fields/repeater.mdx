@@ -1,5 +1,7 @@
 # Repeater
 
+*(CtrlField Pro — as in ACF PRO)*
+
 A repeatable group of sub-fields. Users can add, remove, and reorder rows.
 
 ---
@@ -7,7 +9,7 @@ A repeatable group of sub-fields. Users can add, remove, and reorder rows.
 ## PHP API
 
 ```php
-Field::repeater(string $key): RepeaterField
+Field::repeater(string $key): RepeaterField  // Pro
 ```
 
 ### Type-specific methods
@@ -16,21 +18,6 @@ Field::repeater(string $key): RepeaterField
 ->fields(array $fields): static
 ```
 The sub-fields for each row. Accepts any `FieldDefinition` instances.
-
-```php
-->minRows(int $n): static
-```
-Minimum number of rows (validation).
-
-```php
-->maxRows(int $n): static
-```
-Maximum number of rows (0 = unlimited).
-
-```php
-->buttonLabel(string $label): static
-```
-Label for the "Add Row" button. Default: `'Add Row'`.
 
 ---
 
@@ -54,9 +41,6 @@ Stored as a JSON array. Each element is an object with sub-field keys.
 ```php
 Field::repeater('team_members')
     ->label('Team Members')
-    ->minRows(1)
-    ->maxRows(10)
-    ->buttonLabel('Add Member')
     ->fields([
         Field::text('name')->label('Name')->required(),
         Field::text('role')->label('Role'),

@@ -1,7 +1,5 @@
 # Relationship
 
-*(CtrlField Pro)*
-
 A multi-select post picker that stores an ordered array of post IDs. Supports drag-to-reorder.
 
 ---
@@ -9,15 +7,15 @@ A multi-select post picker that stores an ordered array of post IDs. Supports dr
 ## PHP API
 
 ```php
-Field::relationship(string $key): RelationshipField  // Pro
+Field::relationship(string $key): RelationshipField
 ```
 
 ### Type-specific methods
 
 ```php
 ->postType(string|array $types): static
-->minPosts(int $n): static
-->maxPosts(int $n): static
+->minItems(int $n): static
+->maxItems(int $n): static
 ->returnFormat(string $format): static  // 'id' or 'object'
 ```
 
@@ -37,8 +35,8 @@ Field::relationship(string $key): RelationshipField  // Pro
 Field::relationship('team_members')
     ->label('Team Members')
     ->postType('team-member')
-    ->minPosts(1)
-    ->maxPosts(6)
+    ->minItems(1)
+    ->maxItems(6)
     ->returnFormat('object'),
 ```
 

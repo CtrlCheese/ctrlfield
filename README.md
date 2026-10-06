@@ -114,7 +114,7 @@ add_action('init', static function (): void {
             Field::image('featured_image')
                 ->label('Featured Image'),
 
-            Field::repeater('team_members')
+            Field::repeater('team_members')          // Pro
                 ->label('Team Members')
                 ->fields([
                     Field::text('name')->label('Name'),
@@ -154,50 +154,23 @@ $tagline = ctrlf_option('site_tagline', 'theme_settings');
 
 ## Field Types
 
-### Basic
-| Type | Factory | Notes |
-|------|---------|-------|
-| Text | `Field::text('key')` | |
-| Textarea | `Field::textarea('key')` | |
-| Number | `Field::number('key')` | |
-| Email | `Field::email('key')` | |
-| URL | `Field::url('key')` | |
-| WYSIWYG | `Field::wysiwyg('key')` | TinyMCE |
+Same Free/Pro split as ACF, plus extra Free fields ACF does not have. Full reference: `docs/fields/`.
 
-### Choice
-| Type | Factory | Notes |
-|------|---------|-------|
-| Select | `Field::select('key')->options([...])` | |
-| Checkbox | `Field::checkbox('key')->options([...])` | |
-| Radio | `Field::radio('key')->options([...])` | |
+| Category | Field | Factory | Plan |
+|---|---|---|---|
+| Basic | Text, Textarea, Number, Range, Email, URL, Password | `Field::text()`, `::textarea()`, `::number()`, `::range()`, `::email()`, `::url()`, `::password()` | Free |
+| Content | Image, File, WYSIWYG, oEmbed | `Field::image()`, `::file()`, `::wysiwyg()`, `::oembed()` | Free |
+| Content | Gallery | `Field::gallery()` | Pro |
+| Choice | Select, Checkbox, Radio, Button Group, True / False | `Field::select()`, `::checkbox()`, `::radio()`, `::buttonGroup()`, `::trueFalse()` | Free |
+| Relational | Page Link, Post Object, Relationship, Taxonomy, User, Link | `Field::pageLink()`, `::postObject()`, `::relationship()`, `::taxonomyTerm()`, `::user()`, `::link()` | Free |
+| Pickers | Date, Time, Date Time, Color, Map | `Field::date()`, `::time()`, `::datetime()`, `::color()`, `::map()` | Free |
+| Layout | Group, Tab, Accordion, Message, Separator | `Field::object()`, `::tab()`, `::accordion()` + `::accordionEnd()`, `::message()`, `::separator()` | Free |
+| Layout | Repeater, Flexible Content, Clone | `Field::repeater()`, `::flexibleContent()`, `::clone()` | Pro |
+| CtrlField only | Code, Icon, Computed | `Field::code()`, `::icon()`, `::computed()` | Free |
 
-### Media
-| Type | Factory | Notes |
-|------|---------|-------|
-| Image | `Field::image('key')` | Stores attachment ID |
-| File | `Field::file('key')` | Stores attachment ID |
+`Field::group()` builds a whole **field group** (with `where()` and `register()`); a group *field* nested inside `fields([...])` is `Field::object()`.
 
-### Date & Time
-| Type | Factory | Notes |
-|------|---------|-------|
-| Date | `Field::date('key')` | ISO 8601 |
-| Time | `Field::time('key')` | HH:MM |
-| DateTime | `Field::datetime('key')` | ISO 8601 |
-
-### Extra
-| Type | Factory | Notes |
-|------|---------|-------|
-| Color | `Field::color('key')` | Hex string |
-| Link | `Field::link('key')` | `{url, title, target}` |
-| Range | `Field::range('key')` | Slider |
-| oEmbed | `Field::oembed('key')` | Via `wp_oembed_get()` |
-
-### Structured
-| Type | Factory | Notes |
-|------|---------|-------|
-| Group | `Field::group('key')->fields([...])` | Single nested object |
-| Repeater | `Field::repeater('key')->fields([...])` | Array of objects, max depth 3 |
-| Computed | `Field::computed('key', fn($fields) => ...)` | Calculated on save |
+Pro factories need an active license. Without it they throw a clear error, and a schema file that uses them is skipped with an admin notice — the rest of the site keeps working.
 
 ---
 
@@ -366,11 +339,9 @@ CtrlField is **one plugin**. Everything below ships in it; a Pro license (**Ctrl
 | Pro feature | Description |
 |---------|-------------|
 | **Visual Field Builder** | Drag-and-drop UI that generates PHP code — never stores schema in the DB |
+| **Repeater** | Rows of sub-fields (Pro in ACF too) |
 | **Flexible Content** | Page builder with named layouts, each with its own sub-fields |
-| **Post Object / Relationship** | AJAX post selectors and true many-to-many pivot tables |
-| **Taxonomy Field** | AJAX term selector with term creation control |
 | **Gallery** | Multi-image field with drag-to-reorder |
-| **Map** | Google, Mapbox, or OpenStreetMap |
 | **Clone Field** | Reuse field groups across multiple contexts without duplication |
 | **Custom Table Storage (CCT)** | One DB row per record — for 50k+ record use cases |
 | **Gutenberg Blocks** | Register any field group as a native block |

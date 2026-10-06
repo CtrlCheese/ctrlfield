@@ -12,16 +12,6 @@ Field::wysiwyg(string $key): WysiwygField
 
 ### Type-specific methods
 
-```php
-->toolbar(string $toolbar): static
-```
-TinyMCE toolbar preset: `'full'` (default) or `'basic'`.
-
-```php
-->mediaUpload(bool $allow = true): static
-```
-Show the "Add Media" button. Default: `true`.
-
 ---
 
 ## Storage
@@ -35,7 +25,6 @@ Stored as an HTML string. Sanitized with `wp_kses_post()`.
 ```php
 Field::wysiwyg('content')
     ->label('Content')
-    ->toolbar('full')
     ->width(100),
 ```
 

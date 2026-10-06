@@ -1,7 +1,5 @@
 # Map
 
-*(CtrlField Pro)*
-
 An interactive OpenStreetMap/Leaflet picker. Stores coordinates and an optional address.
 
 ---
@@ -9,7 +7,7 @@ An interactive OpenStreetMap/Leaflet picker. Stores coordinates and an optional 
 ## PHP API
 
 ```php
-Field::map(string $key): MapField  // Pro
+Field::map(string $key): MapField
 ```
 
 ### Type-specific methods
@@ -17,7 +15,7 @@ Field::map(string $key): MapField  // Pro
 ```php
 ->defaultLat(float $lat): static
 ->defaultLng(float $lng): static
-->defaultZoom(int $zoom): static   // Default: 13
+->zoom(int $zoom): static   // Default: 13
 ->height(int $px): static          // Admin map height. Default: 400
 ```
 
@@ -45,7 +43,7 @@ Field::map('office_location')
     ->label('Office Location')
     ->defaultLat(48.8566)
     ->defaultLng(2.3522)
-    ->defaultZoom(12),
+    ->zoom(12),
 ```
 
 ---

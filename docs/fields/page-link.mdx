@@ -1,0 +1,53 @@
+# Page Link
+
+Pick a page (or an entry of any post type). Stores the post ID and returns its **URL** by default, like ACF's Page Link.
+
+---
+
+## PHP API
+
+```php
+Field::pageLink(string $key): PageLinkField
+```
+
+### Type-specific methods
+
+```php
+->postType(string|array $types): static
+```
+Post types offered in the list. Default: `'page'`.
+
+```php
+->multiple(bool $multiple = true): static
+```
+Allow several entries. Stored and returned as a list.
+
+```php
+->returnFormat(string $format): static
+```
+`'url'` (default) returns the permalink, `'id'` returns the post ID.
+
+---
+
+## Storage
+
+- Single: `42` (post ID)
+- Multiple: `[42, 57]` (post IDs)
+
+---
+
+## Example
+
+```php
+Field::pageLink('landing_page')
+    ->label('Landing page')
+    ->postType(['page', 'post']),
+```
+
+---
+
+## Template usage
+
+```php
+<a href="<?= esc_url(ctrlfield_get('landing_page')) ?>">Learn more</a>
+```

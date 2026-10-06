@@ -1,7 +1,5 @@
 # Taxonomy Term
 
-*(CtrlField Pro)*
-
 A taxonomy term picker with AJAX search. Stores one or more term IDs.
 
 ---
@@ -9,7 +7,7 @@ A taxonomy term picker with AJAX search. Stores one or more term IDs.
 ## PHP API
 
 ```php
-Field::taxonomyTerm(string $key): TaxonomyField  // Pro
+Field::taxonomyTerm(string $key): TaxonomyField
 ```
 
 ### Type-specific methods
@@ -24,7 +22,7 @@ Taxonomy slug. Required.
 ```
 
 ```php
-->addTerms(bool $allow = true): static
+->createTerms(bool $allow = true): static
 ```
 Allow creating new terms directly from the picker.
 

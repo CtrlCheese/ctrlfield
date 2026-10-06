@@ -25,8 +25,8 @@ Field::gallery(string $key): GalleryField   // Pro
 | `'array'` | `array[]` — array of `['id', 'url', 'width', 'height', 'alt']` |
 
 ```php
-->minImages(int $n): static
-->maxImages(int $n): static
+->minItems(int $n): static
+->maxItems(int $n): static
 ```
 
 ---
@@ -45,8 +45,8 @@ Field::gallery(string $key): GalleryField   // Pro
 Field::gallery('screenshots')
     ->label('Screenshots')
     ->returnFormat('array')
-    ->minImages(1)
-    ->maxImages(8),
+    ->minItems(1)
+    ->maxItems(8),
 ```
 
 ---
