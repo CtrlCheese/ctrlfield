@@ -12,6 +12,7 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       ctrlfield
+ * Domain Path:       /languages
  */
 
 declare(strict_types=1);
@@ -69,6 +70,10 @@ if (!file_exists($autoloader)) {
 }
 
 require_once $autoloader;
+
+add_action('init', static function (): void {
+  load_plugin_textdomain('ctrlfield', false, dirname(plugin_basename(CTRLFIELD_FILE)) . '/languages');
+}, 0);
 
 add_action('plugins_loaded', static function (): void {
   \CtrlField\Bootstrap\BootManager::boot();

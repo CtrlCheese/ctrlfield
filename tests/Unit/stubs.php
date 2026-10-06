@@ -280,3 +280,10 @@ if (! function_exists('wp_get_attachment_url')) {
         return 'https://example.test/uploads/' . $id . '.jpg';
     }
 }
+
+if (! function_exists('__')) {
+    function __(string $text, string $domain = 'default'): string
+    {
+        return $text;
+    }
+}

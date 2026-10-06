@@ -49,33 +49,7 @@ class WordPressServiceProvider extends ServiceProvider
             $plural   = $cpt->getPluralLabel()   ?: $singular . 's';
 
             register_post_type($cpt->getPostType(), [
-                'labels' => [
-                    'name'                  => $plural,
-                    'singular_name'         => $singular,
-                    'add_new'               => "Add New",
-                    'add_new_item'          => "Add New {$singular}",
-                    'edit_item'             => "Edit {$singular}",
-                    'new_item'              => "New {$singular}",
-                    'view_item'             => "View {$singular}",
-                    'view_items'            => "View {$plural}",
-                    'search_items'          => "Search {$plural}",
-                    'not_found'             => "No {$plural} found.",
-                    'not_found_in_trash'    => "No {$plural} found in Trash.",
-                    'all_items'             => "All {$plural}",
-                    'archives'              => "{$singular} Archives",
-                    'attributes'            => "{$singular} Attributes",
-                    'insert_into_item'      => "Insert into {$singular}",
-                    'uploaded_to_this_item' => "Uploaded to this {$singular}",
-                    'featured_image'        => "Featured Image",
-                    'set_featured_image'    => "Set featured image",
-                    'remove_featured_image' => "Remove featured image",
-                    'use_featured_image'    => "Use as featured image",
-                    'menu_name'             => $plural,
-                    'name_admin_bar'        => $singular,
-                    'items_list'            => "{$plural} list",
-                    'items_list_navigation' => "{$plural} list navigation",
-                    'filter_items_list'     => "Filter {$plural} list",
-                ],
+                'labels'              => self::postTypeLabels($singular, $plural),
                 'description'         => $cpt->getDescription(),
                 'public'              => $cpt->isPublic(),
                 'hierarchical'        => $cpt->isHierarchical(),
@@ -98,6 +72,89 @@ class WordPressServiceProvider extends ServiceProvider
     }
 
     // -------------------------------------------------------------------------
+    // Labels — translatable. %s is the name the site owner typed, so the
+    // phrases are built to read naturally in gendered languages too.
+    // -------------------------------------------------------------------------
+
+    /** @return array<string, string> */
+    private static function postTypeLabels(string $singular, string $plural): array
+    {
+        return [
+            'name'                  => $plural,
+            'singular_name'         => $singular,
+            'menu_name'             => $plural,
+            'name_admin_bar'        => $singular,
+            'add_new'               => __('Add New', 'ctrlfield'),
+            /* translators: %s: post type singular name */
+            'add_new_item'          => sprintf(__('Add %s', 'ctrlfield'), $singular),
+            /* translators: %s: post type singular name */
+            'edit_item'             => sprintf(__('Edit %s', 'ctrlfield'), $singular),
+            /* translators: %s: post type singular name */
+            'new_item'              => sprintf(__('New entry: %s', 'ctrlfield'), $singular),
+            /* translators: %s: post type singular name */
+            'view_item'             => sprintf(__('View %s', 'ctrlfield'), $singular),
+            /* translators: %s: post type plural name */
+            'view_items'            => sprintf(__('View %s', 'ctrlfield'), $plural),
+            /* translators: %s: post type plural name */
+            'search_items'          => sprintf(__('Search %s', 'ctrlfield'), $plural),
+            'not_found'             => __('No entries found.', 'ctrlfield'),
+            'not_found_in_trash'    => __('No entries found in Trash.', 'ctrlfield'),
+            /* translators: %s: post type plural name */
+            'all_items'             => sprintf(__('All %s', 'ctrlfield'), $plural),
+            /* translators: %s: post type plural name */
+            'archives'              => sprintf(__('%s archive', 'ctrlfield'), $plural),
+            'attributes'            => __('Attributes', 'ctrlfield'),
+            'insert_into_item'      => __('Insert into entry', 'ctrlfield'),
+            'uploaded_to_this_item' => __('Uploaded to this entry', 'ctrlfield'),
+            'featured_image'        => __('Featured image', 'ctrlfield'),
+            'set_featured_image'    => __('Set featured image', 'ctrlfield'),
+            'remove_featured_image' => __('Remove featured image', 'ctrlfield'),
+            'use_featured_image'    => __('Use as featured image', 'ctrlfield'),
+            /* translators: %s: post type plural name */
+            'items_list'            => sprintf(__('%s list', 'ctrlfield'), $plural),
+            /* translators: %s: post type plural name */
+            'items_list_navigation' => sprintf(__('%s list navigation', 'ctrlfield'), $plural),
+            /* translators: %s: post type plural name */
+            'filter_items_list'     => sprintf(__('Filter %s list', 'ctrlfield'), $plural),
+        ];
+    }
+
+    /** @return array<string, string> */
+    private static function taxonomyLabels(string $singular, string $plural): array
+    {
+        return [
+            'name'                       => $plural,
+            'singular_name'              => $singular,
+            'menu_name'                  => $plural,
+            /* translators: %s: taxonomy plural name */
+            'all_items'                  => sprintf(__('All %s', 'ctrlfield'), $plural),
+            /* translators: %s: taxonomy singular name */
+            'edit_item'                  => sprintf(__('Edit %s', 'ctrlfield'), $singular),
+            /* translators: %s: taxonomy singular name */
+            'view_item'                  => sprintf(__('View %s', 'ctrlfield'), $singular),
+            /* translators: %s: taxonomy singular name */
+            'update_item'                => sprintf(__('Update %s', 'ctrlfield'), $singular),
+            /* translators: %s: taxonomy singular name */
+            'add_new_item'               => sprintf(__('Add %s', 'ctrlfield'), $singular),
+            'new_item_name'              => __('Name', 'ctrlfield'),
+            'parent_item'                => __('Parent', 'ctrlfield'),
+            'parent_item_colon'          => __('Parent:', 'ctrlfield'),
+            /* translators: %s: taxonomy plural name */
+            'search_items'               => sprintf(__('Search %s', 'ctrlfield'), $plural),
+            'popular_items'              => __('Most used', 'ctrlfield'),
+            'separate_items_with_commas' => __('Separate with commas', 'ctrlfield'),
+            'add_or_remove_items'        => __('Add or remove', 'ctrlfield'),
+            'choose_from_most_used'      => __('Choose from the most used', 'ctrlfield'),
+            'not_found'                  => __('Nothing found.', 'ctrlfield'),
+            'no_terms'                   => __('None', 'ctrlfield'),
+            /* translators: %s: taxonomy plural name */
+            'items_list'                 => sprintf(__('%s list', 'ctrlfield'), $plural),
+            /* translators: %s: taxonomy plural name */
+            'items_list_navigation'      => sprintf(__('%s list navigation', 'ctrlfield'), $plural),
+        ];
+    }
+
+    // -------------------------------------------------------------------------
     // Taxonomy
     // -------------------------------------------------------------------------
 
@@ -110,28 +167,7 @@ class WordPressServiceProvider extends ServiceProvider
             // Passing $object_types to register_taxonomy() also calls
             // register_taxonomy_for_object_type() for each post type internally.
             register_taxonomy($taxonomy->getTaxonomy(), $taxonomy->getAttachTo(), [
-                'labels' => [
-                    'name'                       => $plural,
-                    'singular_name'              => $singular,
-                    'menu_name'                  => $plural,
-                    'all_items'                  => "All {$plural}",
-                    'edit_item'                  => "Edit {$singular}",
-                    'view_item'                  => "View {$singular}",
-                    'update_item'                => "Update {$singular}",
-                    'add_new_item'               => "Add New {$singular}",
-                    'new_item_name'              => "New {$singular} Name",
-                    'parent_item'                => "Parent {$singular}",
-                    'parent_item_colon'          => "Parent {$singular}:",
-                    'search_items'               => "Search {$plural}",
-                    'popular_items'              => "Popular {$plural}",
-                    'separate_items_with_commas' => "Separate {$plural} with commas",
-                    'add_or_remove_items'        => "Add or remove {$plural}",
-                    'choose_from_most_used'      => "Choose from the most used {$plural}",
-                    'not_found'                  => "No {$plural} found.",
-                    'no_terms'                   => "No {$plural}",
-                    'items_list'                 => "{$plural} list",
-                    'items_list_navigation'      => "{$plural} list navigation",
-                ],
+                'labels' => self::taxonomyLabels($singular, $plural),
                 'description'       => $taxonomy->getDescription(),
                 'hierarchical'      => $taxonomy->isHierarchical(),
                 'public'            => $taxonomy->isPublic(),

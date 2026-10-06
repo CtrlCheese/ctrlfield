@@ -1,0 +1,793 @@
+# Copyright (C) 2026 CtrlCheese
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: CtrlField 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ctrlfield\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Language: pt_BR\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-06T16:39:41+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: ctrlfield\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. Plugin Name of the plugin
+#: ctrlfield.php
+msgid "CtrlField"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: ctrlfield.php
+msgid "https://ctrlcheese.de"
+msgstr ""
+
+#. Description of the plugin
+#: ctrlfield.php
+msgid "Code-first custom fields, CPTs and taxonomies for WordPress. A Pro license unlocks flexible content, relational fields, the visual builder and more."
+msgstr ""
+
+#. Author of the plugin
+#: ctrlfield.php
+msgid "CtrlCheese"
+msgstr ""
+
+#. translators: 1: required PHP version, 2: current PHP version
+#: ctrlfield.php:37
+#, php-format
+msgid "CtrlField requires PHP %1$s or higher. Your server is running PHP %2$s."
+msgstr ""
+
+#. translators: 1: required WP version, 2: current WP version
+#: ctrlfield.php:52
+#, php-format
+msgid "CtrlField requires WordPress %1$s or higher. Your installation is running %2$s."
+msgstr ""
+
+#: ctrlfield.php:66
+msgid "CtrlField: Composer dependencies are missing. Run \"composer install\" in the plugin directory."
+msgstr ""
+
+#: pro/bootstrap.php:39
+msgid "CtrlField Pro: CTRLFIELD_OFFLINE_TOKEN is set but could not be validated. The RSA public key may be a placeholder — contact support."
+msgstr ""
+
+#: pro/src/Admin/Builder/BuilderPage.php:19
+#: pro/src/Admin/Builder/BuilderPage.php:20
+msgid "Visual Builder"
+msgstr ""
+
+#: pro/src/Admin/Builder/BuilderPage.php:79
+#: pro/src/Admin/ContentTable/ContentTableEditPage.php:40
+#: pro/src/Admin/ContentTable/ContentTablePage.php:37
+#: pro/src/Admin/LicenseSettingsPage.php:27
+#: pro/src/AuditLog/AuditLogServiceProvider.php:121
+#: src/Admin/Map/MapSettingsPage.php:31
+#: src/Admin/PostTypes/PostTypesPage.php:53
+#: src/Integrations/WordPress/WordPressServiceProvider.php:262
+msgid "You do not have permission to access this page."
+msgstr "Você não tem permissão para acessar esta página."
+
+#: pro/src/Admin/ContentTable/ContentTableEditPage.php:51
+#, php-format
+msgid "Edit %s #%d"
+msgstr ""
+
+#. translators: %s: post type singular name
+#. translators: %s: taxonomy singular name
+#: pro/src/Admin/ContentTable/ContentTableEditPage.php:52
+#: src/Integrations/WordPress/WordPressServiceProvider.php:89
+#: src/Integrations/WordPress/WordPressServiceProvider.php:138
+#, php-format
+msgid "Add %s"
+msgstr "Adicionar %s"
+
+#: pro/src/Admin/ContentTable/ContentTableEditPage.php:87
+msgid "Save"
+msgstr ""
+
+#: pro/src/Admin/ContentTable/ContentTableEditPage.php:102
+#: pro/src/Admin/ContentTable/ContentTableEditPage.php:135
+msgid "Unauthorized."
+msgstr ""
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:58
+#: src/Integrations/WordPress/WordPressServiceProvider.php:87
+msgid "Add New"
+msgstr "Adicionar"
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:65
+msgid "Search…"
+msgstr ""
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:66
+msgid "Search"
+msgstr ""
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:71
+msgid "No records found."
+msgstr ""
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:81
+msgid "Created"
+msgstr ""
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:83
+msgid "Actions"
+msgstr ""
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:98
+#: src/Admin/PostTypes/PostTypesPage.php:109
+msgid "Edit"
+msgstr "Editar"
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:102
+msgid "Delete this record?"
+msgstr ""
+
+#: pro/src/Admin/ContentTable/ContentTablePage.php:107
+#: src/Admin/PostTypes/PostTypesPage.php:112
+msgid "Delete"
+msgstr "Excluir"
+
+#: pro/src/Admin/LicenseNotice.php:18
+msgid "Your CtrlField Pro license has expired. Pro features are disabled."
+msgstr ""
+
+#: pro/src/Admin/LicenseNotice.php:21
+msgid "CtrlField Pro: activation limit reached for this license key."
+msgstr ""
+
+#: pro/src/Admin/LicenseNotice.php:23
+msgid "CtrlField Pro: license could not be verified. Pro features are temporarily disabled."
+msgstr ""
+
+#: pro/src/Admin/LicenseNotice.php:25
+msgid "CtrlField Pro: no valid license key found. Please activate your license."
+msgstr ""
+
+#: pro/src/Admin/LicenseNotice.php:35
+msgid "Manage License"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:16
+msgid "CtrlField Pro License"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:17
+msgid "Pro License"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:36
+msgid "CtrlField Pro — License"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:43
+msgid "Staging environment detected. Pro features are active for free — no activation slot used."
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:49
+#, php-format
+msgid "%1$d of %2$d sites activated"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:57
+#, php-format
+msgid "Expires: %s"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:66
+msgid "Upgrade to Agency Plan →"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:78
+msgid "License Key"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:91
+#: pro/src/Admin/LicenseSettingsPage.php:130
+msgid "Show"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:99
+msgid "Activate License"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:103
+msgid "Deactivate License"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:111
+msgid "Manage your order in the customer portal"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:130
+msgid "Hide"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:239
+msgid "Active (Offline)"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:245
+msgid "Active — Agency plan"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:246
+msgid "Active — Personal plan"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:251
+msgid "Active"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:252
+msgid "Active (Staging — free)"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:253
+msgid "Expired"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:254
+msgid "Activation Limit Reached"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:255
+msgid "Unverified"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:256
+msgid "Inactive"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:272
+msgid "Webhook (Optional)"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:274
+msgid "To receive real-time license revocation events, add this webhook in your LemonSqueezy dashboard."
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:278
+msgid "Webhook URL"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:282
+msgid "Signing Secret"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:110
+#: pro/src/AuditLog/AuditLogServiceProvider.php:111
+msgid "Audit Log"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:133
+msgid "CtrlField Audit Log"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:136
+msgid "Date"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:137
+msgid "Post"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:138
+msgid "Field"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:139
+msgid "Old Value"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:140
+msgid "New Value"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:141
+msgid "User"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:142
+msgid "IP"
+msgstr ""
+
+#: pro/src/AuditLog/AuditLogServiceProvider.php:157
+msgid "unknown"
+msgstr ""
+
+#: src/Admin/Map/MapSettingsPage.php:20
+#: src/Admin/Map/MapSettingsPage.php:21
+msgid "Map Settings"
+msgstr "Configurações do mapa"
+
+#: src/Admin/Map/MapSettingsPage.php:38
+#: src/Integrations/WordPress/WordPressServiceProvider.php:274
+msgid "Settings saved."
+msgstr "Configurações salvas."
+
+#: src/Admin/Map/MapSettingsPage.php:45
+msgid "CtrlField Pro — Map Settings"
+msgstr "CtrlField — Configurações do mapa"
+
+#: src/Admin/Map/MapSettingsPage.php:53
+msgid "Google Maps API Key"
+msgstr "Chave de API do Google Maps"
+
+#: src/Admin/Map/MapSettingsPage.php:59
+msgid "Required for Google Maps provider and geocoding."
+msgstr "Necessária para usar o Google Maps e a geocodificação."
+
+#: src/Admin/Map/MapSettingsPage.php:65
+msgid "Mapbox API Key"
+msgstr "Chave de API do Mapbox"
+
+#: src/Admin/Map/MapSettingsPage.php:71
+msgid "Required for Mapbox provider. Leave blank to use OpenStreetMap."
+msgstr "Necessária para usar o Mapbox. Deixe em branco para usar o OpenStreetMap."
+
+#: src/Admin/Map/MapSettingsPage.php:79
+msgid "Save Settings"
+msgstr "Salvar configurações"
+
+#: src/Admin/Map/MapSettingsPage.php:85
+msgid "OpenStreetMap"
+msgstr "OpenStreetMap"
+
+#: src/Admin/Map/MapSettingsPage.php:86
+msgid "No API key required. Uses the free Nominatim geocoding service (1 request/second limit)."
+msgstr "Não precisa de chave de API. Usa o serviço gratuito de geocodificação Nominatim (limite de 1 requisição por segundo)."
+
+#: src/Admin/MetaBox/MetaBoxRegistrar.php:60
+#: assets/gutenberg/dist/index.js:1
+#: assets/gutenberg/index.js:26
+#: assets/gutenberg/index.js:31
+msgid "CtrlField Fields"
+msgstr ""
+
+#: src/Admin/PostTypes/PostTypeDefinition.php:60
+msgid "The key is required."
+msgstr "A chave é obrigatória."
+
+#: src/Admin/PostTypes/PostTypeDefinition.php:62
+msgid "Use 1–20 lowercase letters, numbers, \"-\" or \"_\", starting with a letter."
+msgstr "Use de 1 a 20 letras minúsculas, números, \"-\" ou \"_\", começando com uma letra."
+
+#. translators: %s: post type key
+#: src/Admin/PostTypes/PostTypeDefinition.php:65
+#, php-format
+msgid "\"%s\" is reserved by WordPress."
+msgstr "\"%s\" é reservado pelo WordPress."
+
+#: src/Admin/PostTypes/PostTypeDefinition.php:71
+msgid "The singular name is required."
+msgstr "O nome no singular é obrigatório."
+
+#: src/Admin/PostTypes/PostTypeDefinition.php:74
+msgid "The plural name is required."
+msgstr "O nome no plural é obrigatório."
+
+#: src/Admin/PostTypes/PostTypeDefinition.php:79
+msgid "Use a Dashicons class, e.g. dashicons-portfolio."
+msgstr "Use uma classe Dashicons, por exemplo dashicons-portfolio."
+
+#: src/Admin/PostTypes/PostTypeDefinition.php:86
+msgid "Use lowercase letters, numbers, \"-\", \"_\" or \"/\"."
+msgstr "Use letras minúsculas, números, \"-\", \"_\" ou \"/\"."
+
+#: src/Admin/PostTypes/PostTypesPage.php:38
+#: src/Admin/PostTypes/PostTypesPage.php:39
+#: src/Admin/PostTypes/PostTypesPage.php:77
+msgid "Post Types"
+msgstr "Tipos de conteúdo"
+
+#: src/Admin/PostTypes/PostTypesPage.php:78
+#: src/Admin/PostTypes/PostTypesPage.php:134
+msgid "Add New Post Type"
+msgstr "Adicionar tipo de conteúdo"
+
+#: src/Admin/PostTypes/PostTypesPage.php:80
+msgid "Create content types such as Projects, Events or Team members without writing code. Developers can export any of them to a PHP schema file."
+msgstr "Crie tipos de conteúdo como Projetos, Eventos ou Equipe sem escrever código. Desenvolvedores podem exportar qualquer um deles para um arquivo de schema PHP."
+
+#: src/Admin/PostTypes/PostTypesPage.php:86
+#: src/Integrations/WordPress/WordPressServiceProvider.php:139
+msgid "Name"
+msgstr "Nome"
+
+#: src/Admin/PostTypes/PostTypesPage.php:87
+#: src/Admin/PostTypes/PostTypesPage.php:150
+msgid "Key"
+msgstr "Chave"
+
+#: src/Admin/PostTypes/PostTypesPage.php:88
+msgid "Entries"
+msgstr "Itens"
+
+#: src/Admin/PostTypes/PostTypesPage.php:89
+#: src/Admin/PostTypes/PostTypesPage.php:194
+msgid "Public"
+msgstr "Público"
+
+#: src/Admin/PostTypes/PostTypesPage.php:94
+msgid "No post types yet. Click \"Add New Post Type\" to create your first one."
+msgstr "Ainda não há tipos de conteúdo. Clique em \"Adicionar tipo de conteúdo\" para criar o primeiro."
+
+#: src/Admin/PostTypes/PostTypesPage.php:106
+msgid "Not active: a post type with this key is already defined in code, which takes precedence."
+msgstr "Inativo: já existe um tipo de conteúdo com esta chave definido em código, que tem prioridade."
+
+#: src/Admin/PostTypes/PostTypesPage.php:110
+msgid "View entries"
+msgstr "Ver itens"
+
+#: src/Admin/PostTypes/PostTypesPage.php:111
+msgid "Export PHP"
+msgstr "Exportar PHP"
+
+#: src/Admin/PostTypes/PostTypesPage.php:112
+msgid "Delete this post type? Its entries stay in the database and come back if you recreate it with the same key."
+msgstr "Excluir este tipo de conteúdo? Os itens continuam no banco de dados e voltam se você recriá-lo com a mesma chave."
+
+#: src/Admin/PostTypes/PostTypesPage.php:117
+msgid "Yes"
+msgstr "Sim"
+
+#: src/Admin/PostTypes/PostTypesPage.php:117
+msgid "No"
+msgstr "Não"
+
+#: src/Admin/PostTypes/PostTypesPage.php:134
+#, php-format
+msgid "Edit Post Type: %s"
+msgstr "Editar tipo de conteúdo: %s"
+
+#: src/Admin/PostTypes/PostTypesPage.php:135
+#: src/Admin/PostTypes/PostTypesPage.php:210
+msgid "All post types"
+msgstr "Todos os tipos de conteúdo"
+
+#: src/Admin/PostTypes/PostTypesPage.php:138
+msgid "Please fix the highlighted fields."
+msgstr "Corrija os campos destacados."
+
+#: src/Admin/PostTypes/PostTypesPage.php:146
+msgid "Names"
+msgstr "Nomes"
+
+#: src/Admin/PostTypes/PostTypesPage.php:148
+msgid "Plural name"
+msgstr "Nome no plural"
+
+#: src/Admin/PostTypes/PostTypesPage.php:148
+msgid "Shown in the admin menu, e.g. \"Projects\"."
+msgstr "Aparece no menu do painel, por exemplo \"Projetos\"."
+
+#: src/Admin/PostTypes/PostTypesPage.php:149
+msgid "Singular name"
+msgstr "Nome no singular"
+
+#: src/Admin/PostTypes/PostTypesPage.php:149
+msgid "e.g. \"Project\"."
+msgstr "por exemplo \"Projeto\"."
+
+#: src/Admin/PostTypes/PostTypesPage.php:150
+msgid "Internal name, e.g. \"project\". Lowercase, max. 20 characters. Changing it later hides existing entries."
+msgstr "Nome interno, por exemplo \"projeto\". Letras minúsculas, até 20 caracteres. Mudar depois esconde os itens já existentes."
+
+#: src/Admin/PostTypes/PostTypesPage.php:151
+msgid "Description"
+msgstr "Descrição"
+
+#: src/Admin/PostTypes/PostTypesPage.php:154
+msgid "Editor"
+msgstr "Editor"
+
+#: src/Admin/PostTypes/PostTypesPage.php:157
+msgid "Features"
+msgstr "Recursos"
+
+#: src/Admin/PostTypes/PostTypesPage.php:170
+msgid "Menu icon"
+msgstr "Ícone do menu"
+
+#: src/Admin/PostTypes/PostTypesPage.php:184
+msgid "Menu position"
+msgstr "Posição no menu"
+
+#: src/Admin/PostTypes/PostTypesPage.php:187
+msgid "5 = below Posts, 20 = below Pages, 25 = below Comments."
+msgstr "5 = abaixo de Posts, 20 = abaixo de Páginas, 25 = abaixo de Comentários."
+
+#: src/Admin/PostTypes/PostTypesPage.php:192
+msgid "Visibility"
+msgstr "Visibilidade"
+
+#: src/Admin/PostTypes/PostTypesPage.php:194
+msgid "Entries have their own page on the website and appear in search."
+msgstr "Cada item tem sua própria página no site e aparece na busca."
+
+#: src/Admin/PostTypes/PostTypesPage.php:195
+msgid "Archive page"
+msgstr "Página de listagem"
+
+#: src/Admin/PostTypes/PostTypesPage.php:195
+msgid "A listing page with all entries, e.g. /projects/."
+msgstr "Uma página que lista todos os itens, por exemplo /projetos/."
+
+#: src/Admin/PostTypes/PostTypesPage.php:196
+msgid "Hierarchical"
+msgstr "Hierárquico"
+
+#: src/Admin/PostTypes/PostTypesPage.php:196
+msgid "Entries can have parent entries, like Pages."
+msgstr "Itens podem ter um item pai, como as Páginas."
+
+#: src/Admin/PostTypes/PostTypesPage.php:197
+msgid "Block editor & REST API"
+msgstr "Editor de blocos e API REST"
+
+#: src/Admin/PostTypes/PostTypesPage.php:197
+msgid "Use the block editor and expose entries in the REST API."
+msgstr "Usar o editor de blocos e expor os itens na API REST."
+
+#: src/Admin/PostTypes/PostTypesPage.php:198
+msgid "URL slug"
+msgstr "Slug da URL"
+
+#: src/Admin/PostTypes/PostTypesPage.php:198
+msgid "Optional. The part of the URL before the entry name, e.g. \"work\" for /work/my-project/. Defaults to the key."
+msgstr "Opcional. A parte da URL antes do nome do item, por exemplo \"trabalhos\" em /trabalhos/meu-projeto/. Se ficar vazio, usa a chave."
+
+#: src/Admin/PostTypes/PostTypesPage.php:201
+msgid "Create Post Type"
+msgstr "Criar tipo de conteúdo"
+
+#: src/Admin/PostTypes/PostTypesPage.php:201
+msgid "Save Changes"
+msgstr "Salvar alterações"
+
+#: src/Admin/PostTypes/PostTypesPage.php:209
+#, php-format
+msgid "Export PHP: %s"
+msgstr "Exportar PHP: %s"
+
+#: src/Admin/PostTypes/PostTypesPage.php:211
+msgid "Save this as a .php file in your CtrlField schema directory to version the post type in git. Then delete it here — code takes precedence."
+msgstr "Salve isto como um arquivo .php na pasta de schemas do CtrlField para versionar o tipo de conteúdo no git. Depois exclua-o aqui: o código tem prioridade."
+
+#: src/Admin/PostTypes/PostTypesPage.php:223
+#: src/Admin/PostTypes/PostTypesPage.php:259
+msgid "You do not have permission to do this."
+msgstr "Você não tem permissão para fazer isso."
+
+#: src/Admin/PostTypes/PostTypesPage.php:236
+msgid "Another post type created here already uses this key."
+msgstr "Outro tipo de conteúdo criado aqui já usa esta chave."
+
+#: src/Admin/PostTypes/PostTypesPage.php:238
+msgid "This key is already used by WordPress, a plugin or your theme code."
+msgstr "Esta chave já é usada pelo WordPress, por um plugin ou pelo código do seu tema."
+
+#: src/Admin/PostTypes/PostTypesPage.php:305
+msgid "Post type created. It is now in the admin menu."
+msgstr "Tipo de conteúdo criado. Ele já aparece no menu do painel."
+
+#: src/Admin/PostTypes/PostTypesPage.php:306
+msgid "Post type saved."
+msgstr "Tipo de conteúdo salvo."
+
+#: src/Admin/PostTypes/PostTypesPage.php:307
+msgid "Post type deleted. Its entries are still in the database."
+msgstr "Tipo de conteúdo excluído. Os itens continuam no banco de dados."
+
+#: src/Admin/PostTypes/PostTypesPage.php:319
+#, php-format
+msgid "Add the first %s"
+msgstr "Adicionar o primeiro item: %s"
+
+#: src/Admin/PostTypes/PostTypesPage.php:359
+msgid "Title"
+msgstr "Título"
+
+#: src/Admin/PostTypes/PostTypesPage.php:360
+msgid "Content editor"
+msgstr "Editor de conteúdo"
+
+#: src/Admin/PostTypes/PostTypesPage.php:361
+#: src/Integrations/WordPress/WordPressServiceProvider.php:109
+msgid "Featured image"
+msgstr "Imagem destacada"
+
+#: src/Admin/PostTypes/PostTypesPage.php:362
+msgid "Excerpt"
+msgstr "Resumo"
+
+#: src/Admin/PostTypes/PostTypesPage.php:363
+msgid "Author"
+msgstr "Autor"
+
+#: src/Admin/PostTypes/PostTypesPage.php:364
+msgid "Comments"
+msgstr "Comentários"
+
+#: src/Admin/PostTypes/PostTypesPage.php:365
+msgid "Revisions"
+msgstr "Revisões"
+
+#: src/Admin/PostTypes/PostTypesPage.php:366
+msgid "Order & parent"
+msgstr "Ordem e item pai"
+
+#: src/Admin/PostTypes/PostTypesPage.php:367
+msgid "Custom fields (WP)"
+msgstr "Campos personalizados (WP)"
+
+#: src/Admin/QuickEdit/QuickEditRenderer.php:78
+msgid "No change"
+msgstr ""
+
+#: src/Bootstrap/BootManager.php:123
+msgid "CtrlField: schema directory not found, its field groups were not loaded:"
+msgstr "CtrlField: pasta de schemas não encontrada; os grupos de campos dela não foram carregados:"
+
+#: src/Bootstrap/BootManager.php:138
+msgid "CtrlField: these schema files have an error and were not loaded. The rest of the site keeps working."
+msgstr "CtrlField: estes arquivos de schema têm um erro e não foram carregados. O resto do site continua funcionando."
+
+#. translators: %s: post type singular name
+#. translators: %s: taxonomy singular name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:91
+#: src/Integrations/WordPress/WordPressServiceProvider.php:132
+#, php-format
+msgid "Edit %s"
+msgstr "Editar %s"
+
+#. translators: %s: post type singular name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:93
+#, php-format
+msgid "New entry: %s"
+msgstr "Novo item: %s"
+
+#. translators: %s: post type singular name
+#. translators: %s: post type plural name
+#. translators: %s: taxonomy singular name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:95
+#: src/Integrations/WordPress/WordPressServiceProvider.php:97
+#: src/Integrations/WordPress/WordPressServiceProvider.php:134
+#, php-format
+msgid "View %s"
+msgstr "Ver %s"
+
+#. translators: %s: post type plural name
+#. translators: %s: taxonomy plural name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:99
+#: src/Integrations/WordPress/WordPressServiceProvider.php:143
+#, php-format
+msgid "Search %s"
+msgstr "Pesquisar %s"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:100
+msgid "No entries found."
+msgstr "Nenhum item encontrado."
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:101
+msgid "No entries found in Trash."
+msgstr "Nenhum item encontrado na lixeira."
+
+#. translators: %s: post type plural name
+#. translators: %s: taxonomy plural name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:103
+#: src/Integrations/WordPress/WordPressServiceProvider.php:130
+#, php-format
+msgid "All %s"
+msgstr "Todos: %s"
+
+#. translators: %s: post type plural name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:105
+#, php-format
+msgid "%s archive"
+msgstr "Arquivo: %s"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:106
+msgid "Attributes"
+msgstr "Atributos"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:107
+msgid "Insert into entry"
+msgstr "Inserir no item"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:108
+msgid "Uploaded to this entry"
+msgstr "Enviado para este item"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:110
+msgid "Set featured image"
+msgstr "Definir imagem destacada"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:111
+msgid "Remove featured image"
+msgstr "Remover imagem destacada"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:112
+msgid "Use as featured image"
+msgstr "Usar como imagem destacada"
+
+#. translators: %s: post type plural name
+#. translators: %s: taxonomy plural name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:114
+#: src/Integrations/WordPress/WordPressServiceProvider.php:151
+#, php-format
+msgid "%s list"
+msgstr "Lista: %s"
+
+#. translators: %s: post type plural name
+#. translators: %s: taxonomy plural name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:116
+#: src/Integrations/WordPress/WordPressServiceProvider.php:153
+#, php-format
+msgid "%s list navigation"
+msgstr "Navegação da lista: %s"
+
+#. translators: %s: post type plural name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:118
+#, php-format
+msgid "Filter %s list"
+msgstr "Filtrar lista: %s"
+
+#. translators: %s: taxonomy singular name
+#: src/Integrations/WordPress/WordPressServiceProvider.php:136
+#, php-format
+msgid "Update %s"
+msgstr "Atualizar %s"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:140
+msgid "Parent"
+msgstr "Item pai"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:141
+msgid "Parent:"
+msgstr "Item pai:"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:144
+msgid "Most used"
+msgstr "Mais usados"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:145
+msgid "Separate with commas"
+msgstr "Separe com vírgulas"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:146
+msgid "Add or remove"
+msgstr "Adicionar ou remover"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:147
+msgid "Choose from the most used"
+msgstr "Escolher entre os mais usados"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:148
+msgid "Nothing found."
+msgstr "Nada encontrado."
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:149
+msgid "None"
+msgstr "Nenhum"
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:309
+msgid "Security check failed."
+msgstr ""
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:313
+msgid "You do not have permission to save these settings."
+msgstr ""
+
+#: src/Integrations/WordPress/WordPressServiceProvider.php:478
+msgid "Select Image"
+msgstr ""

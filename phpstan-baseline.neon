@@ -418,7 +418,7 @@ parameters:
 			path: src/Integrations/WordPress/WordPressServiceProvider.php
 
 		-
-			message: '#^Parameter \#2 \$args of function register_post_type expects array\{label\?\: string, labels\?\: array\<string\>, description\?\: string, public\?\: bool, hierarchical\?\: bool, exclude_from_search\?\: bool, publicly_queryable\?\: bool, show_ui\?\: bool, \.\.\.\}, array\{labels\: array\{name\: non\-falsy\-string, singular_name\: string, add_new\: ''Add New'', add_new_item\: non\-falsy\-string, edit_item\: non\-falsy\-string, new_item\: non\-falsy\-string, view_item\: non\-falsy\-string, view_items\: non\-falsy\-string, \.\.\.\}, description\: string, public\: bool, hierarchical\: bool, exclude_from_search\: bool, publicly_queryable\: bool, show_ui\: bool, show_in_menu\: bool\|string, \.\.\.\} given\.$#'
+			message: '#^Parameter \#2 \$args of function register_post_type expects array\{label\?\: string, labels\?\: array\<string\>, description\?\: string, public\?\: bool, hierarchical\?\: bool, exclude_from_search\?\: bool, publicly_queryable\?\: bool, show_ui\?\: bool, \.\.\.\}, array\{labels\: array\<string, string\>, description\: string, public\: bool, hierarchical\: bool, exclude_from_search\: bool, publicly_queryable\: bool, show_ui\: bool, show_in_menu\: bool\|string, \.\.\.\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Integrations/WordPress/WordPressServiceProvider.php

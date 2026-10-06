@@ -8,8 +8,8 @@ namespace CtrlField\Admin\PostTypes;
  * A custom post type created in the admin UI (no code).
  *
  * Pure value object: fromInput() normalises and validates raw form input,
- * toArray()/fromArray() round-trip the stored option. No WordPress calls,
- * so it is unit-testable.
+ * toArray()/fromArray() round-trip the stored option. Only __() from
+ * WordPress, so it stays unit-testable.
  */
 final class PostTypeDefinition
 {
@@ -57,32 +57,33 @@ final class PostTypeDefinition
 
         $slug = strtolower(trim((string) ($input['slug'] ?? '')));
         if ($slug === '') {
-            $errors['slug'] = 'The key is required.';
+            $errors['slug'] = __('The key is required.', 'ctrlfield');
         } elseif (! preg_match('/^[a-z][a-z0-9_-]{0,19}$/', $slug)) {
-            $errors['slug'] = 'Use 1–20 lowercase letters, numbers, "-" or "_", starting with a letter.';
+            $errors['slug'] = __('Use 1–20 lowercase letters, numbers, "-" or "_", starting with a letter.', 'ctrlfield');
         } elseif (in_array($slug, self::RESERVED, true)) {
-            $errors['slug'] = "\"{$slug}\" is reserved by WordPress.";
+            /* translators: %s: post type key */
+            $errors['slug'] = sprintf(__('"%s" is reserved by WordPress.', 'ctrlfield'), $slug);
         }
 
         $singular = self::text($input['singular'] ?? '');
         $plural   = self::text($input['plural'] ?? '');
         if ($singular === '') {
-            $errors['singular'] = 'The singular name is required.';
+            $errors['singular'] = __('The singular name is required.', 'ctrlfield');
         }
         if ($plural === '') {
-            $errors['plural'] = 'The plural name is required.';
+            $errors['plural'] = __('The plural name is required.', 'ctrlfield');
         }
 
         $icon = trim((string) ($input['icon'] ?? ''));
         if ($icon !== '' && ! preg_match('/^dashicons-[a-z0-9-]+$/', $icon)) {
-            $errors['icon'] = 'Use a Dashicons class, e.g. dashicons-portfolio.';
+            $errors['icon'] = __('Use a Dashicons class, e.g. dashicons-portfolio.', 'ctrlfield');
         }
 
         $supports = array_values(array_intersect(self::SUPPORTS, (array) ($input['supports'] ?? [])));
 
         $rewrite = trim(strtolower(trim((string) ($input['rewrite_slug'] ?? ''))), '/');
         if ($rewrite !== '' && ! preg_match('/^[a-z0-9][a-z0-9\/_-]*$/', $rewrite)) {
-            $errors['rewrite_slug'] = 'Use lowercase letters, numbers, "-", "_" or "/".';
+            $errors['rewrite_slug'] = __('Use lowercase letters, numbers, "-", "_" or "/".', 'ctrlfield');
         }
 
         $position = (int) ($input['menu_position'] ?? 25);
