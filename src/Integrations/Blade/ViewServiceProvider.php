@@ -58,6 +58,7 @@ class ViewServiceProvider extends ServiceProvider
         self::$compiler = $compiler;
 
         if (function_exists('do_action')) {
+            RelationshipDirective::register($compiler);
             do_action('ctrlfield/blade_ready', $compiler);
         }
     }

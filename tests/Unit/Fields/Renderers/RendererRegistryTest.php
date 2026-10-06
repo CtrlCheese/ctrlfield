@@ -13,7 +13,6 @@ use CtrlField\Fields\Renderers\ImageRenderer;
 use CtrlField\Fields\Renderers\NumberRenderer;
 use CtrlField\Fields\Renderers\RadioRenderer;
 use CtrlField\Fields\Renderers\RendererRegistry;
-use CtrlField\Fields\Renderers\RepeaterRenderer;
 use CtrlField\Fields\Renderers\SelectRenderer;
 use CtrlField\Fields\Renderers\TextareaRenderer;
 use CtrlField\Fields\Renderers\TextRenderer;
@@ -44,7 +43,6 @@ class RendererRegistryTest extends TestCase
             [FieldType::FILE,     FileRenderer::class],
             [FieldType::WYSIWYG,  WysiwygRenderer::class],
             [FieldType::GROUP,    GroupRenderer::class],
-            [FieldType::REPEATER, RepeaterRenderer::class],
         ];
 
         foreach ($cases as [$type, $expectedClass]) {

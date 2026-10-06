@@ -24,6 +24,9 @@ final class InspectorServiceProvider extends ServiceProvider
             (new SchemaInspectorPage())->register();
         }, 9);
 
+        // Map API keys (Google Maps / Mapbox) — the Map field is Free.
+        add_action('admin_menu', static fn () => (new \CtrlField\Admin\Map\MapSettingsPage())->register(), 20);
+
         add_action('wp_ajax_ctrlfield_import_csv', [$this, 'handleCsvImport']);
     }
 

@@ -14,7 +14,6 @@ use CtrlField\Fields\Types\GroupField;
 use CtrlField\Fields\Types\ImageField;
 use CtrlField\Fields\Types\NumberField;
 use CtrlField\Fields\Types\RadioField;
-use CtrlField\Fields\Types\RepeaterField;
 use CtrlField\Fields\Types\SelectField;
 use CtrlField\Fields\Types\TextareaField;
 use CtrlField\Fields\Types\TextField;
@@ -40,7 +39,6 @@ class FieldFactoryTest extends TestCase
             'file'     => ['file',     FileField::class,     FieldType::FILE],
             'wysiwyg'  => ['wysiwyg',  WysiwygField::class,  FieldType::WYSIWYG],
             'object'   => ['object',   GroupField::class,    FieldType::GROUP],
-            'repeater' => ['repeater', RepeaterField::class, FieldType::REPEATER],
         ];
     }
 

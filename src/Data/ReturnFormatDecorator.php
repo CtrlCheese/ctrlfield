@@ -40,6 +40,14 @@ final class ReturnFormatDecorator
             return (string) (function_exists('wp_get_attachment_url') ? wp_get_attachment_url($id) : '');
         }
 
+        // PAGE_LINK stores post IDs — return permalinks (one or a list)
+        if ($type === FieldType::PAGE_LINK) {
+            $link = static fn (mixed $id): string => (string) (
+                function_exists('get_permalink') ? get_permalink((int) $id) : ''
+            );
+            return is_array($value) ? array_map($link, $value) : $link($value);
+        }
+
         // GALLERY stores an array of IDs — return an array of URLs
         if ($type === FieldType::GALLERY) {
             if (! is_array($value)) {

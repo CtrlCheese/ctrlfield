@@ -49,7 +49,7 @@ final class RendererRegistry
             FieldType::FILE->value     => new FileRenderer(),
             FieldType::WYSIWYG->value  => new WysiwygRenderer(),
             FieldType::GROUP->value    => new GroupRenderer(),
-            FieldType::REPEATER->value => new RepeaterRenderer(),
+            // REPEATER: registered by CtrlField Pro (pro/src/Fields/Renderers/RepeaterRenderer.php).
             FieldType::DATE->value     => new DateRenderer(),
             FieldType::TIME->value     => new TimeRenderer(),
             FieldType::DATETIME->value => new DateTimeRenderer(),
@@ -73,6 +73,9 @@ final class RendererRegistry
             FieldType::ICON->value          => new IconRenderer(),
             // C-6: Code
             FieldType::CODE->value          => new CodeRenderer(),
+            // ACF parity
+            FieldType::PASSWORD->value      => new PasswordRenderer(),
+            FieldType::PAGE_LINK->value     => new PageLinkRenderer(),
         ], self::$map);
     }
 

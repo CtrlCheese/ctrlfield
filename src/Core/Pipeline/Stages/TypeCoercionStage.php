@@ -53,7 +53,8 @@ class TypeCoercionStage implements StageInterface
                 ? self::coerceFlexContent($value, $key, $definition)
                 : (is_array($value) ? array_values($value) : []),
             // Pro relational fields — basic coercion; sanitization handles ID validation
-            FieldType::POST_OBJECT   => is_array($value)
+            FieldType::POST_OBJECT,
+            FieldType::PAGE_LINK     => is_array($value)
                 ? array_values(array_map('intval', $value))
                 : (is_numeric($value) ? (int) $value : 0),
             FieldType::TAXONOMY_TERM => is_array($value)

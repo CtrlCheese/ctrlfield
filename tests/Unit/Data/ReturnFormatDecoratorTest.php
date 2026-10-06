@@ -33,8 +33,7 @@ class ReturnFormatDecoratorTest extends TestCase
         $field  = Field::image('logo')->returnFormat('url');
         $result = ReturnFormatDecorator::apply(42, $field);
 
-        // wp_get_attachment_url is stubbed to return false → empty string
-        $this->assertSame('', $result);
+        $this->assertSame('https://example.test/uploads/42.jpg', $result);
     }
 
     public function test_apply_url_format_on_text_field_casts_to_string(): void

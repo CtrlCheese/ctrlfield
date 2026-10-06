@@ -100,4 +100,29 @@ class HelpersTest extends TestCase
         $html = '<strong>Bold &amp; Safe</strong>';
         $this->assertSame($html, $html); // no transformation applied
     }
+
+    public function test_ctrlfield_get_applies_return_format(): void
+    {
+        \CtrlField\Registry\FieldRegistry::reset();
+        \CtrlField\Builder\FieldGroup::make('rf')->where('post_type', '==', 'post')->fields([
+            \CtrlField\Fields\Field::pageLink('landing'),                       // url by default
+            \CtrlField\Fields\Field::image('hero')->returnFormat('url'),
+            \CtrlField\Fields\Field::text('plain'),
+        ])->register();
+        $GLOBALS['_wp_post_meta'][77]['_ctrlfield_data'] = json_encode([
+            'schema_version' => \CtrlField\Core\Migration\SchemaVersion::CURRENT,
+            'fields'         => ['landing' => 5, 'hero' => 9, 'plain' => 'hi'],
+        ]);
+
+        try {
+            $this->assertSame('https://example.test/?p=5', ctrlfield_get('landing', 77));
+            $this->assertSame('https://example.test/uploads/9.jpg', ctrlfield_get('hero', 77));
+            $this->assertSame('hi', ctrlfield_get('plain', 77));
+            // ctrlfield_get_all() stays raw.
+            $this->assertSame(5, ctrlfield_get_all(77)['landing']);
+        } finally {
+            unset($GLOBALS['_wp_post_meta'][77]);
+            \CtrlField\Registry\FieldRegistry::reset();
+        }
+    }
 }

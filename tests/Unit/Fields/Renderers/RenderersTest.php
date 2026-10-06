@@ -11,7 +11,6 @@ use CtrlField\Fields\Renderers\GroupRenderer;
 use CtrlField\Fields\Renderers\ImageRenderer;
 use CtrlField\Fields\Renderers\NumberRenderer;
 use CtrlField\Fields\Renderers\RadioRenderer;
-use CtrlField\Fields\Renderers\RepeaterRenderer;
 use CtrlField\Fields\Renderers\SelectRenderer;
 use CtrlField\Fields\Renderers\TextareaRenderer;
 use CtrlField\Fields\Renderers\TextRenderer;
@@ -131,42 +130,4 @@ class RenderersTest extends TestCase
         $this->assertStringContainsString('First Name', $html);
     }
 
-    public function test_repeater_renderer_outputs_x_for_template(): void
-    {
-        $html = (new RepeaterRenderer())->render(
-            Field::repeater('members')->fields([
-                Field::text('name')->label('Name'),
-            ]),
-            "adminState['members']"
-        );
-
-        $this->assertStringContainsString('<template x-for=', $html);
-        // Single quotes in Alpine expressions must survive unencoded.
-        $this->assertStringContainsString("x-model=\"row['name']\"", $html);
-        $this->assertStringContainsString('addRow(', $html);
-        $this->assertStringContainsString('removeRow(', $html);
-        $this->assertStringContainsString('moveRowUp(', $html);
-        $this->assertStringContainsString('moveRowDown(', $html);
-        $this->assertStringContainsString('+ Add Row', $html);
-    }
-
-    public function test_repeater_empty_row_json_is_valid(): void
-    {
-        $html = (new RepeaterRenderer())->render(
-            Field::repeater('items')->fields([
-                Field::text('title'),
-                Field::number('qty'),
-            ]),
-            "adminState['items']"
-        );
-
-        // Extract the JSON from addRow('items', {...})
-        preg_match('/addRow\(\'items\',\s*([^)]+)\)/', $html, $matches);
-        $this->assertNotEmpty($matches, 'Could not find addRow call in output');
-
-        $decoded = json_decode(html_entity_decode($matches[1]), true);
-        $this->assertIsArray($decoded);
-        $this->assertArrayHasKey('title', $decoded);
-        $this->assertArrayHasKey('qty', $decoded);
-    }
 }

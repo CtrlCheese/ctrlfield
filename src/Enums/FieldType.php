@@ -11,6 +11,7 @@ enum FieldType: string
     case NUMBER   = 'number';
     case EMAIL    = 'email';
     case URL      = 'url';
+    case PASSWORD = 'password';
     case SELECT   = 'select';
     case CHECKBOX = 'checkbox';
     case RADIO    = 'radio';
@@ -51,4 +52,6 @@ enum FieldType: string
     case USER             = 'user';
     case ICON             = 'icon';
     case CODE             = 'code';
+    // ACF parity
+    case PAGE_LINK        = 'page_link';
 }

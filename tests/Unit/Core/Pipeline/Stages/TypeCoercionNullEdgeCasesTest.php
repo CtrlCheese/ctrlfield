@@ -70,16 +70,6 @@ class TypeCoercionNullEdgeCasesTest extends TestCase
         $this->assertSame([], $ctx->fields['tags']);
     }
 
-    public function test_null_repeater_coerces_to_empty_array(): void
-    {
-        $g   = FieldGroup::make('g')->where('post_type', '==', 'p')->fields([
-            Field::repeater('rows')->fields([Field::text('label')]),
-        ]);
-        $ctx = $this->ctx(['rows' => null], $g);
-        $this->stage->handle($ctx);
-        $this->assertSame([], $ctx->fields['rows']);
-    }
-
     // -------------------------------------------------------------------------
     // Group field — sub-fields passed through as-is
     // BuildsFieldMap only includes top-level fields (by design), so sub-field
@@ -117,40 +107,6 @@ class TypeCoercionNullEdgeCasesTest extends TestCase
     // -------------------------------------------------------------------------
     // Repeater field — rows preserved as-is (no recursive coercion)
     // -------------------------------------------------------------------------
-
-    public function test_repeater_rows_preserve_original_value_types(): void
-    {
-        $g = FieldGroup::make('g')->where('post_type', '==', 'p')->fields([
-            Field::repeater('phases')->fields([
-                Field::text('name'),
-                Field::number('duration'),
-            ]),
-        ]);
-
-        $rows = [
-            ['name' => 'Discovery', 'duration' => '14'],
-            ['name' => 'Build',     'duration' => '30'],
-        ];
-
-        $ctx = $this->ctx(['phases' => $rows], $g);
-        $this->stage->handle($ctx);
-
-        // Row values are NOT coerced — string '14' remains '14'.
-        $this->assertSame('14', $ctx->fields['phases'][0]['duration']);
-        $this->assertSame('30', $ctx->fields['phases'][1]['duration']);
-    }
-
-    public function test_repeater_non_array_input_coerced_to_empty_array(): void
-    {
-        $g = FieldGroup::make('g')->where('post_type', '==', 'p')->fields([
-            Field::repeater('items')->fields([Field::text('val')]),
-        ]);
-
-        $ctx = $this->ctx(['items' => 'bad-input'], $g);
-        $this->stage->handle($ctx);
-
-        $this->assertSame([], $ctx->fields['items']);
-    }
 
     // -------------------------------------------------------------------------
     // Number: int vs float distinction

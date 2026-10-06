@@ -7,7 +7,15 @@ use CtrlField\Data\FieldDataService;
 if (! function_exists('ctrlfield_get')) {
     function ctrlfield_get(string $key, ?int $postId = null): mixed
     {
-        return ctrlfield_get_all($postId)[$key] ?? null;
+        $id = $postId ?? (function_exists('get_the_ID') ? (int) get_the_ID() : 0);
+
+        if ($id <= 0) {
+            return null;
+        }
+
+        // Applies ->returnFormat() (image array, DateTime, page URL…). ctrlfield_get_all()
+        // stays raw; reading through it here silently ignored every return format.
+        return FieldDataService::getInstance()->get($key, $id, 'post');
     }
 }
 
@@ -232,5 +240,161 @@ if (! function_exists('ctrlfield_render')) {
     function ctrlfield_render(string $componentName, array $data = []): void
     {
         echo \CtrlField\Components\ComponentRenderer::renderByName($componentName, $data);
+    }
+}
+
+// Relationship, Post Object and Map helpers (Free since the ACF-parity split).
+
+if (! function_exists('ctrlfield_get_relationship')) {
+    /**
+     * Returns an array of WP_Post objects for a relationship field.
+     *
+     * @return array<int, \WP_Post>
+     */
+    function ctrlfield_get_relationship(string $fieldKey, int $postId = 0): array
+    {
+        $ids   = ctrlfield_get_relationship_ids($fieldKey, $postId);
+        $posts = [];
+        foreach ($ids as $id) {
+            $post = get_post($id);
+            if ($post instanceof \WP_Post) {
+                $posts[] = $post;
+            }
+        }
+        return $posts;
+    }
+}
+
+if (! function_exists('ctrlfield_get_relationship_ids')) {
+    /**
+     * Returns an array of related post IDs for a relationship field.
+     *
+     * @return array<int, int>
+     */
+    function ctrlfield_get_relationship_ids(string $fieldKey, int $postId = 0): array
+    {
+        global $wpdb;
+
+        if ($postId === 0) {
+            $postId = get_the_ID() ?: 0;
+        }
+
+        if ($postId === 0) {
+            return [];
+        }
+
+        if (! preg_match('/^[a-z][a-z0-9_]*$/', $fieldKey)) {
+            return [];
+        }
+
+        $table    = $wpdb->prefix . 'ctrlf_rel_' . $fieldKey;
+        $rows     = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT target_id FROM `{$table}` WHERE source_id = %d AND field_key = %s ORDER BY sort_order ASC",
+                $postId,
+                $fieldKey,
+            ),
+            ARRAY_A,
+        );
+
+        return is_array($rows) ? array_map(static fn (array $r) => (int) $r['target_id'], $rows) : [];
+    }
+}
+
+if (! function_exists('ctrlfield_get_map')) {
+    /**
+     * Returns the map data array for a map field.
+     *
+     * @return array{lat: float, lng: float, zoom: int, address: string}
+     */
+    function ctrlfield_get_map(string $key, int $postId = 0): array
+    {
+        $value = ctrlfield_get($key, $postId ?: null);
+
+        if (! is_array($value)) {
+            return ['lat' => 0.0, 'lng' => 0.0, 'zoom' => 14, 'address' => ''];
+        }
+
+        return [
+            'lat'     => is_numeric($value['lat'] ?? null)  ? (float) $value['lat']  : 0.0,
+            'lng'     => is_numeric($value['lng'] ?? null)  ? (float) $value['lng']  : 0.0,
+            'zoom'    => isset($value['zoom'])  ? (int) $value['zoom']  : 14,
+            'address' => (string) ($value['address'] ?? ''),
+        ];
+    }
+}
+
+if (! function_exists('ctrlfield_get_map_embed')) {
+    /**
+     * Returns an HTML embed for a map field.
+     * Full implementation deferred to v3 (requires server-side API calls per provider).
+     *
+     * @param  array<string, mixed> $options
+     */
+    function ctrlfield_get_map_embed(string $key, array $options = [], int $postId = 0): string
+    {
+        $data = ctrlfield_get_map($key, $postId);
+
+        if ($data['lat'] === 0.0 && $data['lng'] === 0.0) {
+            return '';
+        }
+
+        $lat    = $data['lat'];
+        $lng    = $data['lng'];
+        $zoom   = $data['zoom'];
+        $height = (int) ($options['height'] ?? 400);
+
+        // OpenStreetMap iframe — no API key required, works for all providers as fallback
+        $src = sprintf(
+            'https://www.openstreetmap.org/export/embed.html?bbox=%s,%s,%s,%s&layer=mapnik&marker=%s,%s',
+            $lng - 0.01, $lat - 0.01, $lng + 0.01, $lat + 0.01,
+            $lat, $lng,
+        );
+
+        return sprintf(
+            '<iframe src="%s" width="100%%" height="%d" style="border:0" loading="lazy" title="%s"></iframe>',
+            esc_url($src),
+            $height,
+            esc_attr($data['address'] ?: 'Map'),
+        );
+    }
+}
+
+if (! function_exists('ctrlfield_get_related_by')) {
+    /**
+     * Reverse lookup: returns WP_Post objects that reference the given target post.
+     *
+     * @return array<int, \WP_Post>
+     */
+    function ctrlfield_get_related_by(string $fieldKey, int $targetId): array
+    {
+        global $wpdb;
+
+        if (! preg_match('/^[a-z][a-z0-9_]*$/', $fieldKey)) {
+            return [];
+        }
+
+        $table = $wpdb->prefix . 'ctrlf_rel_' . $fieldKey;
+        $rows  = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT source_id FROM `{$table}` WHERE target_id = %d AND field_key = %s ORDER BY sort_order ASC",
+                $targetId,
+                $fieldKey,
+            ),
+            ARRAY_A,
+        );
+
+        if (! is_array($rows)) {
+            return [];
+        }
+
+        $posts = [];
+        foreach ($rows as $row) {
+            $post = get_post((int) $row['source_id']);
+            if ($post instanceof \WP_Post) {
+                $posts[] = $post;
+            }
+        }
+        return $posts;
     }
 }

@@ -33,21 +33,6 @@ class GroupFieldTest extends TestCase
         $this->assertSame('Street', $def['fields'][0]['label']);
     }
 
-    public function test_group_can_contain_repeater(): void
-    {
-        $group = Field::object('project')->fields([
-            Field::text('name'),
-            Field::repeater('phases')->fields([
-                Field::text('phase_name'),
-            ]),
-        ]);
-
-        $def = $group->getDefinition();
-
-        $this->assertCount(2, $def['fields']);
-        $this->assertSame(FieldType::REPEATER->value, $def['fields'][1]['type']);
-    }
-
     public function test_group_definition_is_json_serializable(): void
     {
         $group = Field::object('address')->label('Address')->fields([

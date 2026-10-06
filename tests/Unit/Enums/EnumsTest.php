@@ -22,7 +22,7 @@ class EnumsTest extends TestCase
     {
         $expected = [
             // v1
-            'text', 'textarea', 'number', 'email', 'url',
+            'text', 'textarea', 'number', 'email', 'url', 'password',
             'select', 'checkbox', 'radio',
             'image', 'file',
             'group', 'repeater', 'wysiwyg',
@@ -41,6 +41,8 @@ class EnumsTest extends TestCase
             // Core CYCLES4 — new field types
             'true_false', 'tab', 'accordion', 'accordion_end',
             'message', 'separator', 'button_group', 'user', 'icon', 'code',
+            // ACF parity
+            'page_link',
         ];
 
         $actual = array_map(fn(FieldType $t) => $t->value, FieldType::cases());

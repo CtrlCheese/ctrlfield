@@ -102,19 +102,6 @@ class TypeCoercionStageTest extends TestCase
         $this->assertSame(['a', 'b'], $context->fields['features']);
     }
 
-    public function test_coerces_repeater_to_indexed_array(): void
-    {
-        $group   = FieldGroup::make('g')->where('post_type', '==', 'p')->fields([
-            Field::repeater('phases')->fields([Field::text('name')]),
-        ]);
-        $context = $this->contextWith(['phases' => [1 => ['name' => 'A']]], $group);
-
-        $this->stage->handle($context);
-
-        // array_values should re-index
-        $this->assertSame([['name' => 'A']], $context->fields['phases']);
-    }
-
     public function test_text_fields_remain_strings(): void
     {
         $group   = FieldGroup::make('g')->where('post_type', '==', 'p')->fields([Field::text('name')]);

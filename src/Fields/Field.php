@@ -25,7 +25,6 @@ use CtrlField\Fields\Types\ComputedField;
 use CtrlField\Fields\Types\OembedField;
 use CtrlField\Fields\Types\RadioField;
 use CtrlField\Fields\Types\RangeField;
-use CtrlField\Fields\Types\RepeaterField;
 use CtrlField\Fields\Types\SelectField;
 use CtrlField\Fields\Types\SeparatorField;
 use CtrlField\Fields\Types\TabField;
@@ -34,6 +33,12 @@ use CtrlField\Fields\Types\TextField;
 use CtrlField\Fields\Types\TimeField;
 use CtrlField\Fields\Types\TrueFalseField;
 use CtrlField\Fields\Types\UrlField;
+use CtrlField\Fields\Types\MapField;
+use CtrlField\Fields\Types\PageLinkField;
+use CtrlField\Fields\Types\PasswordField;
+use CtrlField\Fields\Types\PostObjectField;
+use CtrlField\Fields\Types\RelationshipField;
+use CtrlField\Fields\Types\TaxonomyField;
 use CtrlField\Fields\Types\UserField;
 use CtrlField\Fields\Types\WysiwygField;
 
@@ -46,39 +51,67 @@ use CtrlField\Fields\Types\WysiwygField;
 final class Field
 {
     // -------------------------------------------------------------------------
-    // Clone factory — registered by Pro at boot time (valid license)
+    // Pro field factories — registered by CtrlField Pro at boot (valid license).
+    // The Free build ships without these field classes, like ACF Free.
     // -------------------------------------------------------------------------
 
-    private static ?\Closure $cloneFieldFactory = null;
+    /** @var array<string, \Closure(string): FieldDefinition> */
+    private static array $proFactories = [];
 
-    /**
-     * Register the factory for Field::clone() — called by CtrlField Pro bootstrap.
-     */
+    /** Register a Pro field factory ('clone', 'repeater', …) — called by CtrlField Pro. */
+    public static function registerProFactory(string $type, \Closure $factory): void
+    {
+        self::$proFactories[$type] = $factory;
+    }
+
+    /** Register the factory for Field::clone() — called by CtrlField Pro bootstrap. */
     public static function registerCloneFactory(\Closure $factory): void
     {
-        self::$cloneFieldFactory = $factory;
+        self::registerProFactory('clone', $factory);
     }
 
     /**
      * Create a CloneField instance. Requires a valid CtrlField Pro license.
      *
-     * @throws \RuntimeException if the clone field factory has not been registered
+     * @throws \RuntimeException if CtrlField Pro is not active
      */
     public static function clone(string $key): FieldDefinition
     {
-        if (self::$cloneFieldFactory === null) {
+        return self::pro('clone', $key);
+    }
+
+    /**
+     * Create a RepeaterField instance (rows of sub-fields). Requires a valid
+     * CtrlField Pro license, as in ACF. Returns CtrlField\Pro\Fields\RepeaterField.
+     *
+     * @throws \RuntimeException if CtrlField Pro is not active
+     */
+    public static function repeater(string $key): FieldDefinition
+    {
+        return self::pro('repeater', $key);
+    }
+
+    private static function pro(string $type, string $key): FieldDefinition
+    {
+        if (! isset(self::$proFactories[$type])) {
             throw new \RuntimeException(
-                'Field::clone() requires a CtrlField Pro license. The clone factory has not been registered.'
+                "Field::{$type}('{$key}') requires a CtrlField Pro license. Activate it under CtrlField → Pro License."
             );
         }
 
-        return (self::$cloneFieldFactory)($key);
+        return (self::$proFactories[$type])($key);
     }
 
     /** Reset clone factory — for testing only. */
     public static function resetCloneFactory(): void
     {
-        self::$cloneFieldFactory = null;
+        unset(self::$proFactories['clone']);
+    }
+
+    /** Reset every Pro factory — for testing only. */
+    public static function resetProFactories(): void
+    {
+        self::$proFactories = [];
     }
 
 
@@ -147,10 +180,6 @@ final class Field
         return new GroupField($key);
     }
 
-    public static function repeater(string $key): RepeaterField
-    {
-        return new RepeaterField($key);
-    }
 
     public static function date(string $key): DateField
     {
@@ -273,6 +302,54 @@ final class Field
     public static function user(string $key): UserField
     {
         return new UserField($key);
+    }
+
+    /** Masked text input. */
+    public static function password(string $key): PasswordField
+    {
+        return new PasswordField($key);
+    }
+
+    /** Pick a page (or any post type); returns its URL by default. */
+    public static function pageLink(string $key): PageLinkField
+    {
+        return new PageLinkField($key);
+    }
+
+    /** Select one or more posts (any post type) — returns IDs or WP_Post objects. */
+    public static function postObject(string $key): PostObjectField
+    {
+        return new PostObjectField($key);
+    }
+
+    /** Select terms of one taxonomy. */
+    public static function taxonomyTerm(string $key): TaxonomyField
+    {
+        return new TaxonomyField($key);
+    }
+
+    /** Ordered list of related posts, optionally bidirectional (pivot table). */
+    public static function relationship(string $key): RelationshipField
+    {
+        return new RelationshipField($key);
+    }
+
+    /** Location picker — OpenStreetMap, Google Maps or Mapbox. */
+    public static function map(string $key): MapField
+    {
+        return new MapField($key);
+    }
+
+    /** Multi-image gallery. Requires a valid CtrlField Pro license. */
+    public static function gallery(string $key): FieldDefinition
+    {
+        return self::pro('gallery', $key);
+    }
+
+    /** Page builder with named layouts. Requires a valid CtrlField Pro license. */
+    public static function flexibleContent(string $key): FieldDefinition
+    {
+        return self::pro('flexible_content', $key);
     }
 
     // -------------------------------------------------------------------------

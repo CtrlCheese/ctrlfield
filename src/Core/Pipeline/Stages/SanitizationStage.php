@@ -78,6 +78,8 @@ class SanitizationStage implements StageInterface
     {
         return match ($type) {
             FieldType::TEXT     => self::sanitizeText((string) $value),
+            // Stored as typed (like ACF): stripping tags or whitespace would change the password.
+            FieldType::PASSWORD => is_scalar($value) ? str_replace("\0", '', (string) $value) : '',
             FieldType::TEXTAREA => self::sanitizeText((string) $value),
             FieldType::EMAIL    => self::sanitizeEmail((string) $value),
             FieldType::URL      => self::sanitizeUrl((string) $value),
@@ -94,6 +96,7 @@ class SanitizationStage implements StageInterface
             FieldType::REPEATER => self::sanitizeRepeater($value, $definition),
             FieldType::FLEXIBLE_CONTENT,
             FieldType::POST_OBJECT,
+            FieldType::PAGE_LINK,
             FieldType::TAXONOMY_TERM,
             FieldType::RELATIONSHIP,
             FieldType::GALLERY,

@@ -106,6 +106,11 @@ if (! function_exists('get_current_screen')) {
 if (! function_exists('get_post_meta')) {
     function get_post_meta(int $post_id, string $key = '', bool $single = false): mixed
     {
+        // Tests can seed stored meta in $GLOBALS['_wp_post_meta'][post_id][meta_key].
+        if (isset($GLOBALS['_wp_post_meta'][$post_id][$key])) {
+            $v = $GLOBALS['_wp_post_meta'][$post_id][$key];
+            return $single ? $v : [$v];
+        }
         return $single ? '' : [];
     }
 }
@@ -207,6 +212,11 @@ if (! function_exists('wp_mail')) {
 if (! function_exists('get_post')) {
     function get_post(mixed $post = null, string $output = 'OBJECT', string $filter = 'raw'): mixed
     {
+        // Tests that need missing posts set $GLOBALS['_wp_posts'] (id => post).
+        if (isset($GLOBALS['_wp_posts']) && is_array($GLOBALS['_wp_posts'])) {
+            $id = is_object($post) ? (int) $post->ID : (int) $post;
+            return $GLOBALS['_wp_posts'][$id] ?? null;
+        }
         if (is_int($post)) {
             $obj              = new \stdClass();
             $obj->ID          = $post;
@@ -254,5 +264,19 @@ if (! class_exists('WP_Post')) {
         public string $post_title  = '';
         public string $post_status = 'publish';
         public string $post_type   = 'post';
+    }
+}
+
+if (! function_exists('get_permalink')) {
+    function get_permalink(mixed $post = 0): string|false
+    {
+        return 'https://example.test/?p=' . (is_object($post) ? $post->ID : (int) $post);
+    }
+}
+
+if (! function_exists('wp_get_attachment_url')) {
+    function wp_get_attachment_url(int $id): string|false
+    {
+        return 'https://example.test/uploads/' . $id . '.jpg';
     }
 }
