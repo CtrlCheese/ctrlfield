@@ -54,7 +54,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Run PHPStan
-        run: php -d memory_limit=512M vendor/bin/phpstan analyse --no-progress
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
 
   # ─────────────────────────────────────────────────────────────────
   # 3. PHP unit tests
@@ -140,7 +140,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          npx @wordpress/env run tests-cli \
+          npx @wordpress/env run tests-cli --env-cwd="wp-content/plugins/$(basename "$PWD")" \
             vendor/bin/phpunit --configuration phpunit-integration.xml --no-progress
 
       - name: Stop wp-env
