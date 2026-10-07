@@ -35,4 +35,13 @@ abstract class AbstractRenderer implements RendererInterface
     {
         return 'ctrlf-input';
     }
+
+    /** Six-dot grip for drag handles (see x-ctrlf-handle in assets/admin/src/sortable.js). */
+    public static function dragHandleIcon(): string
+    {
+        return '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">'
+            . '<circle cx="7" cy="5" r="1.5"/><circle cx="13" cy="5" r="1.5"/>'
+            . '<circle cx="7" cy="10" r="1.5"/><circle cx="13" cy="10" r="1.5"/>'
+            . '<circle cx="7" cy="15" r="1.5"/><circle cx="13" cy="15" r="1.5"/></svg>';
+    }
 }

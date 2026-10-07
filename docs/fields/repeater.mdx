@@ -72,7 +72,35 @@ Field::repeater('team_members')
 
 ---
 
+## Nesting
+
+Repeaters nest up to **3 levels**: a repeater inside a repeater inside a repeater. Groups in between do not count as a level, but a repeater inside them does. A fourth level throws `InvalidNestingDepthException` when the schema loads.
+
+```php
+Field::repeater('menu_sections')->fields([
+    Field::text('section_name'),
+    Field::repeater('dishes')->fields([          // level 2
+        Field::text('dish_name'),
+        Field::repeater('variants')->fields([    // level 3 — the maximum
+            Field::text('variant_name'),
+        ]),
+    ]),
+])
+```
+
+- A repeater can sit inside a Group or a Flexible Content layout.
+- A Flexible Content field cannot sit inside a repeater.
+
+---
+
+## In the editor
+
+- **Reorder** rows by dragging the ⋮⋮ handle, at any level. With the keyboard: focus the handle and use the arrow keys.
+- **Collapse** a row to a one-line summary (its first text value); "Expand all" / "Collapse all" act on one list.
+- Gallery images and relationship picks are reordered the same way.
+
+---
+
 ## Notes
 
-- Repeaters cannot be nested inside a FlexibleContent layout. Nest them inside a Group instead.
 - Sub-field keys must be unique within the repeater (not globally).

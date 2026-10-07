@@ -1,8 +1,11 @@
 // CSS is compiled separately by @tailwindcss/cli → assets/admin/ctrlfield.css
 import Alpine from 'alpinejs';
+import collapse from '@alpinejs/collapse';
 import { evaluateCondition } from './conditionEvaluator.js';
 import { pickValue, mergeGallery, mapWith, hasCoords, osmEmbedUrl } from './pickers.js';
 import { fieldGroupEditor } from './groupEditor.js';
+import { registerSortable, itemKey } from './sortable.js';
+import { rowSummary } from './rows.js';
 
 function markBlockEditorDirty() {
     const editor = window.wp?.data?.select?.('core/editor');
@@ -64,6 +67,9 @@ function showSaveError(message) {
 // -----------------------------------------------------------------------
 // ctrlFieldAdmin — single root Alpine component for the meta box
 // -----------------------------------------------------------------------
+
+Alpine.plugin(collapse);
+registerSortable(Alpine);
 
 document.addEventListener('alpine:init', () => {
     // CtrlField → Field Groups editor; config comes from the root's data-config.
@@ -140,39 +146,39 @@ document.addEventListener('alpine:init', () => {
         },
 
         // -------------------------------------------------------------------
-        // Repeater
+        // Rows (repeater, flexible content) — methods act on the list itself,
+        // so they work at any nesting depth. Open / closed state follows the
+        // row object, not its index, so it survives drag-and-drop.
         // -------------------------------------------------------------------
 
-        /**
-         * Adds a new empty row to the repeater.
-         * @param {string}  fieldKey  - Key of the repeater field in adminState.
-         * @param {object}  emptyRow  - Object with all sub-keys set to null.
-         */
-        addRow(fieldKey, emptyRow) {
-            if (!Array.isArray(this.adminState[fieldKey])) {
-                this.adminState[fieldKey] = [];
-            }
-            this.adminState[fieldKey].push(JSON.parse(JSON.stringify(emptyRow)));
-        },
+        /** { rowKey: false } — rows are open unless collapsed. */
+        closedRows: {},
 
-        /**
-         * Removes a row after user confirmation.
-         */
-        removeRow(fieldKey, idx) {
-            if (!confirm('Remove this row?')) return;
-            this.adminState[fieldKey].splice(idx, 1);
+        /** Append a copy of `row` to `list` (created when missing); returns the list to assign back. */
+        withRow(list, row) {
+            const rows = Array.isArray(list) ? list : [];
+            rows.push(JSON.parse(JSON.stringify(row)));
+            return rows;
         },
-
-        moveRowUp(fieldKey, idx) {
-            if (idx <= 0) return;
-            const arr = this.adminState[fieldKey];
-            [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+        removeRowFrom(list, idx, message = 'Remove this row?') {
+            if (!Array.isArray(list) || !window.confirm(message)) return;
+            list.splice(idx, 1);
         },
-
-        moveRowDown(fieldKey, idx) {
-            const arr = this.adminState[fieldKey];
-            if (idx >= arr.length - 1) return;
-            [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+        rowKey(row) {
+            return itemKey(row, Alpine.raw);
+        },
+        isRowOpen(row) {
+            return !this.closedRows[this.rowKey(row)];
+        },
+        toggleRow(row) {
+            const k = this.rowKey(row);
+            this.closedRows[k] = !this.closedRows[k];
+        },
+        setRowsOpen(list, open) {
+            (Array.isArray(list) ? list : []).forEach((row) => { this.closedRows[this.rowKey(row)] = !open; });
+        },
+        rowSummary(row) {
+            return rowSummary(row);
         },
 
         // -------------------------------------------------------------------
@@ -457,32 +463,12 @@ document.addEventListener('alpine:init', () => {
         // so all directives in the renderer HTML share the same scope.
         // -------------------------------------------------------------------
 
-        /** { 'fieldKey__idx': bool } — true = expanded */
-        flexExpandedRows: {},
         /** { 'fieldKey': bool } — picker modal visibility */
         flexPickerOpen:   {},
         /** { 'fieldKey': string } — live search query */
         flexPickerSearch:   {},
         /** { 'fieldKey': string } — active category tab */
         flexPickerCategory: {},
-
-        toggleFlexRow(key, idx) {
-            const k = `${key}__${idx}`;
-            this.flexExpandedRows[k] = !(this.flexExpandedRows[k] ?? true);
-        },
-        isFlexRowExpanded(key, idx) {
-            return this.flexExpandedRows[`${key}__${idx}`] ?? true;
-        },
-        expandAllFlexRows(key) {
-            (this.adminState[key] ?? []).forEach((_, i) => {
-                this.flexExpandedRows[`${key}__${i}`] = true;
-            });
-        },
-        collapseAllFlexRows(key) {
-            (this.adminState[key] ?? []).forEach((_, i) => {
-                this.flexExpandedRows[`${key}__${i}`] = false;
-            });
-        },
 
         openFlexPicker(key) {
             this.flexPickerOpen[key]    = true;
@@ -530,52 +516,12 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        addFlexLayout(key, layoutKey) {
-            if (!Array.isArray(this.adminState[key])) {
-                this.adminState[key] = [];
-            }
-            const newIdx = this.adminState[key].length;
-            this.adminState[key].push({ _layout: layoutKey });
-            this.flexExpandedRows[`${key}__${newIdx}`] = true;
-            this.closeFlexPicker(key);
-        },
-        removeFlexRow(key, idx) {
-            if (!window.confirm('Remove this section?')) return;
-            this.adminState[key].splice(idx, 1);
-            // Re-index expanded state
-            const rebuilt = {};
-            (this.adminState[key] ?? []).forEach((_, i) => {
-                const srcKey = i >= idx ? `${key}__${i + 1}` : `${key}__${i}`;
-                rebuilt[`${key}__${i}`] = this.flexExpandedRows[srcKey] ?? true;
-            });
-            Object.keys(this.flexExpandedRows)
-                .filter(k => k.startsWith(`${key}__`))
-                .forEach(k => delete this.flexExpandedRows[k]);
-            Object.assign(this.flexExpandedRows, rebuilt);
-        },
-        moveFlexRowUp(key, idx) {
-            if (idx <= 0) return;
-            const arr = this.adminState[key];
-            [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
-            [
-                this.flexExpandedRows[`${key}__${idx - 1}`],
-                this.flexExpandedRows[`${key}__${idx}`],
-            ] = [
-                this.flexExpandedRows[`${key}__${idx}`],
-                this.flexExpandedRows[`${key}__${idx - 1}`],
-            ];
-        },
-        moveFlexRowDown(key, idx) {
-            const arr = this.adminState[key];
-            if (idx >= arr.length - 1) return;
-            [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
-            [
-                this.flexExpandedRows[`${key}__${idx}`],
-                this.flexExpandedRows[`${key}__${idx + 1}`],
-            ] = [
-                this.flexExpandedRows[`${key}__${idx + 1}`],
-                this.flexExpandedRows[`${key}__${idx}`],
-            ];
+        /** Add a section of `layoutKey` to `list`; returns the list to assign back. */
+        withLayout(list, layoutKey, pickerKey) {
+            const rows = Array.isArray(list) ? list : [];
+            rows.push({ _layout: layoutKey });
+            this.closeFlexPicker(pickerKey);
+            return rows;
         },
     }));
 });

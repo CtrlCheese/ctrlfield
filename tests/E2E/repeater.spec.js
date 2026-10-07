@@ -33,12 +33,12 @@ test.describe('Repeater field', () => {
         await addBtn.click(); // add two rows
 
         // Fill first row
-        const firstRow = container.locator('.ctrlf-repeater-row').nth(0);
+        const firstRow = container.locator('.ctrlf-rows > .ctrlf-row').nth(0);
         await firstRow.locator('[x-model*="member_name"]').fill('Alice');
         await firstRow.locator('[x-model*="member_role"]').fill('Engineer');
 
         // Fill second row
-        const secondRow = container.locator('.ctrlf-repeater-row').nth(1);
+        const secondRow = container.locator('.ctrlf-rows > .ctrlf-row').nth(1);
         await secondRow.locator('[x-model*="member_name"]').fill('Bob');
         await secondRow.locator('[x-model*="member_role"]').fill('Designer');
 
@@ -51,7 +51,7 @@ test.describe('Repeater field', () => {
         await expect(page.locator('.ctrlfield-container')).toBeVisible({ timeout: 10_000 });
 
         // Verify row data persisted
-        const rows = page.locator('.ctrlf-repeater-row');
+        const rows = page.locator('.ctrlf-rows > .ctrlf-row');
         await expect(rows).toHaveCount(2);
 
         await expect(rows.nth(0).locator('[x-model*="member_name"]')).toHaveValue('Alice');
@@ -73,12 +73,13 @@ test.describe('Repeater field', () => {
         await addBtn.click();
         await addBtn.click();
 
-        const rows = container.locator('.ctrlf-repeater-row');
+        const rows = container.locator('.ctrlf-rows > .ctrlf-row');
         await rows.nth(0).locator('[x-model*="member_name"]').fill('First');
         await rows.nth(1).locator('[x-model*="member_name"]').fill('Second');
 
-        // Move second row up (it should become first)
-        await rows.nth(1).locator('.ctrlf-btn--up').click();
+        // Move second row up with the keyboard on its drag handle (it should become first)
+        await rows.nth(1).locator('.ctrlf-row__handle').focus();
+        await page.keyboard.press('ArrowUp');
 
         // Verify order changed in the UI
         await expect(rows.nth(0).locator('[x-model*="member_name"]')).toHaveValue('Second');
@@ -89,7 +90,7 @@ test.describe('Repeater field', () => {
         await page.waitForLoadState('networkidle');
         await page.reload();
 
-        const reloadedRows = page.locator('.ctrlf-repeater-row');
+        const reloadedRows = page.locator('.ctrlf-rows > .ctrlf-row');
         await expect(reloadedRows.nth(0).locator('[x-model*="member_name"]')).toHaveValue('Second');
         await expect(reloadedRows.nth(1).locator('[x-model*="member_name"]')).toHaveValue('First');
     });

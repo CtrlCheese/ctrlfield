@@ -262,20 +262,20 @@ final class FieldGroupsPage
 
             <div class="ctrlfield-ge-list" style="max-width:960px">
                 <p x-show="currentFields.length === 0" class="description"><?php esc_html_e('No fields yet. Click "Add Field".', 'ctrlfield'); ?></p>
+                <div class="ctrlf-rows" x-ctrlf-sort="currentFields">
                 <template x-for="(field, index) in currentFields" :key="field._uid">
-                    <div class="postbox" style="margin-bottom:8px">
-                        <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer" @click="field._open = !field._open">
-                            <span class="description" x-text="index + 1" style="width:20px"></span>
+                    <div class="postbox ctrlf-ge-field" data-ctrlf-item>
+                        <div class="ctrlf-ge-field__head" @click="field._open = !field._open">
+                            <button type="button" class="ctrlf-row__handle" x-ctrlf-handle @click.stop aria-label="<?php esc_attr_e('Drag to reorder (or use the arrow keys)', 'ctrlfield'); ?>" title="<?php esc_attr_e('Drag to reorder (or use the arrow keys)', 'ctrlfield'); ?>"><?php echo \CtrlField\Fields\Renderers\AbstractRenderer::dragHandleIcon(); // phpcs:ignore WordPress.Security.EscapeOutput -- static SVG ?></button>
+                            <span class="ctrlf-row__index" x-text="index + 1"></span>
                             <strong style="flex:1" x-text="field.label || field.key || '<?php echo esc_js(__('(no label)', 'ctrlfield')); ?>'"></strong>
                             <code x-text="field.key"></code>
                             <span style="width:140px" x-text="typeLabel(field.type)"></span>
                             <span @click.stop>
-                                <button type="button" class="button-link" @click="move(index, -1)" :disabled="index === 0" aria-label="<?php esc_attr_e('Move up', 'ctrlfield'); ?>">&uarr;</button>
-                                <button type="button" class="button-link" @click="move(index, 1)" :disabled="index === currentFields.length - 1" aria-label="<?php esc_attr_e('Move down', 'ctrlfield'); ?>">&darr;</button>
                                 <button type="button" class="button-link button-link-delete" @click="removeField(index)"><?php esc_html_e('Remove', 'ctrlfield'); ?></button>
                             </span>
                         </div>
-                        <div x-show="field._open" style="border-top:1px solid #dcdcde;padding:0 12px 12px">
+                        <div x-show="field._open" x-collapse style="border-top:1px solid #dcdcde;padding:0 12px 12px">
                             <table class="form-table" role="presentation">
                                 <tr>
                                     <th scope="row"><?php esc_html_e('Field type', 'ctrlfield'); ?></th>
@@ -308,6 +308,7 @@ final class FieldGroupsPage
                         </div>
                     </div>
                 </template>
+                </div>
                 <p><button type="button" class="button" @click="addField()">+ <?php esc_html_e('Add Field', 'ctrlfield'); ?></button></p>
             </div>
 

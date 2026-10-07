@@ -36,14 +36,13 @@ abstract class AbstractPickerRenderer extends AbstractRenderer
         $search   = 'results = await ' . $searchCall;
 
         $selected = $multiple
-            ? '<ul class="ctrlf-picker__selected">'
+            ? '<ul class="ctrlf-picker__selected"' . ($sortable ? ' x-ctrlf-sort="' . $p . '"' : '') . '>'
                 . '<template x-for="(id, idx) in (Array.isArray(' . $p . ') ? ' . $p . ' : [])" :key="id">'
-                . '<li class="ctrlf-picker__item">'
-                . '<span x-text="itemLabel(' . $kindJs . ', id)"></span>'
+                . '<li class="ctrlf-picker__item" data-ctrlf-item>'
                 . ($sortable
-                    ? '<button type="button" class="button-link" @click="if (idx > 0) { const a = ' . $p . '; [a[idx - 1], a[idx]] = [a[idx], a[idx - 1]]; }" aria-label="' . $this->esc(__('Move up', 'ctrlfield')) . '">&#8593;</button>'
-                    . '<button type="button" class="button-link" @click="if (idx < ' . $p . '.length - 1) { const a = ' . $p . '; [a[idx], a[idx + 1]] = [a[idx + 1], a[idx]]; }" aria-label="' . $this->esc(__('Move down', 'ctrlfield')) . '">&#8595;</button>'
+                    ? '<button type="button" class="ctrlf-picker__handle" x-ctrlf-handle aria-label="' . $this->esc(__('Drag to reorder (or use the arrow keys)', 'ctrlfield')) . '">' . self::dragHandleIcon() . '</button>'
                     : '')
+                . '<span x-text="itemLabel(' . $kindJs . ', id)"></span>'
                 . '<button type="button" class="button-link ctrlf-picker__remove" @click="' . $p . '.splice(idx, 1)" aria-label="' . $this->esc(__('Remove', 'ctrlfield')) . '">&#215;</button>'
                 . '</li>'
                 . '</template>'

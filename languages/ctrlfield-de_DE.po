@@ -1496,3 +1496,36 @@ msgstr "Aus ACF importieren (Pro)"
 
 msgid "Importing ACF field groups and their values is a CtrlField Pro feature."
 msgstr "Der Import von ACF-Feldgruppen und ihren Werten ist eine Funktion von CtrlField Pro."
+
+msgid "Add Row"
+msgstr "Zeile hinzufügen"
+
+msgid "Collapse all"
+msgstr "Alle zuklappen"
+
+msgid "Drag to reorder (or use the arrow keys)"
+msgstr "Zum Sortieren ziehen (oder die Pfeiltasten verwenden)"
+
+msgid "Expand all"
+msgstr "Alle aufklappen"
+
+msgid "No rows yet."
+msgstr "Noch keine Zeilen."
+
+msgid "Remove row"
+msgstr "Zeile entfernen"
+
+msgid "Remove section"
+msgstr "Abschnitt entfernen"
+
+msgid "Remove this row?"
+msgstr "Diese Zeile entfernen?"
+
+msgid "Remove this section?"
+msgstr "Diesen Abschnitt entfernen?"
+
+msgid "Row"
+msgstr "Zeile"
+
+msgid "There are no sections yet."
+msgstr "Noch keine Abschnitte."
