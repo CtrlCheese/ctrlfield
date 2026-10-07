@@ -26,7 +26,8 @@ final class SearchController
             'callback'            => [$this, 'searchPosts'],
             'permission_callback' => [$this, 'canSearch'],
             'args'                => [
-                'post_type' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_key'],
+                // One post type or a comma-separated list ("page,post").
+                'post_type' => ['required' => true, 'type' => 'string', 'sanitize_callback' => [self::class, 'sanitizePostTypes']],
                 'search'    => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
                 'per_page'  => ['required' => false, 'type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 100],
                 'page'      => ['required' => false, 'type' => 'integer', 'default' => 1, 'minimum' => 1],
@@ -57,6 +58,11 @@ final class SearchController
         ]);
     }
 
+    public static function sanitizePostTypes(mixed $value): string
+    {
+        return implode(',', array_filter(array_map('sanitize_key', explode(',', (string) $value))));
+    }
+
     /** @return bool|\WP_Error */
     public function canSearch(\WP_REST_Request $request): bool|\WP_Error
     {
@@ -64,16 +70,18 @@ final class SearchController
             return new \WP_Error('rest_not_logged_in', 'Authentication required.', ['status' => 401]);
         }
 
-        // posts search: validate the requested post type exists and user can edit it
-        $postType = (string) ($request->get_param('post_type') ?? '');
-        if ($postType !== '') {
-            $ptObject = get_post_type_object($postType);
-            if ($ptObject === null) {
-                return new \WP_Error('invalid_post_type', 'Invalid post type.', ['status' => 400]);
-            }
-            $editCap = $ptObject->cap->edit_posts ?? 'edit_posts';
-            if (! current_user_can($editCap)) {
-                return false;
+        // posts search: every requested post type must exist and be editable by the user
+        $postTypes = array_filter(explode(',', (string) ($request->get_param('post_type') ?? '')));
+        if ($postTypes !== []) {
+            foreach ($postTypes as $postType) {
+                $ptObject = get_post_type_object($postType);
+                if ($ptObject === null) {
+                    return new \WP_Error('invalid_post_type', 'Invalid post type.', ['status' => 400]);
+                }
+                $editCap = $ptObject->cap->edit_posts ?? 'edit_posts';
+                if (! current_user_can($editCap)) {
+                    return false;
+                }
             }
             return true;
         }
@@ -97,7 +105,7 @@ final class SearchController
 
     public function searchPosts(\WP_REST_Request $request): \WP_REST_Response
     {
-        $postType = (string) $request->get_param('post_type');
+        $postType = array_values(array_filter(explode(',', (string) $request->get_param('post_type'))));
         $search   = (string) $request->get_param('search');
         $perPage  = min(100, max(1, (int) $request->get_param('per_page')));
         $page     = max(1, (int) $request->get_param('page'));
@@ -119,6 +127,7 @@ final class SearchController
             $results[] = [
                 'id'        => $post->ID,
                 'title'     => $post->post_title,
+                'type'      => (string) get_post_type($post),
                 'thumbnail' => $thumbnail ?: null,
             ];
         }

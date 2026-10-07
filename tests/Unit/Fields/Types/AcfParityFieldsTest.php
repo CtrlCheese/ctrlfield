@@ -83,4 +83,18 @@ final class AcfParityFieldsTest extends TestCase
         $this->assertSame([3, 5], $multi->sanitizeForStorage(['3', '-1', 'abc', 5]));
         $this->assertSame(['page', 'post'], $multi->getPostTypes());
     }
+
+    public function test_multiple_taxonomy_keeps_a_single_id(): void
+    {
+        $GLOBALS['_wp_terms'] = [5 => (object) ['term_id' => 5], 8 => (object) ['term_id' => 8]];
+        try {
+            $multi = Field::taxonomyTerm('t')->taxonomy('category');
+            $this->assertSame([5], $multi->sanitizeForStorage(5), 'a lone id used to be dropped');
+            $this->assertSame([5, 8], $multi->sanitizeForStorage(['5', 8, 99]));
+            $this->assertSame([], $multi->sanitizeForStorage(null));
+            $this->assertSame(8, Field::taxonomyTerm('s')->taxonomy('category')->multiple(false)->sanitizeForStorage('8'));
+        } finally {
+            unset($GLOBALS['_wp_terms']);
+        }
+    }
 }

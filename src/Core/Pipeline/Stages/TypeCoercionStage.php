@@ -199,7 +199,7 @@ class TypeCoercionStage implements StageInterface
     }
 
     /** @return array<int, array<string, mixed>> */
-    /** @return array{lat: float, lng: float, zoom: int, address: string} */
+    /** @return array{lat: float, lng: float, zoom: int, address: string}|array{} */
     private static function coerceMap(mixed $value): array
     {
         if (is_string($value) && $value !== '') {
@@ -207,13 +207,13 @@ class TypeCoercionStage implements StageInterface
             $value   = is_array($decoded) ? $decoded : [];
         }
 
-        if (! is_array($value)) {
-            $value = [];
+        if (! is_array($value) || ! is_numeric($value['lat'] ?? null) || ! is_numeric($value['lng'] ?? null)) {
+            return []; // no coordinates = no location (not 0,0)
         }
 
         return [
-            'lat'     => is_numeric($value['lat'] ?? null) ? (float) $value['lat'] : 0.0,
-            'lng'     => is_numeric($value['lng'] ?? null) ? (float) $value['lng'] : 0.0,
+            'lat'     => (float) $value['lat'],
+            'lng'     => (float) $value['lng'],
             'zoom'    => isset($value['zoom']) && is_numeric($value['zoom']) ? (int) $value['zoom'] : 14,
             'address' => isset($value['address']) && is_string($value['address']) ? $value['address'] : '',
         ];

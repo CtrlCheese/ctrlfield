@@ -9,9 +9,11 @@ use CtrlField\Enums\FieldType;
 use CtrlField\Fields\FieldDefinition;
 use CtrlField\Fields\Renderers\RendererRegistry;
 use CtrlField\Fields\Types\GroupField;
+use CtrlField\Fields\Types\RelationshipField;
 use CtrlField\Fields\Types\TabField;
 use CtrlField\Storage\Drivers\WpPostMetaDriver;
 use CtrlField\Storage\PostMetaAdapter;
+use CtrlField\Storage\RelationshipAdapter;
 
 /**
  * Outputs the Alpine.js root component for a single FieldGroup meta box.
@@ -33,11 +35,9 @@ class MetaBoxRenderer
     {
         $adapter    = new PostMetaAdapter(new WpPostMetaDriver());
         $stored     = $adapter->load($postId) ?? [];
-        $values     = $this->buildValues([$group], $stored);
+        $values     = $this->buildValues([$group], $stored, $postId);
         $conditions = $this->buildConditions([$group]);
-
-        $valuesJson     = esc_attr(wp_json_encode($values,     JSON_UNESCAPED_UNICODE) ?: '{}');
-        $conditionsJson = esc_attr(wp_json_encode($conditions, JSON_UNESCAPED_UNICODE) ?: '{}');
+        $initJs     = $this->alpineInit($values, $conditions, [$group]);
 
         $groupKey        = $group->getKey();
         $labelPlacement  = $group->getLabelPlacement();   // 'top' | 'left'
@@ -46,7 +46,7 @@ class MetaBoxRenderer
 
         ?>
         <div class="<?= esc_attr($containerClass) ?>"
-             x-data="ctrlFieldAdmin({ values: <?= $valuesJson ?>, conditions: <?= $conditionsJson ?> })"
+             x-data="<?= $initJs ?>"
              x-cloak>
 
             <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
@@ -81,15 +81,13 @@ class MetaBoxRenderer
     {
         $adapter    = new PostMetaAdapter(new WpPostMetaDriver());
         $stored     = $adapter->load($postId) ?? [];
-        $values     = $this->buildValues($groups, $stored);
+        $values     = $this->buildValues($groups, $stored, $postId);
         $conditions = $this->buildConditions($groups);
-
-        $valuesJson     = esc_attr(wp_json_encode($values,     JSON_UNESCAPED_UNICODE) ?: '{}');
-        $conditionsJson = esc_attr(wp_json_encode($conditions, JSON_UNESCAPED_UNICODE) ?: '{}');
+        $initJs     = $this->alpineInit($values, $conditions, $groups);
 
         ?>
         <div class="ctrlfield-container ctrlf-label-top"
-             x-data="ctrlFieldAdmin({ values: <?= $valuesJson ?>, conditions: <?= $conditionsJson ?> })"
+             x-data="<?= $initJs ?>"
              x-cloak>
 
             <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
@@ -270,7 +268,7 @@ class MetaBoxRenderer
      * @param  array<string, mixed> $stored
      * @return array<string, mixed>
      */
-    private function buildValues(array $groups, array $stored): array
+    private function buildValues(array $groups, array $stored, int $postId = 0): array
     {
         $values = [];
 
@@ -280,11 +278,91 @@ class MetaBoxRenderer
                 if ($field->isUiOnly()) {
                     continue;
                 }
+                // Relationship values live in their pivot table, not in the JSON blob.
+                // Without loading them here, saving the post would send an empty
+                // list and wipe every relationship.
+                if ($field instanceof RelationshipField && $postId > 0) {
+                    $values[$field->getKey()] = RelationshipAdapter::load($postId, $field->getKey(), $field->getTableName());
+                    continue;
+                }
                 $values[$field->getKey()] = $this->valueFor($field, $stored);
             }
         }
 
         return $values;
+    }
+
+    /**
+     * x-data expression for the ctrlFieldAdmin component: values, conditions and
+     * the names / thumbnails of items already picked (so pickers show titles).
+     *
+     * @param array<string, mixed> $values
+     * @param array<string, mixed> $conditions
+     * @param FieldGroup[]         $groups
+     */
+    private function alpineInit(array $values, array $conditions, array $groups): string
+    {
+        [$labels, $attachments] = $this->collectPickerLabels($groups, $values);
+
+        $json = static fn (mixed $v): string => (string) (wp_json_encode($v, JSON_UNESCAPED_UNICODE) ?: '{}');
+
+        return esc_attr(sprintf(
+            'ctrlFieldAdmin({ values: %s, conditions: %s, labels: %s, attachments: %s })',
+            $json($values ?: new \stdClass()),
+            $json($conditions ?: new \stdClass()),
+            $json($labels ?: new \stdClass()),
+            $json($attachments ?: new \stdClass()),
+        ));
+    }
+
+    /**
+     * @param FieldGroup[]         $groups
+     * @param array<string, mixed> $values
+     * @return array{0: array<string, string>, 1: array<int, string>}
+     */
+    private function collectPickerLabels(array $groups, array $values): array
+    {
+        $postIds = $termIds = $attachmentIds = [];
+
+        $ids = static function (mixed $v): array {
+            $list = is_array($v) ? $v : [$v];
+            return array_values(array_filter(array_map('intval', array_filter($list, 'is_scalar')), static fn (int $i) => $i > 0));
+        };
+
+        foreach ($groups as $group) {
+            foreach ($group->getFields() as $field) {
+                $value = $values[$field->getKey()] ?? null;
+                match ($field->getType()) {
+                    FieldType::POST_OBJECT, FieldType::RELATIONSHIP => $postIds = array_merge($postIds, $ids($value)),
+                    FieldType::TAXONOMY_TERM                        => $termIds = array_merge($termIds, $ids($value)),
+                    FieldType::IMAGE, FieldType::GALLERY            => $attachmentIds = array_merge($attachmentIds, $ids($value)),
+                    default                                         => null,
+                };
+            }
+        }
+
+        $labels = [];
+        if ($postIds !== []) {
+            foreach (get_posts(['post__in' => array_unique($postIds), 'post_type' => 'any', 'post_status' => 'any', 'posts_per_page' => -1]) as $post) {
+                $labels['post:' . $post->ID] = $post->post_title !== '' ? $post->post_title : '#' . $post->ID;
+            }
+        }
+        if ($termIds !== []) {
+            $terms = get_terms(['include' => array_unique($termIds), 'hide_empty' => false]);
+            foreach (is_array($terms) ? $terms : [] as $term) {
+                $labels['term:' . $term->term_id] = $term->name;
+            }
+        }
+
+        $attachments = [];
+        foreach (array_unique($attachmentIds) as $id) {
+            $url = wp_get_attachment_image_url($id, 'thumbnail');
+            if ($url) {
+                $attachments[$id] = $url;
+            }
+        }
+
+        return [$labels, $attachments];
     }
 
     private function valueFor(FieldDefinition $field, array $stored): mixed

@@ -77,22 +77,20 @@ class MapSanitizerTest extends TestCase
         self::assertSame(12,       $result['zoom']);
     }
 
-    public function testReturnsDefaultsForNull(): void
+    public function testReturnsEmptyForNull(): void
     {
-        $result = $this->sanitizer->sanitize(null);
-
-        self::assertSame(0.0, $result['lat']);
-        self::assertSame(0.0, $result['lng']);
-        self::assertSame(14,  $result['zoom']);
-        self::assertSame('',  $result['address']);
+        // No coordinates = no location; 0,0 is a real place, never a default.
+        self::assertSame([], $this->sanitizer->sanitize(null));
     }
 
-    public function testReturnsDefaultsForEmptyArray(): void
+    public function testReturnsEmptyForEmptyArray(): void
     {
-        $result = $this->sanitizer->sanitize([]);
+        // No coordinates = no location; 0,0 is a real place, never a default.
+        self::assertSame([], $this->sanitizer->sanitize([]));
+    }
 
-        self::assertSame(0.0, $result['lat']);
-        self::assertSame(0.0, $result['lng']);
-        self::assertSame(14,  $result['zoom']);
+    public function testOneMissingCoordinateMeansNoLocation(): void
+    {
+        self::assertSame([], $this->sanitizer->sanitize(['lat' => 52.5, 'lng' => null, 'address' => 'Berlin']));
     }
 }

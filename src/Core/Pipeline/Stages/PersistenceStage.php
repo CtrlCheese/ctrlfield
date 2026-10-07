@@ -38,9 +38,13 @@ class PersistenceStage implements StageInterface
             }
         }
 
+        // Merge into what is stored: a save may carry only some groups (one meta
+        // box, a REST partial update). Overwriting dropped every other field.
+        $existing = $this->adapter->load($context->postId) ?? [];
+
         $this->adapter->save(
             id:            $context->postId,
-            data:          $blobData,
+            data:          array_merge($existing, $blobData),
             version:       self::SCHEMA_VERSION,
             indexedFields: $context->indexedFields,
         );

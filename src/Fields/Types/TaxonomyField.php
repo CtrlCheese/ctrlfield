@@ -95,7 +95,8 @@ final class TaxonomyField extends FieldDefinition implements FieldSanitizerInter
         $taxonomy = $this->taxonomy;
 
         if ($this->multiple) {
-            $ids = is_array($value) ? $value : [];
+            // A single id is a one-item list, not "nothing" (it used to be dropped).
+            $ids = is_array($value) ? $value : (($value === null || $value === '') ? [] : [$value]);
             return array_values(array_filter(
                 array_map(function (mixed $item) use ($taxonomy): int {
                     if (is_string($item) && ! is_numeric($item) && $this->createTerms) {

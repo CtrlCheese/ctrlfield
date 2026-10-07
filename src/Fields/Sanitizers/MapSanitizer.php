@@ -16,7 +16,7 @@ final class MapSanitizer
 {
     /**
      * @param  mixed $value  array or JSON string
-     * @return array{lat: float, lng: float, zoom: int, address: string}
+     * @return array{lat: float, lng: float, zoom: int, address: string}|array{}
      */
     public function sanitize(mixed $value): array
     {
@@ -29,8 +29,14 @@ final class MapSanitizer
             $value = [];
         }
 
-        $lat  = is_numeric($value['lat'] ?? null)  ? (float) $value['lat']  : 0.0;
-        $lng  = is_numeric($value['lng'] ?? null)  ? (float) $value['lng']  : 0.0;
+        // No coordinates = no location. Defaulting to 0,0 stored a real place
+        // (Gulf of Guinea) for every post whose map was left empty.
+        if (! is_numeric($value['lat'] ?? null) || ! is_numeric($value['lng'] ?? null)) {
+            return [];
+        }
+
+        $lat  = (float) $value['lat'];
+        $lng  = (float) $value['lng'];
         $zoom = isset($value['zoom']) && is_numeric($value['zoom']) ? (int) $value['zoom'] : 14;
         $addr = isset($value['address']) && is_string($value['address']) ? $value['address'] : '';
 

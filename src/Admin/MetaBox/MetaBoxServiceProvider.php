@@ -8,7 +8,9 @@ use CtrlField\Bootstrap\ServiceProvider;
 use CtrlField\Builder\AdminContext;
 use CtrlField\Core\Migration\SchemaVersion;
 use CtrlField\Core\Notifications\NotificationDispatcher;
+use CtrlField\Core\Pipeline\PipelineException;
 use CtrlField\Core\Pipeline\SavePipeline;
+use CtrlField\Registry\FieldRegistry;
 use CtrlField\Data\FieldDataService;
 use CtrlField\Registry\ContextRegistry;
 use CtrlField\Storage\Drivers\WpPostMetaDriver;
@@ -48,6 +50,21 @@ class MetaBoxServiceProvider extends ServiceProvider
 
         // save_post pipeline
         add_action('save_post', [$this, 'onSavePost']);
+
+        // Block editor: meta boxes save in a background request, so the editor
+        // asks for the validation error right after (assets/admin/src/index.js).
+        add_action('rest_api_init', static function (): void {
+            register_rest_route('ctrlfield/v1', '/save-error/(?P<id>\\d+)', [
+                'methods'             => 'GET',
+                'permission_callback' => static fn (\WP_REST_Request $r): bool => current_user_can('edit_post', (int) $r['id']),
+                'callback'            => static function (\WP_REST_Request $r): \WP_REST_Response {
+                    $key   = self::saveErrorKey((int) $r['id']);
+                    $error = get_transient($key);
+                    delete_transient($key);
+                    return new \WP_REST_Response(['error' => is_string($error) ? $error : '']);
+                },
+            ]);
+        });
 
         // Notification dispatcher — registered once, reads from $preludeSavedFields
         add_action('ctrlfield/after_save', [$this, 'dispatchNotifications'], 10, 2);
@@ -91,6 +108,7 @@ class MetaBoxServiceProvider extends ServiceProvider
             'ajaxUrl'     => admin_url('admin-ajax.php'),
             'restUrl'     => rest_url(),
             'restNonce'   => wp_create_nonce('wp_rest'),
+            'saveError'   => $this->takeSaveError(),
         ]);
 
         // WP media library — needed for image/file fields
@@ -118,13 +136,26 @@ class MetaBoxServiceProvider extends ServiceProvider
         // Capture old values before the save for notification comparison (A-12).
         $this->preludeSavedFields[$postId] = FieldDataService::getInstance()->getAll($postId, 'post');
 
-        // Run the pipeline once per submitted group payload.
-        // Each meta box emits ctrlfield_payload[group_key] = JSON.
-        // Legacy single-payload format (ctrlfield_payload = JSON) is also supported.
-        $payloads = $this->extractPayloads($_POST);
+        // Each meta box emits ctrlfield_payload[group_key] = JSON (legacy: one JSON).
+        // Merge them and run the pipeline ONCE: per-group runs validated every
+        // group against one group's values ("required" failed on the other
+        // boxes) and each run overwrote the data saved by the previous one.
+        $merged = [];
+        foreach ($this->extractPayloads($_POST) as $jsonPayload) {
+            $decoded = json_decode(wp_unslash($jsonPayload), true);
+            if (is_array($decoded)) {
+                $merged = array_merge($merged, $decoded);
+            }
+        }
 
-        foreach ($payloads as $jsonPayload) {
-            SavePipeline::run($postId, array_merge($_POST, ['ctrlfield_payload' => $jsonPayload]));
+        try {
+            SavePipeline::run($postId, array_merge($_POST, [
+                'ctrlfield_payload' => wp_slash((string) wp_json_encode($merged)),
+            ]));
+        } catch (PipelineException $e) {
+            // A validation error must not turn the save into a 500: keep the
+            // message and show it on the next load of the edit screen.
+            set_transient(self::saveErrorKey($postId), self::friendlyError($e), 10 * MINUTE_IN_SECONDS);
         }
     }
 
@@ -210,6 +241,54 @@ class MetaBoxServiceProvider extends ServiceProvider
      * @param  array<string, mixed> $post
      * @return list<string>
      */
+    /** Message for editors: the field's label instead of its internal key. */
+    private static function friendlyError(PipelineException $e): string
+    {
+        if ($e->fieldKey === null) {
+            return $e->getMessage();
+        }
+
+        $label = $e->fieldKey;
+        foreach (FieldRegistry::all() as $group) {
+            foreach ($group->getFields() as $field) {
+                if ($field->getKey() === $e->fieldKey) {
+                    $label = $field->getDefinition()['label'] ?: $e->fieldKey;
+                    break 2;
+                }
+            }
+        }
+
+        if ($e->errorCode === 'REQUIRED_FIELD') {
+            /* translators: %s: field label */
+            return sprintf(__('"%s" is required. The other fields were not saved either.', 'ctrlfield'), $label);
+        }
+
+        /* translators: 1: field label, 2: technical error message */
+        return sprintf(__('"%1$s" could not be saved: %2$s', 'ctrlfield'), $label, $e->getMessage());
+    }
+
+    public static function saveErrorKey(int $postId): string
+    {
+        return 'ctrlfield_save_error_' . get_current_user_id() . '_' . $postId;
+    }
+
+    /** Error from the last save of this post (pipeline validation), once. */
+    private function takeSaveError(): string
+    {
+        $postId = isset($_GET['post']) ? (int) $_GET['post'] : 0;
+        // Block editor: meta boxes save in a background request whose redirect
+        // loads this screen invisibly; only the save-error REST route may
+        // consume the message there. Classic editor: show it on this load.
+        if ($postId <= 0 || isset($_GET['meta-box-loader']) || use_block_editor_for_post($postId)) {
+            return '';
+        }
+        $key   = self::saveErrorKey($postId);
+        $error = get_transient($key);
+        delete_transient($key);
+
+        return is_string($error) ? $error : '';
+    }
+
     private function extractPayloads(array $post): array
     {
         // New per-group array format

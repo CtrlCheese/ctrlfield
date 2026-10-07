@@ -76,6 +76,10 @@ final class RendererRegistry
             // ACF parity
             FieldType::PASSWORD->value      => new PasswordRenderer(),
             FieldType::PAGE_LINK->value     => new PageLinkRenderer(),
+            FieldType::POST_OBJECT->value   => new PostObjectRenderer(),
+            FieldType::RELATIONSHIP->value  => new RelationshipRenderer(),
+            FieldType::TAXONOMY_TERM->value => new TaxonomyRenderer(),
+            FieldType::MAP->value           => new MapRenderer(),
         ], self::$map);
     }
 

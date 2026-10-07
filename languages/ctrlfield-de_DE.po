@@ -10,7 +10,7 @@ msgstr ""
 "Language: de_DE\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T16:39:41+00:00\n"
+"POT-Creation-Date: 2026-10-07T07:26:23+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ctrlfield\n"
@@ -102,12 +102,14 @@ msgid "Add New"
 msgstr "Hinzufügen"
 
 #: pro/src/Admin/ContentTable/ContentTablePage.php:65
+#: src/Fields/Renderers/AbstractPickerRenderer.php:73
 msgid "Search…"
-msgstr ""
+msgstr "Suchen…"
 
 #: pro/src/Admin/ContentTable/ContentTablePage.php:66
+#: src/Fields/Renderers/MapRenderer.php:23
 msgid "Search"
-msgstr ""
+msgstr "Suchen"
 
 #: pro/src/Admin/ContentTable/ContentTablePage.php:71
 msgid "No records found."
@@ -303,6 +305,32 @@ msgstr ""
 msgid "unknown"
 msgstr ""
 
+#: pro/src/Fields/Renderers/GalleryRenderer.php:19
+msgid "Add images"
+msgstr "Bilder hinzufügen"
+
+#: pro/src/Fields/Renderers/GalleryRenderer.php:20
+msgid "Move left"
+msgstr "Nach links"
+
+#: pro/src/Fields/Renderers/GalleryRenderer.php:21
+msgid "Move right"
+msgstr "Nach rechts"
+
+#: pro/src/Fields/Renderers/GalleryRenderer.php:22
+#: src/Fields/Renderers/AbstractPickerRenderer.php:47
+#: src/Fields/Renderers/AbstractPickerRenderer.php:54
+msgid "Remove"
+msgstr "Entfernen"
+
+#. translators: %d: maximum number of images
+#. translators: %d: maximum number of items
+#: pro/src/Fields/Renderers/GalleryRenderer.php:25
+#: src/Fields/Renderers/AbstractPickerRenderer.php:62
+#, php-format
+msgid "Maximum of %d reached."
+msgstr "Maximum von %d erreicht."
+
 #: src/Admin/Map/MapSettingsPage.php:20
 #: src/Admin/Map/MapSettingsPage.php:21
 msgid "Map Settings"
@@ -351,6 +379,18 @@ msgstr "Kein API-Schlüssel nötig. Nutzt den kostenlosen Geokodierungsdienst No
 #: assets/gutenberg/index.js:31
 msgid "CtrlField Fields"
 msgstr ""
+
+#. translators: %s: field label
+#: src/Admin/MetaBox/MetaBoxServiceProvider.php:263
+#, php-format
+msgid "\"%s\" is required. The other fields were not saved either."
+msgstr "\"%s\" ist erforderlich. Die anderen Felder wurden ebenfalls nicht gespeichert."
+
+#. translators: 1: field label, 2: technical error message
+#: src/Admin/MetaBox/MetaBoxServiceProvider.php:267
+#, php-format
+msgid "\"%1$s\" could not be saved: %2$s"
+msgstr "\"%1$s\" konnte nicht gespeichert werden: %2$s"
 
 #: src/Admin/PostTypes/PostTypeDefinition.php:60
 msgid "The key is required."
@@ -641,6 +681,34 @@ msgstr "CtrlField: Schema-Verzeichnis nicht gefunden, seine Feldgruppen wurden n
 #: src/Bootstrap/BootManager.php:138
 msgid "CtrlField: these schema files have an error and were not loaded. The rest of the site keeps working."
 msgstr "CtrlField: Diese Schema-Dateien enthalten einen Fehler und wurden nicht geladen. Der Rest der Website funktioniert weiter."
+
+#: src/Fields/Renderers/AbstractPickerRenderer.php:44
+msgid "Move up"
+msgstr "Nach oben"
+
+#: src/Fields/Renderers/AbstractPickerRenderer.php:45
+msgid "Move down"
+msgstr "Nach unten"
+
+#: src/Fields/Renderers/MapRenderer.php:22
+msgid "Search address"
+msgstr "Adresse suchen"
+
+#: src/Fields/Renderers/MapRenderer.php:24
+msgid "Latitude"
+msgstr "Breitengrad"
+
+#: src/Fields/Renderers/MapRenderer.php:25
+msgid "Longitude"
+msgstr "Längengrad"
+
+#: src/Fields/Renderers/MapRenderer.php:26
+msgid "Clear location"
+msgstr "Standort entfernen"
+
+#: src/Fields/Renderers/MapRenderer.php:27
+msgid "No results."
+msgstr "Keine Ergebnisse."
 
 #. translators: %s: post type singular name
 #. translators: %s: taxonomy singular name

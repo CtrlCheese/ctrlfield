@@ -287,3 +287,19 @@ if (! function_exists('__')) {
         return $text;
     }
 }
+
+if (! function_exists('get_term')) {
+    // Terms exist when listed in $GLOBALS['_wp_terms'] (id => object), else none.
+    function get_term(mixed $term, string $taxonomy = ''): mixed
+    {
+        $id = is_object($term) ? (int) $term->term_id : (int) $term;
+        return $GLOBALS['_wp_terms'][$id] ?? null;
+    }
+}
+
+if (! function_exists('is_wp_error')) {
+    function is_wp_error(mixed $thing): bool
+    {
+        return $thing instanceof \WP_Error;
+    }
+}

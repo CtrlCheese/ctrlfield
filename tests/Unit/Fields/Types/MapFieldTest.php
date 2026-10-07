@@ -86,15 +86,10 @@ class MapFieldTest extends TestCase
         self::assertSame('Paris', $result['address']);
     }
 
-    public function testSanitizeReturnsDefaultsForMissingValue(): void
+    public function testSanitizeReturnsEmptyForMissingValue(): void
     {
-        $field  = new MapField('location');
-        $result = $field->sanitizeForStorage(null);
-
-        self::assertSame(0.0, $result['lat']);
-        self::assertSame(0.0, $result['lng']);
-        self::assertSame(14, $result['zoom']);
-        self::assertSame('', $result['address']);
+        // No coordinates = no location; 0,0 is a real place, never a default.
+        self::assertSame([], (new MapField('location'))->sanitizeForStorage(null));
     }
 
     // -------------------------------------------------------------------------

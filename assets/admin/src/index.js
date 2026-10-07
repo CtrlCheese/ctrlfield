@@ -1,13 +1,71 @@
 // CSS is compiled separately by @tailwindcss/cli → assets/admin/ctrlfield.css
 import Alpine from 'alpinejs';
 import { evaluateCondition } from './conditionEvaluator.js';
+import { pickValue, mergeGallery, mapWith, hasCoords, osmEmbedUrl } from './pickers.js';
+
+function markBlockEditorDirty() {
+    const editor = window.wp?.data?.select?.('core/editor');
+    if (!editor?.getCurrentPostType?.()) return; // classic editor: the form posts anyway
+    window.wp.data.dispatch('core/editor').editPost({ ctrlfield_changed: Date.now() });
+}
+
+// Block editor: after meta boxes finish saving, fetch the validation error (if any).
+let watchingMetaBoxSaves = false;
+function watchMetaBoxSaves() {
+    const data = window.wp?.data;
+    const editPost = data?.select?.('core/edit-post');
+    if (watchingMetaBoxSaves || !editPost?.isSavingMetaBoxes) return;
+    watchingMetaBoxSaves = true;
+    let saving = false;
+    data.subscribe(async () => {
+        const now = editPost.isSavingMetaBoxes();
+        const finished = saving && !now;
+        saving = now; // before any await: the store fires many times meanwhile
+        if (finished) {
+            const postId = data.select('core/editor').getCurrentPostId();
+            const phData = window.ctrlfieldData ?? {};
+            try {
+                const res = await fetch(`${phData.restUrl ?? ''}ctrlfield/v1/save-error/${postId}`, {
+                    headers: { 'X-WP-Nonce': phData.restNonce ?? '' },
+                });
+                const body = await res.json();
+                if (body.error) {
+                    saveErrorShown = false;
+                    showSaveError(body.error);
+                } else {
+                    data.dispatch('core/notices').removeNotice('ctrlfield-save-error');
+                }
+            } catch (e) { /* network error: nothing to show */ }
+        }
+    });
+}
+
+let saveErrorShown = false;
+function showSaveError(message) {
+    if (saveErrorShown) return; // one notice even with several meta boxes
+    saveErrorShown = true;
+    const text = `CtrlField: ${message}`;
+    const notices = window.wp?.data?.dispatch?.('core/notices');
+    if (notices && window.wp.data.select('core/editor')?.getCurrentPostType?.()) {
+        notices.createErrorNotice(text, { id: 'ctrlfield-save-error' });
+        return;
+    }
+    const wrap = document.querySelector('.wrap h1, #wpbody-content');
+    if (wrap) {
+        const div = document.createElement('div');
+        div.className = 'notice notice-error';
+        div.innerHTML = '<p></p>';
+        div.firstChild.textContent = text;
+        wrap.after(div);
+    }
+}
 
 // -----------------------------------------------------------------------
 // ctrlFieldAdmin — single root Alpine component for the meta box
 // -----------------------------------------------------------------------
 
 document.addEventListener('alpine:init', () => {
-    Alpine.data('ctrlFieldAdmin', ({ values, conditions }) => ({
+    Alpine.data('ctrlFieldAdmin', ({ values, conditions, labels = {}, attachments = {} }) => ({
 
         /** Reactive field state — serialised into ctrlfield_payload on save. */
         adminState: {},
@@ -37,7 +95,21 @@ document.addEventListener('alpine:init', () => {
 
             // Pre-populate attachment URLs from ctrlfieldData (PHP-localised).
             const phData = window.ctrlfieldData ?? {};
-            this.attachmentUrls = phData.attachments ?? {};
+            this.attachmentUrls = { ...(phData.attachments ?? {}), ...attachments };
+
+            // Names of posts / terms already selected, so pickers show titles, not ids.
+            this.pickerLabels = { ...labels };
+
+            // Block editor: changes made only in meta boxes did not mark the post
+            // as edited, so Save stayed disabled and the values were lost. Flag
+            // an edit the REST API ignores (like ACF does) whenever a field changes.
+            this.$watch('adminState', () => markBlockEditorDirty());
+            watchMetaBoxSaves();
+
+            // Validation error from the previous save (shown once).
+            if (phData.saveError) {
+                showSaveError(phData.saveError);
+            }
 
             // WYSIWYG bridge is initialised after the DOM + TinyMCE are ready.
             this.$nextTick(() => {
@@ -278,6 +350,100 @@ document.addEventListener('alpine:init', () => {
                 this.selectedUserLabels[fieldKey] = user.display_name;
             }
             this.userResults[fieldKey] = [];
+        },
+
+        // -------------------------------------------------------------------
+        // Pickers — Post Object, Relationship, Taxonomy, Gallery, Map.
+        // Renderers give each picker its own x-data ({ q, results }) and write
+        // straight to the field's state path, so they also work inside
+        // repeater and flexible-content rows.
+        // -------------------------------------------------------------------
+
+        /** 'post:12' / 'term:5' → display name. */
+        pickerLabels: {},
+
+        pickValue,
+        mapWith,
+        hasCoords,
+        osmEmbedUrl,
+
+        itemLabel(kind, id) {
+            return this.pickerLabels[`${kind}:${id}`] ?? `#${id}`;
+        },
+
+        rememberLabel(kind, id, text) {
+            this.pickerLabels[`${kind}:${id}`] = text;
+        },
+
+        async restGet(path, params) {
+            const phData = window.ctrlfieldData ?? {};
+            try {
+                const res = await fetch(
+                    `${phData.restUrl ?? ''}ctrlfield/v1/${path}?${new URLSearchParams(params)}`,
+                    { headers: { 'X-WP-Nonce': phData.restNonce ?? '' } },
+                );
+                if (!res.ok) return [];
+                const data = await res.json();
+                return data.results ?? [];
+            } catch (e) {
+                return [];
+            }
+        },
+
+        /** Published posts of the given types; latest first when the query is empty. */
+        async searchPosts(query, postTypes) {
+            const types = (Array.isArray(postTypes) ? postTypes : [postTypes]).filter(Boolean);
+            const results = await this.restGet('search/posts', {
+                post_type: types.length ? types.join(',') : 'post',
+                search: query ?? '',
+                per_page: 20,
+            });
+            return results.map((r) => ({ id: r.id, title: r.title || `#${r.id}`, meta: r.type ?? '' }));
+        },
+
+        async searchTerms(query, taxonomy) {
+            const results = await this.restGet('search/terms', {
+                taxonomy, search: query ?? '', per_page: 30,
+            });
+            return results.map((r) => ({ id: r.id, title: r.name, meta: `(${r.count})` }));
+        },
+
+        /**
+         * Gallery: opens the media library (multiple selection) and passes the
+         * merged id list to `done(ids)`.
+         */
+        openGallery(current, max, done) {
+            if (typeof wp === 'undefined' || !wp.media) {
+                console.warn('CtrlField: wp.media is not available.');
+                return;
+            }
+            const frame = wp.media({
+                title: 'Add images', button: { text: 'Add to gallery' },
+                multiple: 'add', library: { type: 'image' },
+            });
+            frame.on('select', () => {
+                const picked = frame.state().get('selection').toJSON();
+                picked.forEach((a) => {
+                    this.attachmentUrls[a.id] = a.sizes?.thumbnail?.url ?? a.url ?? '';
+                });
+                done(mergeGallery(current, picked.map((a) => a.id), max));
+            });
+            frame.open();
+        },
+
+        /** Address search via OpenStreetMap Nominatim (free, max 1 request/second). */
+        async geocode(query) {
+            if (!query || query.trim().length < 3) return [];
+            try {
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/search?${new URLSearchParams({ format: 'json', limit: 5, q: query })}`,
+                    { headers: { 'Accept-Language': document.documentElement.lang || 'en' } },
+                );
+                const data = await res.json();
+                return data.map((r) => ({ lat: Number(r.lat), lng: Number(r.lon), address: r.display_name }));
+            } catch (e) {
+                return [];
+            }
         },
 
         // -------------------------------------------------------------------
