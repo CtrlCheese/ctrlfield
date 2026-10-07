@@ -400,3 +400,41 @@ if (! class_exists('WP_Term')) {
         public string $slug     = '';
     }
 }
+
+// ── Field group editor (JSON storage) stubs ──
+
+if (! function_exists('sanitize_textarea_field')) {
+    function sanitize_textarea_field(string $str): string
+    {
+        return trim(strip_tags($str));
+    }
+}
+
+if (! function_exists('update_option')) {
+    function update_option(string $option, mixed $value, bool|string|null $autoload = null): bool
+    {
+        $GLOBALS['_wp_options'][$option] = $value;
+        return true;
+    }
+}
+
+if (! function_exists('wp_json_encode')) {
+    function wp_json_encode(mixed $data, int $options = 0, int $depth = 512): string|false
+    {
+        return json_encode($data, $options, $depth);
+    }
+}
+
+if (! function_exists('wp_mkdir_p')) {
+    function wp_mkdir_p(string $target): bool
+    {
+        return is_dir($target) || @mkdir($target, 0777, true);
+    }
+}
+
+if (! function_exists('wp_delete_file')) {
+    function wp_delete_file(string $file): void
+    {
+        @unlink($file);
+    }
+}

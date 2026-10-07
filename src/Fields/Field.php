@@ -91,6 +91,12 @@ final class Field
         return self::pro('repeater', $key);
     }
 
+    /** True when CtrlField Pro registered this field type (valid license). */
+    public static function hasProFactory(string $type): bool
+    {
+        return isset(self::$proFactories[$type]);
+    }
+
     private static function pro(string $type, string $key): FieldDefinition
     {
         if (! isset(self::$proFactories[$type])) {

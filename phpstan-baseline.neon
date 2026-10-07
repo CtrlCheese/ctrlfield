@@ -43,18 +43,6 @@ parameters:
 			path: src/Admin/Gutenberg/GutenbergBootstrap.php
 
 		-
-			message: '#^Constant CTRLFIELD_URL not found\.$#'
-			identifier: constant.notFound
-			count: 1
-			path: src/Admin/Gutenberg/GutenbergBootstrap.php
-
-		-
-			message: '#^Constant CTRLFIELD_VERSION not found\.$#'
-			identifier: constant.notFound
-			count: 2
-			path: src/Admin/Gutenberg/GutenbergBootstrap.php
-
-		-
 			message: '#^Property WP_Screen\:\:\$post_type \(string\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1

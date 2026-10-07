@@ -23,6 +23,7 @@ package.json
 package-lock.json
 phpstan.neon
 phpstan-baseline.neon
+phpstan-bootstrap.php
 
 # Dev-only scripts
 bin

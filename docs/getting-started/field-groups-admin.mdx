@@ -1,0 +1,75 @@
+# Field groups in the admin
+
+Not everyone writes PHP. **CtrlField → Field Groups** creates field groups with a form, like ACF — and still keeps the schema in files you can commit to git.
+
+---
+
+## Where groups are saved
+
+Each group is a JSON file named after its key:
+
+```
+wp-content/themes/<your-theme>/ctrlfield-json/
+├── home_hero.json
+└── post_details.json
+```
+
+- **Deploy them with the theme.** A JSON file copied to another site loads there automatically; there is nothing to import or sync.
+- **Read-only servers.** When the folder cannot be written (file permissions, `DISALLOW_FILE_MODS`) groups are saved in the database instead (option `ctrlfield_ui_field_groups`). The list shows where each group lives.
+- **Another folder.** Use a folder that survives theme updates when the theme is not yours:
+
+```php
+// wp-config.php
+define('CTRLFIELD_JSON_PATH', __DIR__ . '/wp-content/ctrlfield-json');
+
+// or in a plugin / theme
+add_filter('ctrlfield/json_path', fn () => WP_CONTENT_DIR . '/ctrlfield-json');
+```
+
+JSON is data, not code: a group can only produce the field types and settings the editor offers, so editing groups in the admin never writes executable PHP to the server.
+
+---
+
+## What the editor offers
+
+- **All Free field types**, plus Repeater and Gallery with a Pro license.
+- **Sub-fields** for Group and Repeater, at any depth ("Edit sub-fields").
+- **Per-type settings:** choices, default, placeholder, min / max / step, date format, post types, taxonomy, roles, multiple, return format, bidirectional relationships…
+- **Common settings:** required, instructions, width, admin column, REST API, and "Show only when" another field has a value.
+- **Location rules:** every rule from [Location rules](./location-rules.mdx), combined with AND.
+- **Group settings:** position (normal, side, after the title), style, label placement, active / inactive.
+
+Flexible Content and Clone are not in the editor yet; use PHP or the Pro Visual Builder for them.
+
+---
+
+## Code always wins
+
+Groups registered in PHP load first. If a JSON group uses the same key as a PHP group, the PHP group is kept and the JSON group is marked "Not active" in the list. PHP groups appear in a separate, read-only "Defined in code" table.
+
+---
+
+## Moving a group to PHP
+
+**Export PHP** on any group shows its code:
+
+```php
+FieldGroup::make('post_details')
+    ->title('Post details')
+    ->where('post_type', '==', 'post')
+    ->fields([
+        Field::text('post_subtitle')
+            ->label('Subtitle'),
+    ])
+    ->register();
+```
+
+Save it in your schema folder, then delete the JSON group. The field keys stay the same, so the values already saved keep working.
+
+---
+
+## Good to know
+
+- **Field keys are what templates use** (`ctrlfield_get('post_subtitle')`). Changing a key later hides the values saved under the old key; they are not deleted and come back if you restore the key.
+- **Deleting a group** removes the definition only. Saved values stay in the database.
+- **Hand-edited files** get the same checks as the form. A file with an error is skipped and listed in an admin notice; the rest of the site keeps working.

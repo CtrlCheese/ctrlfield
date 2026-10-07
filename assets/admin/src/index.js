@@ -2,6 +2,7 @@
 import Alpine from 'alpinejs';
 import { evaluateCondition } from './conditionEvaluator.js';
 import { pickValue, mergeGallery, mapWith, hasCoords, osmEmbedUrl } from './pickers.js';
+import { fieldGroupEditor } from './groupEditor.js';
 
 function markBlockEditorDirty() {
     const editor = window.wp?.data?.select?.('core/editor');
@@ -65,6 +66,11 @@ function showSaveError(message) {
 // -----------------------------------------------------------------------
 
 document.addEventListener('alpine:init', () => {
+    // CtrlField → Field Groups editor; config comes from the root's data-config.
+    Alpine.data('ctrlFieldGroupEditor', () => fieldGroupEditor(
+        JSON.parse(document.getElementById('ctrlfield-group-editor')?.dataset.config ?? '{}'),
+    ));
+
     Alpine.data('ctrlFieldAdmin', ({ values, conditions, labels = {}, attachments = {} }) => ({
 
         /** Reactive field state — serialised into ctrlfield_payload on save. */

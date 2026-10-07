@@ -190,6 +190,14 @@ Full list and OR groups (`whereAny()`): `docs/getting-started/location-rules.mdx
 
 ---
 
+## Field groups without code
+
+**CtrlField → Field Groups** creates groups with a form, like ACF. Each group is saved as a JSON file in `<theme>/ctrlfield-json/` (or the database on read-only servers), so it is versioned and deployed with the theme. Groups defined in PHP take precedence and are listed read-only; any JSON group can be exported to PHP.
+
+Details: `docs/getting-started/field-groups-admin.mdx`.
+
+---
+
 ## Fluent API
 
 Every field inherits these chainable methods:

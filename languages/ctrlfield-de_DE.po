@@ -863,3 +863,525 @@ msgstr ""
 #: pro/src/Admin/LicenseSettingsPage.php
 msgid "Active (license server unreachable — checking again soon)"
 msgstr "Aktiv (Lizenzserver nicht erreichbar — neue Prüfung in Kürze)"
+
+msgid "(no label)"
+msgstr "(ohne Bezeichnung)"
+
+msgid "A field group can have at most %d fields."
+msgstr "Eine Feldgruppe kann höchstens %d Felder haben."
+
+msgid "A field group defined in code already uses the key \"%s\"."
+msgstr "Eine im Code definierte Feldgruppe verwendet bereits den Schlüssel \"%s\"."
+
+msgid "Above fields"
+msgstr "Über den Feldern"
+
+msgid "Add Field"
+msgstr "Feld hinzufügen"
+
+msgid "Add New Field Group"
+msgstr "Feldgruppe hinzufügen"
+
+msgid "Add at least one location rule, otherwise the group is shown nowhere."
+msgstr "Füge mindestens eine Positionsregel hinzu, sonst wird die Gruppe nirgends angezeigt."
+
+msgid "Add rule"
+msgstr "Regel hinzufügen"
+
+msgid "Admin column"
+msgstr "Admin-Spalte"
+
+msgid "Advanced"
+msgstr "Erweitert"
+
+msgid "All field groups"
+msgstr "Alle Feldgruppen"
+
+msgid "Allow empty"
+msgstr "Leer erlauben"
+
+msgid "Allow more than one"
+msgstr "Mehr als eins erlauben"
+
+msgid "Also link back from the related posts"
+msgstr "Auch von den verknüpften Beiträgen zurückverlinken"
+
+msgid "Another field group already uses the key \"%s\"."
+msgstr "Eine andere Feldgruppe verwendet bereits den Schlüssel \"%s\"."
+
+msgid "Another field of this group decides whether this one is shown."
+msgstr "Ein anderes Feld dieser Gruppe entscheidet, ob dieses angezeigt wird."
+
+msgid "Appearance"
+msgstr "Darstellung"
+
+msgid "Basic"
+msgstr "Einfach"
+
+msgid "Beside fields"
+msgstr "Neben den Feldern"
+
+msgid "Bidirectional"
+msgstr "Bidirektional"
+
+msgid "Button Group"
+msgstr "Button-Gruppe"
+
+msgid "Checkboxes"
+msgstr "Checkboxen"
+
+msgid "Child (has parent)"
+msgstr "Unterseite (hat übergeordnete Seite)"
+
+msgid "Choice"
+msgstr "Auswahl"
+
+msgid "Choices"
+msgstr "Auswahlmöglichkeiten"
+
+msgid "Code"
+msgstr "Code"
+
+msgid "Color"
+msgstr "Farbe"
+
+msgid "Comment"
+msgstr "Kommentar"
+
+msgid "Content"
+msgstr "Inhalt"
+
+msgid "Create Field Group"
+msgstr "Feldgruppe erstellen"
+
+msgid "Current user capability"
+msgstr "Berechtigung des aktuellen Benutzers"
+
+msgid "Current user role"
+msgstr "Rolle des aktuellen Benutzers"
+
+msgid "Dashboard widget"
+msgstr "Dashboard-Widget"
+
+msgid "Database"
+msgstr "Datenbank"
+
+msgid "Date and Time"
+msgstr "Datum und Uhrzeit"
+
+msgid "Default template"
+msgstr "Standard-Template"
+
+msgid "Default value"
+msgstr "Standardwert"
+
+msgid "Defined in code"
+msgstr "Im Code definiert"
+
+msgid "Delete this field group? The values already saved in posts stay in the database and come back if you recreate the fields with the same keys."
+msgstr "Diese Feldgruppe löschen? Bereits gespeicherte Werte bleiben in der Datenbank und erscheinen wieder, wenn du die Felder mit denselben Schlüsseln neu anlegst."
+
+msgid "Display format"
+msgstr "Anzeigeformat"
+
+msgid "Dropdown"
+msgstr "Dropdown"
+
+msgid "Edit Field Group: %s"
+msgstr "Feldgruppe bearbeiten: %s"
+
+msgid "Edit sub-fields"
+msgstr "Unterfelder bearbeiten"
+
+msgid "Edited user role"
+msgstr "Rolle des bearbeiteten Benutzers"
+
+msgid "Email"
+msgstr "E-Mail"
+
+msgid "Empty: all post types."
+msgstr "Leer: alle Inhaltstypen."
+
+msgid "Empty: all users."
+msgstr "Leer: alle Benutzer."
+
+msgid "Empty: full width."
+msgstr "Leer: volle Breite."
+
+msgid "Every location rule needs a value."
+msgstr "Jede Positionsregel braucht einen Wert."
+
+msgid "Field Groups"
+msgstr "Feldgruppen"
+
+msgid "Field \"%1$s\": unknown type \"%2$s\"."
+msgstr "Feld \"%1$s\": unbekannter Typ \"%2$s\"."
+
+msgid "Field \"%s\": the key must use lowercase letters, numbers and underscores, starting with a letter."
+msgstr "Feld \"%s\": Der Schlüssel darf nur Kleinbuchstaben, Zahlen und Unterstriche enthalten und muss mit einem Buchstaben beginnen."
+
+msgid "Field group deleted."
+msgstr "Feldgruppe gelöscht."
+
+msgid "Field group saved in the database (the JSON folder is not writable)."
+msgstr "Feldgruppe in der Datenbank gespeichert (der JSON-Ordner ist nicht beschreibbar)."
+
+msgid "Field group saved."
+msgstr "Feldgruppe gespeichert."
+
+msgid "Field type"
+msgstr "Feldtyp"
+
+msgid "Fields"
+msgstr "Felder"
+
+msgid "File"
+msgstr "Datei"
+
+msgid "Front page"
+msgstr "Startseite"
+
+msgid "Gallery"
+msgstr "Galerie"
+
+msgid "Give the field group a title."
+msgstr "Gib der Feldgruppe einen Titel."
+
+msgid "Group"
+msgstr "Gruppe"
+
+msgid "Group key: use lowercase letters, numbers and underscores, starting with a letter."
+msgstr "Gruppenschlüssel: Nur Kleinbuchstaben, Zahlen und Unterstriche, beginnend mit einem Buchstaben."
+
+msgid "Groups are saved as JSON files in %s, so they can be committed to git and deployed with the theme."
+msgstr "Gruppen werden als JSON-Dateien in %s gespeichert und können so mit Git versioniert und mit dem Theme ausgeliefert werden."
+
+msgid "High (after the title)"
+msgstr "Oben (nach dem Titel)"
+
+msgid "Icon"
+msgstr "Icon"
+
+msgid "Image"
+msgstr "Bild"
+
+msgid "Include in the REST API"
+msgstr "In die REST-API aufnehmen"
+
+msgid "Instructions"
+msgstr "Anleitung"
+
+msgid "Label"
+msgstr "Bezeichnung"
+
+msgid "Label placement"
+msgstr "Position der Bezeichnung"
+
+msgid "Language"
+msgstr "Sprache"
+
+msgid "Layout"
+msgstr "Layout"
+
+msgid "Link"
+msgstr "Link"
+
+msgid "Location"
+msgstr "Position"
+
+msgid "Lowercase letters, numbers and underscores. Also the JSON file name."
+msgstr "Kleinbuchstaben, Zahlen und Unterstriche. Zugleich der Name der JSON-Datei."
+
+msgid "Map"
+msgstr "Karte"
+
+msgid "Maximum"
+msgstr "Maximum"
+
+msgid "Maximum items"
+msgstr "Maximale Anzahl"
+
+msgid "Menu item"
+msgstr "Menüeintrag"
+
+msgid "Message"
+msgstr "Nachricht"
+
+msgid "Minimum"
+msgstr "Minimum"
+
+msgid "Minimum items"
+msgstr "Minimale Anzahl"
+
+msgid "Multiple"
+msgstr "Mehrfach"
+
+msgid "No choice selected is allowed"
+msgstr "Keine Auswahl ist erlaubt"
+
+msgid "No field groups yet. Click \"Add New Field Group\" to create your first one."
+msgstr "Noch keine Feldgruppen. Klicke auf \"Feldgruppe hinzufügen\", um die erste anzulegen."
+
+msgid "No fields yet. Click \"Add Field\"."
+msgstr "Noch keine Felder. Klicke auf \"Feld hinzufügen\"."
+
+msgid "Normal (below the content)"
+msgstr "Normal (unter dem Inhalt)"
+
+msgid "Not active: a field group with this key is already defined in code, which takes precedence."
+msgstr "Nicht aktiv: Eine Feldgruppe mit diesem Schlüssel ist bereits im Code definiert, der Vorrang hat."
+
+msgid "Not loaded:"
+msgstr "Nicht geladen:"
+
+msgid "Number"
+msgstr "Zahl"
+
+msgid "One per line. Use \"value : Label\" to show a different text than the stored value."
+msgstr "Eine pro Zeile. Mit \"wert : Bezeichnung\" wird ein anderer Text als der gespeicherte Wert angezeigt."
+
+msgid "Options page"
+msgstr "Optionsseite"
+
+msgid "Other screen"
+msgstr "Anderer Bildschirm"
+
+msgid "PHP date format, e.g. d/m/Y. Empty: the site's format."
+msgstr "PHP-Datumsformat, z. B. d.m.Y. Leer: das Format der Website."
+
+msgid "Page Link"
+msgstr "Seitenlink"
+
+msgid "Page template"
+msgstr "Seiten-Template"
+
+msgid "Page type"
+msgstr "Seitentyp"
+
+msgid "Parent (has children)"
+msgstr "Übergeordnet (hat Unterseiten)"
+
+msgid "Parent (post ID)"
+msgstr "Übergeordnet (Beitrags-ID)"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Placeholder"
+msgstr "Platzhalter"
+
+msgid "Position"
+msgstr "Position"
+
+msgid "Post (ID)"
+msgstr "Beitrag (ID)"
+
+msgid "Post ID"
+msgstr "Beitrags-ID"
+
+msgid "Post Object"
+msgstr "Beitragsobjekt"
+
+msgid "Post format"
+msgstr "Beitragsformat"
+
+msgid "Post object"
+msgstr "Beitragsobjekt"
+
+msgid "Post status"
+msgstr "Beitragsstatus"
+
+msgid "Post term (taxonomy:slug)"
+msgstr "Begriff des Beitrags (taxonomie:slug)"
+
+msgid "Post type"
+msgstr "Inhaltstyp"
+
+msgid "Post types"
+msgstr "Inhaltstypen"
+
+msgid "Posts page"
+msgstr "Beitragsseite"
+
+msgid "REST API"
+msgstr "REST-API"
+
+msgid "Radio Buttons"
+msgstr "Radiobuttons"
+
+msgid "Radio buttons"
+msgstr "Radiobuttons"
+
+msgid "Range"
+msgstr "Bereich"
+
+msgid "Relational"
+msgstr "Relational"
+
+msgid "Relationship"
+msgstr "Beziehung"
+
+msgid "Remove this field?"
+msgstr "Dieses Feld entfernen?"
+
+msgid "Repeater"
+msgstr "Repeater"
+
+msgid "Required"
+msgstr "Pflichtfeld"
+
+msgid "Return format"
+msgstr "Rückgabeformat"
+
+msgid "Roles"
+msgstr "Rollen"
+
+msgid "Save this code as a PHP file in your schema folder, then delete the group here: groups defined in code take precedence."
+msgstr "Speichere diesen Code als PHP-Datei in deinem Schema-Ordner und lösche die Gruppe dann hier: Im Code definierte Gruppen haben Vorrang."
+
+msgid "Saved in"
+msgstr "Gespeichert in"
+
+msgid "Seamless (no box)"
+msgstr "Nahtlos (ohne Box)"
+
+msgid "Select"
+msgstr "Auswahl"
+
+msgid "Separator"
+msgstr "Trennlinie"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Show as a column in the post list"
+msgstr "Als Spalte in der Beitragsliste anzeigen"
+
+msgid "Show only when"
+msgstr "Nur anzeigen, wenn"
+
+msgid "Show this group in the editor"
+msgstr "Diese Gruppe im Editor anzeigen"
+
+msgid "Show this group when all of these rules match."
+msgstr "Diese Gruppe anzeigen, wenn alle diese Regeln zutreffen."
+
+msgid "Shown to editors below the label."
+msgstr "Wird Redakteuren unter der Bezeichnung angezeigt."
+
+msgid "Side"
+msgstr "Seitenleiste"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Standard (box)"
+msgstr "Standard (Box)"
+
+msgid "Step"
+msgstr "Schrittweite"
+
+msgid "Style"
+msgstr "Stil"
+
+msgid "Sub-fields"
+msgstr "Unterfelder"
+
+msgid "Sub-fields can be nested at most %d levels deep."
+msgstr "Unterfelder können höchstens %d Ebenen tief verschachtelt werden."
+
+msgid "Tab"
+msgstr "Tab"
+
+msgid "Taxonomy"
+msgstr "Taxonomie"
+
+msgid "Taxonomy term screen"
+msgstr "Bildschirm eines Taxonomie-Begriffs"
+
+msgid "Text"
+msgstr "Text"
+
+msgid "Text Area"
+msgstr "Textbereich"
+
+msgid "Text shown next to the checkbox."
+msgstr "Text neben der Checkbox."
+
+msgid "The JSON folder cannot be written on this server, so groups are saved in the database."
+msgstr "Der JSON-Ordner ist auf diesem Server nicht beschreibbar, daher werden Gruppen in der Datenbank gespeichert."
+
+msgid "The field group was not saved:"
+msgstr "Die Feldgruppe wurde nicht gespeichert:"
+
+msgid "The post cannot be saved without a value"
+msgstr "Der Beitrag kann ohne Wert nicht gespeichert werden"
+
+msgid "These groups come from PHP schema files or the theme. Edit them in code."
+msgstr "Diese Gruppen stammen aus PHP-Schema-Dateien oder dem Theme. Bearbeite sie im Code."
+
+msgid "Time"
+msgstr "Uhrzeit"
+
+msgid "Top level (no parent)"
+msgstr "Oberste Ebene (ohne übergeordnete Seite)"
+
+msgid "True / False"
+msgstr "Wahr / Falsch"
+
+msgid "Two fields use the key \"%s\". Keys must be unique."
+msgstr "Zwei Felder verwenden den Schlüssel \"%s\". Schlüssel müssen eindeutig sein."
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Unknown location rule \"%s\"."
+msgstr "Unbekannte Positionsregel \"%s\"."
+
+msgid "Used in templates: ctrlfield_get('key'). Changing it later hides the values already saved under the old key."
+msgstr "Wird in Templates verwendet: ctrlfield_get('schluessel'). Eine spätere Änderung blendet die unter dem alten Schlüssel gespeicherten Werte aus."
+
+msgid "User profile"
+msgstr "Benutzerprofil"
+
+msgid "Value"
+msgstr "Wert"
+
+msgid "WYSIWYG Editor"
+msgstr "WYSIWYG-Editor"
+
+msgid "Width"
+msgstr "Breite"
+
+msgid "contains"
+msgstr "enthält"
+
+msgid "is empty"
+msgstr "ist leer"
+
+msgid "is equal to"
+msgstr "ist gleich"
+
+msgid "is greater than"
+msgstr "ist größer als"
+
+msgid "is less than"
+msgstr "ist kleiner als"
+
+msgid "is not empty"
+msgstr "ist nicht leer"
+
+msgid "is not equal to"
+msgstr "ist nicht gleich"
+
+msgid "oEmbed"
+msgstr "oEmbed"
+
+msgid "sub-fields"
+msgstr "Unterfelder"
+
+msgid "— Always show —"
+msgstr "— Immer anzeigen —"
+
+msgid "— Select —"
+msgstr "— Auswählen —"
