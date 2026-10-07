@@ -30,6 +30,7 @@ class WordPressServiceProvider extends ServiceProvider
         // Priority 20 ensures user code that registers builders on init (priority 10)
         // has already run before we call register_post_type / register_taxonomy.
         add_action('init', [$this, 'registerCpts'], 20);
+        add_action('deleted_post', [\CtrlField\Storage\RelationshipAdapter::class, 'deleteForPost']);
         add_action('init', [$this, 'registerTaxonomies'], 20);
         add_action('init', [$this, 'bindTaxonomyTermHooks'], 20);
         add_action('init', [$this, 'bindOptionsPageSaveHooks'], 20);

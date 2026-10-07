@@ -53,12 +53,12 @@ final class ReturnFormatDecorator
             if (! is_array($value)) {
                 return [];
             }
-            return array_map(
+            return array_values(array_filter(array_map(
                 static fn(mixed $id): string => (string) (
                     function_exists('wp_get_attachment_url') ? wp_get_attachment_url((int) $id) : ''
                 ),
                 $value,
-            );
+            ))); // deleted attachments drop out instead of returning ''
         }
 
         return (string) $value;

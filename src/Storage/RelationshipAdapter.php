@@ -58,6 +58,28 @@ final class RelationshipAdapter
     }
 
     /**
+     * Remove every pivot row that points to or from a deleted post, in all
+     * relationship tables created so far (they were left behind as orphans).
+     */
+    public static function deleteForPost(int $postId): void
+    {
+        global $wpdb;
+
+        $tables = get_option(self::TABLES_OPTION, []);
+
+        foreach (is_array($tables) ? $tables : [] as $table) {
+            if (! is_string($table) || ! preg_match('/^[A-Za-z0-9_]+$/', $table)) {
+                continue;
+            }
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM `{$table}` WHERE source_id = %d OR target_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                $postId,
+                $postId,
+            ));
+        }
+    }
+
+    /**
      * Save a relationship (forward direction).
      * Diffs against existing rows: inserts new, deletes removed, updates sort_order.
      *
