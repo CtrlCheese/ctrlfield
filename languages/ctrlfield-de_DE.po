@@ -859,3 +859,7 @@ msgstr ""
 #: src/Integrations/WordPress/WordPressServiceProvider.php:478
 msgid "Select Image"
 msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php
+msgid "Active (license server unreachable — checking again soon)"
+msgstr "Aktiv (Lizenzserver nicht erreichbar — neue Prüfung in Kürze)"

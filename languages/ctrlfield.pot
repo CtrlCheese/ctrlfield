@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-07T07:26:23+00:00\n"
+"POT-Creation-Date: 2026-10-07T08:15:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ctrlfield\n"
@@ -51,7 +51,7 @@ msgstr ""
 msgid "CtrlField: Composer dependencies are missing. Run \"composer install\" in the plugin directory."
 msgstr ""
 
-#: pro/bootstrap.php:39
+#: pro/bootstrap.php:44
 msgid "CtrlField Pro: CTRLFIELD_OFFLINE_TOKEN is set but could not be validated. The RSA public key may be a placeholder — contact support."
 msgstr ""
 
@@ -67,7 +67,7 @@ msgstr ""
 #: pro/src/AuditLog/AuditLogServiceProvider.php:121
 #: src/Admin/Map/MapSettingsPage.php:31
 #: src/Admin/PostTypes/PostTypesPage.php:53
-#: src/Integrations/WordPress/WordPressServiceProvider.php:262
+#: src/Integrations/WordPress/WordPressServiceProvider.php:263
 msgid "You do not have permission to access this page."
 msgstr ""
 
@@ -79,8 +79,8 @@ msgstr ""
 #. translators: %s: post type singular name
 #. translators: %s: taxonomy singular name
 #: pro/src/Admin/ContentTable/ContentTableEditPage.php:52
-#: src/Integrations/WordPress/WordPressServiceProvider.php:89
-#: src/Integrations/WordPress/WordPressServiceProvider.php:138
+#: src/Integrations/WordPress/WordPressServiceProvider.php:90
+#: src/Integrations/WordPress/WordPressServiceProvider.php:139
 #, php-format
 msgid "Add %s"
 msgstr ""
@@ -95,7 +95,7 @@ msgid "Unauthorized."
 msgstr ""
 
 #: pro/src/Admin/ContentTable/ContentTablePage.php:58
-#: src/Integrations/WordPress/WordPressServiceProvider.php:87
+#: src/Integrations/WordPress/WordPressServiceProvider.php:88
 msgid "Add New"
 msgstr ""
 
@@ -210,55 +210,59 @@ msgstr ""
 msgid "Hide"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:239
+#: pro/src/Admin/LicenseSettingsPage.php:240
 msgid "Active (Offline)"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:245
+#: pro/src/Admin/LicenseSettingsPage.php:244
+msgid "Active (license server unreachable — checking again soon)"
+msgstr ""
+
+#: pro/src/Admin/LicenseSettingsPage.php:250
 msgid "Active — Agency plan"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:246
+#: pro/src/Admin/LicenseSettingsPage.php:251
 msgid "Active — Personal plan"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:251
+#: pro/src/Admin/LicenseSettingsPage.php:256
 msgid "Active"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:252
+#: pro/src/Admin/LicenseSettingsPage.php:257
 msgid "Active (Staging — free)"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:253
+#: pro/src/Admin/LicenseSettingsPage.php:258
 msgid "Expired"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:254
+#: pro/src/Admin/LicenseSettingsPage.php:259
 msgid "Activation Limit Reached"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:255
+#: pro/src/Admin/LicenseSettingsPage.php:260
 msgid "Unverified"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:256
+#: pro/src/Admin/LicenseSettingsPage.php:261
 msgid "Inactive"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:272
+#: pro/src/Admin/LicenseSettingsPage.php:277
 msgid "Webhook (Optional)"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:274
+#: pro/src/Admin/LicenseSettingsPage.php:279
 msgid "To receive real-time license revocation events, add this webhook in your LemonSqueezy dashboard."
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:278
+#: pro/src/Admin/LicenseSettingsPage.php:283
 msgid "Webhook URL"
 msgstr ""
 
-#: pro/src/Admin/LicenseSettingsPage.php:282
+#: pro/src/Admin/LicenseSettingsPage.php:287
 msgid "Signing Secret"
 msgstr ""
 
@@ -335,7 +339,7 @@ msgid "Map Settings"
 msgstr ""
 
 #: src/Admin/Map/MapSettingsPage.php:38
-#: src/Integrations/WordPress/WordPressServiceProvider.php:274
+#: src/Integrations/WordPress/WordPressServiceProvider.php:275
 msgid "Settings saved."
 msgstr ""
 
@@ -371,7 +375,7 @@ msgstr ""
 msgid "No API key required. Uses the free Nominatim geocoding service (1 request/second limit)."
 msgstr ""
 
-#: src/Admin/MetaBox/MetaBoxRegistrar.php:60
+#: src/Admin/MetaBox/MetaBoxRegistrar.php:61
 #: assets/gutenberg/dist/index.js:1
 #: assets/gutenberg/index.js:26
 #: assets/gutenberg/index.js:31
@@ -436,7 +440,7 @@ msgid "Create content types such as Projects, Events or Team members without wri
 msgstr ""
 
 #: src/Admin/PostTypes/PostTypesPage.php:86
-#: src/Integrations/WordPress/WordPressServiceProvider.php:139
+#: src/Integrations/WordPress/WordPressServiceProvider.php:140
 msgid "Name"
 msgstr ""
 
@@ -640,7 +644,7 @@ msgid "Content editor"
 msgstr ""
 
 #: src/Admin/PostTypes/PostTypesPage.php:361
-#: src/Integrations/WordPress/WordPressServiceProvider.php:109
+#: src/Integrations/WordPress/WordPressServiceProvider.php:110
 msgid "Featured image"
 msgstr ""
 
@@ -710,14 +714,14 @@ msgstr ""
 
 #. translators: %s: post type singular name
 #. translators: %s: taxonomy singular name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:91
-#: src/Integrations/WordPress/WordPressServiceProvider.php:132
+#: src/Integrations/WordPress/WordPressServiceProvider.php:92
+#: src/Integrations/WordPress/WordPressServiceProvider.php:133
 #, php-format
 msgid "Edit %s"
 msgstr ""
 
 #. translators: %s: post type singular name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:93
+#: src/Integrations/WordPress/WordPressServiceProvider.php:94
 #, php-format
 msgid "New entry: %s"
 msgstr ""
@@ -725,135 +729,135 @@ msgstr ""
 #. translators: %s: post type singular name
 #. translators: %s: post type plural name
 #. translators: %s: taxonomy singular name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:95
-#: src/Integrations/WordPress/WordPressServiceProvider.php:97
-#: src/Integrations/WordPress/WordPressServiceProvider.php:134
+#: src/Integrations/WordPress/WordPressServiceProvider.php:96
+#: src/Integrations/WordPress/WordPressServiceProvider.php:98
+#: src/Integrations/WordPress/WordPressServiceProvider.php:135
 #, php-format
 msgid "View %s"
 msgstr ""
 
 #. translators: %s: post type plural name
 #. translators: %s: taxonomy plural name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:99
-#: src/Integrations/WordPress/WordPressServiceProvider.php:143
+#: src/Integrations/WordPress/WordPressServiceProvider.php:100
+#: src/Integrations/WordPress/WordPressServiceProvider.php:144
 #, php-format
 msgid "Search %s"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:100
+#: src/Integrations/WordPress/WordPressServiceProvider.php:101
 msgid "No entries found."
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:101
+#: src/Integrations/WordPress/WordPressServiceProvider.php:102
 msgid "No entries found in Trash."
 msgstr ""
 
 #. translators: %s: post type plural name
 #. translators: %s: taxonomy plural name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:103
-#: src/Integrations/WordPress/WordPressServiceProvider.php:130
+#: src/Integrations/WordPress/WordPressServiceProvider.php:104
+#: src/Integrations/WordPress/WordPressServiceProvider.php:131
 #, php-format
 msgid "All %s"
 msgstr ""
 
 #. translators: %s: post type plural name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:105
+#: src/Integrations/WordPress/WordPressServiceProvider.php:106
 #, php-format
 msgid "%s archive"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:106
+#: src/Integrations/WordPress/WordPressServiceProvider.php:107
 msgid "Attributes"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:107
+#: src/Integrations/WordPress/WordPressServiceProvider.php:108
 msgid "Insert into entry"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:108
+#: src/Integrations/WordPress/WordPressServiceProvider.php:109
 msgid "Uploaded to this entry"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:110
+#: src/Integrations/WordPress/WordPressServiceProvider.php:111
 msgid "Set featured image"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:111
+#: src/Integrations/WordPress/WordPressServiceProvider.php:112
 msgid "Remove featured image"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:112
+#: src/Integrations/WordPress/WordPressServiceProvider.php:113
 msgid "Use as featured image"
 msgstr ""
 
 #. translators: %s: post type plural name
 #. translators: %s: taxonomy plural name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:114
-#: src/Integrations/WordPress/WordPressServiceProvider.php:151
+#: src/Integrations/WordPress/WordPressServiceProvider.php:115
+#: src/Integrations/WordPress/WordPressServiceProvider.php:152
 #, php-format
 msgid "%s list"
 msgstr ""
 
 #. translators: %s: post type plural name
 #. translators: %s: taxonomy plural name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:116
-#: src/Integrations/WordPress/WordPressServiceProvider.php:153
+#: src/Integrations/WordPress/WordPressServiceProvider.php:117
+#: src/Integrations/WordPress/WordPressServiceProvider.php:154
 #, php-format
 msgid "%s list navigation"
 msgstr ""
 
 #. translators: %s: post type plural name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:118
+#: src/Integrations/WordPress/WordPressServiceProvider.php:119
 #, php-format
 msgid "Filter %s list"
 msgstr ""
 
 #. translators: %s: taxonomy singular name
-#: src/Integrations/WordPress/WordPressServiceProvider.php:136
+#: src/Integrations/WordPress/WordPressServiceProvider.php:137
 #, php-format
 msgid "Update %s"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:140
+#: src/Integrations/WordPress/WordPressServiceProvider.php:141
 msgid "Parent"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:141
+#: src/Integrations/WordPress/WordPressServiceProvider.php:142
 msgid "Parent:"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:144
+#: src/Integrations/WordPress/WordPressServiceProvider.php:145
 msgid "Most used"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:145
+#: src/Integrations/WordPress/WordPressServiceProvider.php:146
 msgid "Separate with commas"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:146
+#: src/Integrations/WordPress/WordPressServiceProvider.php:147
 msgid "Add or remove"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:147
+#: src/Integrations/WordPress/WordPressServiceProvider.php:148
 msgid "Choose from the most used"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:148
+#: src/Integrations/WordPress/WordPressServiceProvider.php:149
 msgid "Nothing found."
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:149
+#: src/Integrations/WordPress/WordPressServiceProvider.php:150
 msgid "None"
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:309
+#: src/Integrations/WordPress/WordPressServiceProvider.php:310
 msgid "Security check failed."
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:313
+#: src/Integrations/WordPress/WordPressServiceProvider.php:314
 msgid "You do not have permission to save these settings."
 msgstr ""
 
-#: src/Integrations/WordPress/WordPressServiceProvider.php:478
+#: src/Integrations/WordPress/WordPressServiceProvider.php:479
 msgid "Select Image"
 msgstr ""
