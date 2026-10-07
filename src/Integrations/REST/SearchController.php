@@ -183,7 +183,9 @@ final class SearchController
             return new \WP_Error('rest_not_logged_in', 'Authentication required.', ['status' => 401]);
         }
 
-        if (! current_user_can('list_users')) {
+        // Anyone who edits content needs the User field picker; results carry
+        // only name and avatar (email for admins), and search hits names only.
+        if (! current_user_can('edit_posts')) {
             return new \WP_Error('rest_forbidden', 'Insufficient permissions.', ['status' => 403]);
         }
 
@@ -198,7 +200,9 @@ final class SearchController
 
         $args = [
             'number'  => $perPage,
-            'search'  => '*' . $search . '*',
+            'search'         => '*' . $search . '*',
+            // Not user_email / user_login: editors must not probe emails or logins.
+            'search_columns' => ['display_name', 'user_nicename'],
             'fields'  => 'all',
             'orderby' => 'display_name',
             'order'   => 'ASC',

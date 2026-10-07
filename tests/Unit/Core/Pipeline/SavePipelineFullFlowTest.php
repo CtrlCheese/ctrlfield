@@ -51,7 +51,7 @@ class SavePipelineFullFlowTest extends TestCase
 
         $caps = new class($capValid) implements CapabilityCheckerInterface {
             public function __construct(private bool $valid) {}
-            public function currentUserCan(string $capability): bool { return $this->valid; }
+            public function currentUserCan(string $capability, int ...$args): bool { return $this->valid; }
         };
 
         return new SavePipeline([

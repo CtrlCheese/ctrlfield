@@ -22,6 +22,16 @@ class CapabilityCheckStageTest extends TestCase
         $this->assertTrue(true);
     }
 
+    public function test_throws_when_user_cannot_edit_this_post(): void
+    {
+        // Can edit posts in general (an author), but not this one.
+        $stage = new CapabilityCheckStage(new CapableExceptThisPost());
+
+        $this->expectException(PipelineException::class);
+        $this->expectExceptionMessage('You do not have permission to edit this post.');
+        $stage->handle(new PipelineContext(42, []));
+    }
+
     public function test_throws_when_user_lacks_capability(): void
     {
         $stage   = new CapabilityCheckStage(new NeverCapable());
@@ -48,12 +58,17 @@ class CapabilityCheckStageTest extends TestCase
     }
 }
 
+final class CapableExceptThisPost implements CapabilityCheckerInterface
+{
+    public function currentUserCan(string $capability, int ...$args): bool { return $capability !== 'edit_post'; }
+}
+
 class AlwaysCapable implements CapabilityCheckerInterface
 {
-    public function currentUserCan(string $capability): bool { return true; }
+    public function currentUserCan(string $capability, int ...$args): bool { return true; }
 }
 
 class NeverCapable implements CapabilityCheckerInterface
 {
-    public function currentUserCan(string $capability): bool { return false; }
+    public function currentUserCan(string $capability, int ...$args): bool { return false; }
 }

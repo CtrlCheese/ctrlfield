@@ -156,9 +156,10 @@ class ComputedFieldPipelineTest extends TestCase
             ->fields([Field::text('site_title')]);
 
         $caps = new class implements CapabilityCheckerInterface {
-            public function currentUserCan(string $cap): bool
+            public function currentUserCan(string $cap, int ...$args): bool
             {
-                return $cap === 'edit_posts'; // has edit_posts, but NOT manage_options
+                // has edit_posts (and may edit this post), but NOT manage_options
+                return $cap === 'edit_posts' || $cap === 'edit_post';
             }
         };
 

@@ -6,5 +6,6 @@ namespace CtrlField\Core\Security\Contracts;
 
 interface CapabilityCheckerInterface
 {
-    public function currentUserCan(string $capability): bool;
+    /** @param int ...$args e.g. a post id for meta capabilities ('edit_post', 42). */
+    public function currentUserCan(string $capability, int ...$args): bool;
 }

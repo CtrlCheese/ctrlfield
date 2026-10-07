@@ -12,8 +12,8 @@ use CtrlField\Core\Security\Contracts\CapabilityCheckerInterface;
  */
 class CapabilityChecker implements CapabilityCheckerInterface
 {
-    public function currentUserCan(string $capability): bool
+    public function currentUserCan(string $capability, int ...$args): bool
     {
-        return (bool) current_user_can($capability);
+        return (bool) current_user_can($capability, ...$args);
     }
 }

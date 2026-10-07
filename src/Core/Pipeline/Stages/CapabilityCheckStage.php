@@ -30,6 +30,17 @@ class CapabilityCheckStage implements StageInterface
             );
         }
 
+        // Per-post check: being able to edit posts in general is not being able to
+        // edit THIS post (an author saving someone else's post).
+        if ($context->postId > 0 && ! $this->checker->currentUserCan('edit_post', $context->postId)) {
+            throw new PipelineException(
+                errorCode:    'INSUFFICIENT_CAPABILITY',
+                errorMessage: 'You do not have permission to edit this post.',
+                fieldKey:     null,
+                stageName:    self::NAME,
+            );
+        }
+
         // Per-group capability enforcement (A-13 requiredCapability).
         // ContextRegistry::resolve() already filters invisible groups, but a
         // crafted POST can bypass the UI — the pipeline must re-check here.
