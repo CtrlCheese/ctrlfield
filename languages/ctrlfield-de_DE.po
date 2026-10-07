@@ -1490,3 +1490,9 @@ msgstr "Wert und Bezeichnung"
 
 msgid "What templates receive. For dates: a PHP date format."
 msgstr "Was Templates erhalten. Bei Datumsfeldern: ein PHP-Datumsformat."
+
+msgid "Import from ACF (Pro)"
+msgstr "Aus ACF importieren (Pro)"
+
+msgid "Importing ACF field groups and their values is a CtrlField Pro feature."
+msgstr "Der Import von ACF-Feldgruppen und ihren Werten ist eine Funktion von CtrlField Pro."

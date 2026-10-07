@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-07T11:24:01+00:00\n"
+"POT-Creation-Date: 2026-10-07T11:37:15+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ctrlfield\n"
@@ -65,10 +65,10 @@ msgstr ""
 #: pro/src/Admin/ContentTable/ContentTablePage.php:37
 #: pro/src/Admin/LicenseSettingsPage.php:27
 #: pro/src/AuditLog/AuditLogServiceProvider.php:121
+#: pro/src/Compat/Acf/AcfImportPage.php:29
 #: src/Admin/FieldGroups/FieldGroupsPage.php:60
 #: src/Admin/Map/MapSettingsPage.php:31
 #: src/Admin/PostTypes/PostTypesPage.php:53
-#: src/Compat/Acf/AcfImportPage.php:28
 #: src/Integrations/WordPress/WordPressServiceProvider.php:263
 msgid "You do not have permission to access this page."
 msgstr ""
@@ -124,7 +124,7 @@ msgid "Actions"
 msgstr ""
 
 #: pro/src/Admin/ContentTable/ContentTablePage.php:98
-#: src/Admin/FieldGroups/FieldGroupsPage.php:140
+#: src/Admin/FieldGroups/FieldGroupsPage.php:146
 #: src/Admin/PostTypes/PostTypesPage.php:109
 msgid "Edit"
 msgstr ""
@@ -134,7 +134,7 @@ msgid "Delete this record?"
 msgstr ""
 
 #: pro/src/Admin/ContentTable/ContentTablePage.php:107
-#: src/Admin/FieldGroups/FieldGroupsPage.php:142
+#: src/Admin/FieldGroups/FieldGroupsPage.php:148
 #: src/Admin/PostTypes/PostTypesPage.php:112
 msgid "Delete"
 msgstr ""
@@ -231,7 +231,7 @@ msgid "Active — Personal plan"
 msgstr ""
 
 #: pro/src/Admin/LicenseSettingsPage.php:256
-#: src/Admin/FieldGroups/FieldGroupsPage.php:243
+#: src/Admin/FieldGroups/FieldGroupsPage.php:249
 msgid "Active"
 msgstr ""
 
@@ -252,7 +252,7 @@ msgid "Unverified"
 msgstr ""
 
 #: pro/src/Admin/LicenseSettingsPage.php:261
-#: src/Admin/FieldGroups/FieldGroupsPage.php:132
+#: src/Admin/FieldGroups/FieldGroupsPage.php:138
 msgid "Inactive"
 msgstr ""
 
@@ -282,7 +282,7 @@ msgid "CtrlField Audit Log"
 msgstr ""
 
 #: pro/src/AuditLog/AuditLogServiceProvider.php:136
-#: src/Admin/FieldGroups/FieldGroupsPage.php:595
+#: src/Admin/FieldGroups/FieldGroupsPage.php:601
 msgid "Date"
 msgstr ""
 
@@ -303,7 +303,7 @@ msgid "New Value"
 msgstr ""
 
 #: pro/src/AuditLog/AuditLogServiceProvider.php:141
-#: src/Admin/FieldGroups/FieldGroupsPage.php:599
+#: src/Admin/FieldGroups/FieldGroupsPage.php:605
 msgid "User"
 msgstr ""
 
@@ -313,6 +313,103 @@ msgstr ""
 
 #: pro/src/AuditLog/AuditLogServiceProvider.php:157
 msgid "unknown"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImporter.php:85
+#, php-format
+msgid "Field \"%1$s\" has the same key as a field of the group \"%2$s\"; on the same post both read and write one value."
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:23
+#: pro/src/Compat/Acf/AcfImportPage.php:39
+#: src/Admin/FieldGroups/FieldGroupsPage.php:95
+msgid "Import from ACF"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:40
+#: src/Admin/FieldGroups/FieldGroupsPage.php:220
+#: src/Admin/FieldGroups/FieldGroupsPage.php:481
+msgid "All field groups"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:48
+msgid "ACF is active. After the import, deactivate it: while both run, the fields appear twice and get_field() keeps reading ACF's data."
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:52
+msgid "Field groups are converted into CtrlField groups (JSON). ACF's own data is only read: nothing is changed or deleted, so you can switch back at any time. Templates keep working: get_field(), the_field(), have_rows() and update_field() are provided by CtrlField when ACF is not active."
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:56
+msgid "No ACF field groups were found in the database or in acf-json folders."
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:64
+#: pro/src/Compat/Acf/AcfImportPage.php:101
+msgid "Field group"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:65
+#: src/Admin/FieldGroups/FieldGroupsPage.php:123
+#: src/Admin/FieldGroups/FieldGroupsPage.php:171
+#: src/Admin/FieldGroups/FieldGroupsPage.php:254
+#: src/Admin/FieldGroups/FieldGroupsPage.php:256
+msgid "Fields"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:66
+msgid "Source"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:67
+msgid "Status"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:75
+#: src/Admin/FieldGroups/FieldGroupsPage.php:156
+msgid "Database"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:77
+#, php-format
+msgid "Imported as %s (importing again updates it)"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:78
+#: pro/src/Compat/Acf/AcfImportPage.php:110
+msgid "Not imported"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:85
+msgid "Also copy the values saved with ACF (posts, terms, users and options pages)"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:87
+msgid "Import"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:98
+msgid "Import finished."
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:102
+msgid "Result"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:103
+msgid "Items with values"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:110
+msgid "Imported"
+msgstr ""
+
+#: pro/src/Compat/Acf/AcfImportPage.php:126
+#: src/Admin/FieldGroups/FieldGroupsPage.php:494
+#: src/Admin/FieldGroups/FieldGroupsPage.php:535
+#: src/Admin/PostTypes/PostTypesPage.php:223
+#: src/Admin/PostTypes/PostTypesPage.php:259
+msgid "You do not have permission to do this."
 msgstr ""
 
 #: pro/src/Fields/Renderers/GalleryRenderer.php:19
@@ -328,8 +425,8 @@ msgid "Move right"
 msgstr ""
 
 #: pro/src/Fields/Renderers/GalleryRenderer.php:22
-#: src/Admin/FieldGroups/FieldGroupsPage.php:269
-#: src/Admin/FieldGroups/FieldGroupsPage.php:340
+#: src/Admin/FieldGroups/FieldGroupsPage.php:275
+#: src/Admin/FieldGroups/FieldGroupsPage.php:346
 #: src/Fields/Renderers/AbstractPickerRenderer.php:47
 #: src/Fields/Renderers/AbstractPickerRenderer.php:54
 msgid "Remove"
@@ -350,762 +447,737 @@ msgid "Field Groups"
 msgstr ""
 
 #: src/Admin/FieldGroups/FieldGroupsPage.php:93
-#: src/Admin/FieldGroups/FieldGroupsPage.php:212
+#: src/Admin/FieldGroups/FieldGroupsPage.php:218
 msgid "Add New Field Group"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:95
-#: src/Compat/Acf/AcfImportPage.php:22
-#: src/Compat/Acf/AcfImportPage.php:38
-msgid "Import from ACF"
+#: src/Admin/FieldGroups/FieldGroupsPage.php:101
+msgid "Importing ACF field groups and their values is a CtrlField Pro feature."
+msgstr ""
+
+#: src/Admin/FieldGroups/FieldGroupsPage.php:101
+msgid "Import from ACF (Pro)"
 msgstr ""
 
 #. translators: %s: folder path
-#: src/Admin/FieldGroups/FieldGroupsPage.php:102
+#: src/Admin/FieldGroups/FieldGroupsPage.php:108
 #, php-format
 msgid "Groups are saved as JSON files in %s, so they can be committed to git and deployed with the theme."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:106
+#: src/Admin/FieldGroups/FieldGroupsPage.php:112
 msgid "The JSON folder cannot be written on this server, so groups are saved in the database."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:114
-#: src/Admin/FieldGroups/FieldGroupsPage.php:162
-#: src/Admin/FieldGroups/FieldGroupsPage.php:232
+#: src/Admin/FieldGroups/FieldGroupsPage.php:120
+#: src/Admin/FieldGroups/FieldGroupsPage.php:168
+#: src/Admin/FieldGroups/FieldGroupsPage.php:238
 #: src/Admin/PostTypes/PostTypesPage.php:359
 msgid "Title"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:115
-#: src/Admin/FieldGroups/FieldGroupsPage.php:163
-#: src/Admin/FieldGroups/FieldGroupsPage.php:236
-#: src/Admin/FieldGroups/FieldGroupsPage.php:294
+#: src/Admin/FieldGroups/FieldGroupsPage.php:121
+#: src/Admin/FieldGroups/FieldGroupsPage.php:169
+#: src/Admin/FieldGroups/FieldGroupsPage.php:242
+#: src/Admin/FieldGroups/FieldGroupsPage.php:300
 #: src/Admin/PostTypes/PostTypesPage.php:87
 #: src/Admin/PostTypes/PostTypesPage.php:150
 msgid "Key"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:116
-#: src/Admin/FieldGroups/FieldGroupsPage.php:164
-#: src/Admin/FieldGroups/FieldGroupsPage.php:308
+#: src/Admin/FieldGroups/FieldGroupsPage.php:122
+#: src/Admin/FieldGroups/FieldGroupsPage.php:170
+#: src/Admin/FieldGroups/FieldGroupsPage.php:314
 msgid "Location"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:117
-#: src/Admin/FieldGroups/FieldGroupsPage.php:165
-#: src/Admin/FieldGroups/FieldGroupsPage.php:248
-#: src/Admin/FieldGroups/FieldGroupsPage.php:250
-#: src/Compat/Acf/AcfImportPage.php:64
-msgid "Fields"
-msgstr ""
-
-#: src/Admin/FieldGroups/FieldGroupsPage.php:118
+#: src/Admin/FieldGroups/FieldGroupsPage.php:124
 msgid "Saved in"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:123
+#: src/Admin/FieldGroups/FieldGroupsPage.php:129
 msgid "No field groups yet. Click \"Add New Field Group\" to create your first one."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:135
+#: src/Admin/FieldGroups/FieldGroupsPage.php:141
 msgid "Not loaded:"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:137
+#: src/Admin/FieldGroups/FieldGroupsPage.php:143
 msgid "Not active: a field group with this key is already defined in code, which takes precedence."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:141
+#: src/Admin/FieldGroups/FieldGroupsPage.php:147
 #: src/Admin/PostTypes/PostTypesPage.php:111
 msgid "Export PHP"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:142
+#: src/Admin/FieldGroups/FieldGroupsPage.php:148
 msgid "Delete this field group? The values already saved in posts stay in the database and come back if you recreate the fields with the same keys."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:150
-#: src/Compat/Acf/AcfImportPage.php:74
-msgid "Database"
-msgstr ""
-
-#: src/Admin/FieldGroups/FieldGroupsPage.php:157
-#: src/Admin/FieldGroups/FieldGroupsPage.php:178
+#: src/Admin/FieldGroups/FieldGroupsPage.php:163
+#: src/Admin/FieldGroups/FieldGroupsPage.php:184
 msgid "Defined in code"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:158
+#: src/Admin/FieldGroups/FieldGroupsPage.php:164
 msgid "These groups come from PHP schema files or the theme. Edit them in code."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:208
+#: src/Admin/FieldGroups/FieldGroupsPage.php:214
 msgid "Remove this field?"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:213
+#: src/Admin/FieldGroups/FieldGroupsPage.php:219
 #, php-format
 msgid "Edit Field Group: %s"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:214
-#: src/Admin/FieldGroups/FieldGroupsPage.php:475
-#: src/Compat/Acf/AcfImportPage.php:39
-msgid "All field groups"
-msgstr ""
-
-#: src/Admin/FieldGroups/FieldGroupsPage.php:217
+#: src/Admin/FieldGroups/FieldGroupsPage.php:223
 msgid "The field group was not saved:"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:239
+#: src/Admin/FieldGroups/FieldGroupsPage.php:245
 msgid "Lowercase letters, numbers and underscores. Also the JSON file name."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:244
+#: src/Admin/FieldGroups/FieldGroupsPage.php:250
 msgid "Show this group in the editor"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:254
+#: src/Admin/FieldGroups/FieldGroupsPage.php:260
 msgid "sub-fields"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:258
+#: src/Admin/FieldGroups/FieldGroupsPage.php:264
 msgid "No fields yet. Click \"Add Field\"."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:263
+#: src/Admin/FieldGroups/FieldGroupsPage.php:269
 msgid "(no label)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:267
+#: src/Admin/FieldGroups/FieldGroupsPage.php:273
 #: src/Fields/Renderers/AbstractPickerRenderer.php:44
 msgid "Move up"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:268
+#: src/Admin/FieldGroups/FieldGroupsPage.php:274
 #: src/Fields/Renderers/AbstractPickerRenderer.php:45
 msgid "Move down"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:275
+#: src/Admin/FieldGroups/FieldGroupsPage.php:281
 msgid "Field type"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:290
-#: src/Admin/FieldGroups/FieldGroupsPage.php:568
+#: src/Admin/FieldGroups/FieldGroupsPage.php:296
+#: src/Admin/FieldGroups/FieldGroupsPage.php:574
 msgid "Label"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:297
+#: src/Admin/FieldGroups/FieldGroupsPage.php:303
 msgid "Used in templates: ctrlfield_get('key'). Changing it later hides the values already saved under the old key."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:305
+#: src/Admin/FieldGroups/FieldGroupsPage.php:311
 msgid "Add Field"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:309
+#: src/Admin/FieldGroups/FieldGroupsPage.php:315
 msgid "Show this group when all of these rules match."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:323
-#: src/Admin/FieldGroups/FieldGroupsPage.php:458
+#: src/Admin/FieldGroups/FieldGroupsPage.php:329
+#: src/Admin/FieldGroups/FieldGroupsPage.php:464
 msgid "is equal to"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:324
-#: src/Admin/FieldGroups/FieldGroupsPage.php:459
+#: src/Admin/FieldGroups/FieldGroupsPage.php:330
+#: src/Admin/FieldGroups/FieldGroupsPage.php:465
 msgid "is not equal to"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:330
-#: src/Admin/FieldGroups/FieldGroupsPage.php:410
+#: src/Admin/FieldGroups/FieldGroupsPage.php:336
+#: src/Admin/FieldGroups/FieldGroupsPage.php:416
 msgid "— Select —"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:337
-#: src/Admin/FieldGroups/FieldGroupsPage.php:466
-#: src/Admin/FieldGroups/FieldGroupsPage.php:568
+#: src/Admin/FieldGroups/FieldGroupsPage.php:343
+#: src/Admin/FieldGroups/FieldGroupsPage.php:472
+#: src/Admin/FieldGroups/FieldGroupsPage.php:574
 msgid "Value"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:345
+#: src/Admin/FieldGroups/FieldGroupsPage.php:351
 msgid "Add rule"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:348
+#: src/Admin/FieldGroups/FieldGroupsPage.php:354
 msgid "Also shown when any of these rules matches (imported from ACF; kept as is, edit them in PHP):"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:355
+#: src/Admin/FieldGroups/FieldGroupsPage.php:361
 msgid "Settings"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:358
+#: src/Admin/FieldGroups/FieldGroupsPage.php:364
 msgid "Position"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:360
+#: src/Admin/FieldGroups/FieldGroupsPage.php:366
 msgid "Normal (below the content)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:361
+#: src/Admin/FieldGroups/FieldGroupsPage.php:367
 msgid "Side"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:362
+#: src/Admin/FieldGroups/FieldGroupsPage.php:368
 msgid "High (after the title)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:366
+#: src/Admin/FieldGroups/FieldGroupsPage.php:372
 msgid "Style"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:368
+#: src/Admin/FieldGroups/FieldGroupsPage.php:374
 msgid "Standard (box)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:369
+#: src/Admin/FieldGroups/FieldGroupsPage.php:375
 msgid "Seamless (no box)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:373
+#: src/Admin/FieldGroups/FieldGroupsPage.php:379
 msgid "Label placement"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:375
+#: src/Admin/FieldGroups/FieldGroupsPage.php:381
 msgid "Above fields"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:376
+#: src/Admin/FieldGroups/FieldGroupsPage.php:382
 msgid "Beside fields"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:381
+#: src/Admin/FieldGroups/FieldGroupsPage.php:387
 msgid "Create Field Group"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:381
+#: src/Admin/FieldGroups/FieldGroupsPage.php:387
 #: src/Admin/PostTypes/PostTypesPage.php:201
 msgid "Save Changes"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:418
+#: src/Admin/FieldGroups/FieldGroupsPage.php:424
 msgid "Instructions"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:418
+#: src/Admin/FieldGroups/FieldGroupsPage.php:424
 msgid "Shown to editors below the label."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:419
+#: src/Admin/FieldGroups/FieldGroupsPage.php:425
 msgid "Required"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:419
+#: src/Admin/FieldGroups/FieldGroupsPage.php:425
 msgid "The post cannot be saved without a value"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:420
+#: src/Admin/FieldGroups/FieldGroupsPage.php:426
 msgid "Choices"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:420
+#: src/Admin/FieldGroups/FieldGroupsPage.php:426
 msgid "One per line. Use \"value : Label\" to show a different text than the stored value."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:421
+#: src/Admin/FieldGroups/FieldGroupsPage.php:427
 msgid "Allow empty"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:421
+#: src/Admin/FieldGroups/FieldGroupsPage.php:427
 msgid "No choice selected is allowed"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:422
+#: src/Admin/FieldGroups/FieldGroupsPage.php:428
 msgid "Default value"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:423
+#: src/Admin/FieldGroups/FieldGroupsPage.php:429
 msgid "Placeholder"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:424
+#: src/Admin/FieldGroups/FieldGroupsPage.php:430
 msgid "Minimum"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:425
+#: src/Admin/FieldGroups/FieldGroupsPage.php:431
 msgid "Maximum"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:426
+#: src/Admin/FieldGroups/FieldGroupsPage.php:432
 msgid "Step"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:427
-#: src/Admin/FieldGroups/FieldGroupsPage.php:428
-#: src/Admin/FieldGroups/FieldGroupsPage.php:601
+#: src/Admin/FieldGroups/FieldGroupsPage.php:433
+#: src/Admin/FieldGroups/FieldGroupsPage.php:434
+#: src/Admin/FieldGroups/FieldGroupsPage.php:607
 msgid "Message"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:427
+#: src/Admin/FieldGroups/FieldGroupsPage.php:433
 msgid "Text shown next to the checkbox."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:429
+#: src/Admin/FieldGroups/FieldGroupsPage.php:435
 msgid "Display format"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:429
+#: src/Admin/FieldGroups/FieldGroupsPage.php:435
 msgid "PHP date format, e.g. d/m/Y. Empty: the site's format."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:430
+#: src/Admin/FieldGroups/FieldGroupsPage.php:436
 msgid "Post types"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:430
+#: src/Admin/FieldGroups/FieldGroupsPage.php:436
 msgid "Empty: all post types."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:431
-#: src/Admin/FieldGroups/FieldGroupsPage.php:624
+#: src/Admin/FieldGroups/FieldGroupsPage.php:437
+#: src/Admin/FieldGroups/FieldGroupsPage.php:630
 msgid "Post type"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:432
-#: src/Admin/FieldGroups/FieldGroupsPage.php:599
+#: src/Admin/FieldGroups/FieldGroupsPage.php:438
+#: src/Admin/FieldGroups/FieldGroupsPage.php:605
 msgid "Taxonomy"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:433
+#: src/Admin/FieldGroups/FieldGroupsPage.php:439
 msgid "Appearance"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:434
+#: src/Admin/FieldGroups/FieldGroupsPage.php:440
 msgid "Dropdown"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:434
-#: src/Admin/FieldGroups/FieldGroupsPage.php:593
+#: src/Admin/FieldGroups/FieldGroupsPage.php:440
+#: src/Admin/FieldGroups/FieldGroupsPage.php:599
 msgid "Checkboxes"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:434
+#: src/Admin/FieldGroups/FieldGroupsPage.php:440
 msgid "Radio buttons"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:436
+#: src/Admin/FieldGroups/FieldGroupsPage.php:442
 msgid "Roles"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:436
+#: src/Admin/FieldGroups/FieldGroupsPage.php:442
 msgid "Empty: all users."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:437
+#: src/Admin/FieldGroups/FieldGroupsPage.php:443
 msgid "Multiple"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:437
+#: src/Admin/FieldGroups/FieldGroupsPage.php:443
 msgid "Allow more than one"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:438
+#: src/Admin/FieldGroups/FieldGroupsPage.php:444
 msgid "Return format"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:439
+#: src/Admin/FieldGroups/FieldGroupsPage.php:445
 msgid "Default"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:442
+#: src/Admin/FieldGroups/FieldGroupsPage.php:448
 msgid "What templates receive. For dates: a PHP date format."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:443
+#: src/Admin/FieldGroups/FieldGroupsPage.php:449
 msgid "Bidirectional"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:443
+#: src/Admin/FieldGroups/FieldGroupsPage.php:449
 msgid "Also link back from the related posts"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:444
+#: src/Admin/FieldGroups/FieldGroupsPage.php:450
 msgid "Minimum items"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:445
+#: src/Admin/FieldGroups/FieldGroupsPage.php:451
 msgid "Maximum items"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:446
+#: src/Admin/FieldGroups/FieldGroupsPage.php:452
 msgid "Language"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:449
+#: src/Admin/FieldGroups/FieldGroupsPage.php:455
 msgid "Sub-fields"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:450
+#: src/Admin/FieldGroups/FieldGroupsPage.php:456
 msgid "Edit sub-fields"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:451
+#: src/Admin/FieldGroups/FieldGroupsPage.php:457
 msgid "Width"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:451
+#: src/Admin/FieldGroups/FieldGroupsPage.php:457
 msgid "Empty: full width."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:452
+#: src/Admin/FieldGroups/FieldGroupsPage.php:458
 msgid "Admin column"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:452
+#: src/Admin/FieldGroups/FieldGroupsPage.php:458
 msgid "Show as a column in the post list"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:453
+#: src/Admin/FieldGroups/FieldGroupsPage.php:459
 msgid "REST API"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:453
+#: src/Admin/FieldGroups/FieldGroupsPage.php:459
 msgid "Include in the REST API"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:454
+#: src/Admin/FieldGroups/FieldGroupsPage.php:460
 msgid "Show only when"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:455
+#: src/Admin/FieldGroups/FieldGroupsPage.php:461
 msgid "— Always show —"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:460
+#: src/Admin/FieldGroups/FieldGroupsPage.php:466
 msgid "contains"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:461
+#: src/Admin/FieldGroups/FieldGroupsPage.php:467
 msgid "is empty"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:462
+#: src/Admin/FieldGroups/FieldGroupsPage.php:468
 msgid "is not empty"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:463
+#: src/Admin/FieldGroups/FieldGroupsPage.php:469
 msgid "is greater than"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:464
+#: src/Admin/FieldGroups/FieldGroupsPage.php:470
 msgid "is less than"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:467
+#: src/Admin/FieldGroups/FieldGroupsPage.php:473
 msgid "Another field of this group decides whether this one is shown."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:474
+#: src/Admin/FieldGroups/FieldGroupsPage.php:480
 #: src/Admin/PostTypes/PostTypesPage.php:209
 #, php-format
 msgid "Export PHP: %s"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:476
+#: src/Admin/FieldGroups/FieldGroupsPage.php:482
 msgid "Save this code as a PHP file in your schema folder, then delete the group here: groups defined in code take precedence."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:488
-#: src/Admin/FieldGroups/FieldGroupsPage.php:529
-#: src/Admin/PostTypes/PostTypesPage.php:223
-#: src/Admin/PostTypes/PostTypesPage.php:259
-#: src/Compat/Acf/AcfImportPage.php:125
-msgid "You do not have permission to do this."
-msgstr ""
-
-#: src/Admin/FieldGroups/FieldGroupsPage.php:501
+#: src/Admin/FieldGroups/FieldGroupsPage.php:507
 #, php-format
 msgid "Another field group already uses the key \"%s\"."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:503
+#: src/Admin/FieldGroups/FieldGroupsPage.php:509
 #, php-format
 msgid "A field group defined in code already uses the key \"%s\"."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:564
+#: src/Admin/FieldGroups/FieldGroupsPage.php:570
 msgid "ID"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:565
-#: src/Admin/FieldGroups/FieldGroupsPage.php:591
+#: src/Admin/FieldGroups/FieldGroupsPage.php:571
+#: src/Admin/FieldGroups/FieldGroupsPage.php:597
 msgid "URL"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:566
+#: src/Admin/FieldGroups/FieldGroupsPage.php:572
 msgid "Array"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:567
+#: src/Admin/FieldGroups/FieldGroupsPage.php:573
 msgid "Object"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:568
+#: src/Admin/FieldGroups/FieldGroupsPage.php:574
 msgid "Value and label"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:590
+#: src/Admin/FieldGroups/FieldGroupsPage.php:596
 msgid "Text"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:590
+#: src/Admin/FieldGroups/FieldGroupsPage.php:596
 msgid "Text Area"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:590
+#: src/Admin/FieldGroups/FieldGroupsPage.php:596
 msgid "Number"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:591
+#: src/Admin/FieldGroups/FieldGroupsPage.php:597
 msgid "Email"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:591
+#: src/Admin/FieldGroups/FieldGroupsPage.php:597
 msgid "Password"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:592
+#: src/Admin/FieldGroups/FieldGroupsPage.php:598
 msgid "WYSIWYG Editor"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:592
+#: src/Admin/FieldGroups/FieldGroupsPage.php:598
 msgid "Range"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:593
+#: src/Admin/FieldGroups/FieldGroupsPage.php:599
 msgid "Select"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:593
+#: src/Admin/FieldGroups/FieldGroupsPage.php:599
 msgid "Radio Buttons"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:594
+#: src/Admin/FieldGroups/FieldGroupsPage.php:600
 msgid "Button Group"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:594
+#: src/Admin/FieldGroups/FieldGroupsPage.php:600
 msgid "True / False"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:595
+#: src/Admin/FieldGroups/FieldGroupsPage.php:601
 msgid "Date and Time"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:595
+#: src/Admin/FieldGroups/FieldGroupsPage.php:601
 msgid "Time"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:596
+#: src/Admin/FieldGroups/FieldGroupsPage.php:602
 msgid "Color"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:596
+#: src/Admin/FieldGroups/FieldGroupsPage.php:602
 msgid "Image"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:596
+#: src/Admin/FieldGroups/FieldGroupsPage.php:602
 msgid "File"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:597
+#: src/Admin/FieldGroups/FieldGroupsPage.php:603
 msgid "Link"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:597
+#: src/Admin/FieldGroups/FieldGroupsPage.php:603
 msgid "oEmbed"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:597
+#: src/Admin/FieldGroups/FieldGroupsPage.php:603
 msgid "Page Link"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:598
+#: src/Admin/FieldGroups/FieldGroupsPage.php:604
 msgid "Post Object"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:598
+#: src/Admin/FieldGroups/FieldGroupsPage.php:604
 msgid "Relationship"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:599
+#: src/Admin/FieldGroups/FieldGroupsPage.php:605
 msgid "Map"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:600
+#: src/Admin/FieldGroups/FieldGroupsPage.php:606
 msgid "Icon"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:600
+#: src/Admin/FieldGroups/FieldGroupsPage.php:606
 msgid "Code"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:600
+#: src/Admin/FieldGroups/FieldGroupsPage.php:606
 msgid "Group"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:601
+#: src/Admin/FieldGroups/FieldGroupsPage.php:607
 msgid "Tab"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:601
+#: src/Admin/FieldGroups/FieldGroupsPage.php:607
 msgid "Separator"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:602
+#: src/Admin/FieldGroups/FieldGroupsPage.php:608
 msgid "Repeater"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:602
+#: src/Admin/FieldGroups/FieldGroupsPage.php:608
 msgid "Gallery"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:603
+#: src/Admin/FieldGroups/FieldGroupsPage.php:609
 msgid "Flexible Content (layouts edited in PHP)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:611
+#: src/Admin/FieldGroups/FieldGroupsPage.php:617
 msgid "Basic"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:612
+#: src/Admin/FieldGroups/FieldGroupsPage.php:618
 msgid "Content"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:613
+#: src/Admin/FieldGroups/FieldGroupsPage.php:619
 msgid "Choice"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:614
+#: src/Admin/FieldGroups/FieldGroupsPage.php:620
 msgid "Relational"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:615
+#: src/Admin/FieldGroups/FieldGroupsPage.php:621
 msgid "Advanced"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:616
+#: src/Admin/FieldGroups/FieldGroupsPage.php:622
 msgid "Layout"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:625
+#: src/Admin/FieldGroups/FieldGroupsPage.php:631
 msgid "Page template"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:626
+#: src/Admin/FieldGroups/FieldGroupsPage.php:632
 msgid "Page type"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:627
+#: src/Admin/FieldGroups/FieldGroupsPage.php:633
 msgid "Parent (post ID)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:628
+#: src/Admin/FieldGroups/FieldGroupsPage.php:634
 msgid "Post status"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:629
+#: src/Admin/FieldGroups/FieldGroupsPage.php:635
 msgid "Post format"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:630
+#: src/Admin/FieldGroups/FieldGroupsPage.php:636
 msgid "Post term (taxonomy:slug)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:631
+#: src/Admin/FieldGroups/FieldGroupsPage.php:637
 msgid "Post (ID)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:632
+#: src/Admin/FieldGroups/FieldGroupsPage.php:638
 msgid "Taxonomy term screen"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:633
+#: src/Admin/FieldGroups/FieldGroupsPage.php:639
 msgid "Options page"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:634
+#: src/Admin/FieldGroups/FieldGroupsPage.php:640
 msgid "Other screen"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:635
+#: src/Admin/FieldGroups/FieldGroupsPage.php:641
 msgid "Edited user role"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:636
+#: src/Admin/FieldGroups/FieldGroupsPage.php:642
 msgid "Current user role"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:637
+#: src/Admin/FieldGroups/FieldGroupsPage.php:643
 msgid "Current user capability"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:644
+#: src/Admin/FieldGroups/FieldGroupsPage.php:650
 msgid "Default template"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:654
+#: src/Admin/FieldGroups/FieldGroupsPage.php:660
 msgid "Standard"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:672
+#: src/Admin/FieldGroups/FieldGroupsPage.php:678
 msgid "Front page"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:672
+#: src/Admin/FieldGroups/FieldGroupsPage.php:678
 msgid "Posts page"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:673
+#: src/Admin/FieldGroups/FieldGroupsPage.php:679
 msgid "Top level (no parent)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:673
+#: src/Admin/FieldGroups/FieldGroupsPage.php:679
 msgid "Parent (has children)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:674
+#: src/Admin/FieldGroups/FieldGroupsPage.php:680
 msgid "Child (has parent)"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:681
+#: src/Admin/FieldGroups/FieldGroupsPage.php:687
 msgid "User profile"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:681
+#: src/Admin/FieldGroups/FieldGroupsPage.php:687
 msgid "Comment"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:682
+#: src/Admin/FieldGroups/FieldGroupsPage.php:688
 msgid "Menu item"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:682
+#: src/Admin/FieldGroups/FieldGroupsPage.php:688
 msgid "Dashboard widget"
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:738
+#: src/Admin/FieldGroups/FieldGroupsPage.php:755
 msgid "Field group saved in the database (the JSON folder is not writable)."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:739
+#: src/Admin/FieldGroups/FieldGroupsPage.php:756
 msgid "Field group saved."
 msgstr ""
 
-#: src/Admin/FieldGroups/FieldGroupsPage.php:742
+#: src/Admin/FieldGroups/FieldGroupsPage.php:759
 msgid "Field group deleted."
 msgstr ""
 
@@ -1478,70 +1550,6 @@ msgstr ""
 
 #: src/Compat/Acf/AcfConverter.php:415
 msgid "Location \"taxonomy is all\" is not supported; pick the taxonomies after the import."
-msgstr ""
-
-#: src/Compat/Acf/AcfImporter.php:82
-#, php-format
-msgid "Field \"%1$s\" has the same key as a field of the group \"%2$s\"; on the same post both read and write one value."
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:47
-msgid "ACF is active. After the import, deactivate it: while both run, the fields appear twice and get_field() keeps reading ACF's data."
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:51
-msgid "Field groups are converted into CtrlField groups (JSON). ACF's own data is only read: nothing is changed or deleted, so you can switch back at any time. Templates keep working: get_field(), the_field(), have_rows() and update_field() are provided by CtrlField when ACF is not active."
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:55
-msgid "No ACF field groups were found in the database or in acf-json folders."
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:63
-#: src/Compat/Acf/AcfImportPage.php:100
-msgid "Field group"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:65
-msgid "Source"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:66
-msgid "Status"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:76
-#, php-format
-msgid "Imported as %s (importing again updates it)"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:77
-#: src/Compat/Acf/AcfImportPage.php:109
-msgid "Not imported"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:84
-msgid "Also copy the values saved with ACF (posts, terms, users and options pages)"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:86
-msgid "Import"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:97
-msgid "Import finished."
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:101
-msgid "Result"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:102
-msgid "Items with values"
-msgstr ""
-
-#: src/Compat/Acf/AcfImportPage.php:109
-msgid "Imported"
 msgstr ""
 
 #: src/Fields/Renderers/MapRenderer.php:22

@@ -18,7 +18,6 @@ parameters:
         # WP integration entry points — reference WP runtime functions and WP drivers.
         - src/Core/Pipeline/SavePipeline.php
         - src/Integrations/CLI/Commands/MigrateCommand.php
-        - src/Compat/Acf/AcfImportCommand.php
         - src/Admin/MetaBox/MetaBoxServiceProvider.php
         - src/Admin/QuickEdit/QuickEditServiceProvider.php
         - src/Admin/QuickEdit/QuickEditRenderer.php

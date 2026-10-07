@@ -91,8 +91,14 @@ final class FieldGroupsPage
         ?>
         <h1 class="wp-heading-inline"><?php esc_html_e('Field Groups', 'ctrlfield'); ?></h1>
         <a href="<?php echo esc_url($this->url(['action' => 'new'])); ?>" class="page-title-action"><?php esc_html_e('Add New Field Group', 'ctrlfield'); ?></a>
-        <?php if ((new \CtrlField\Compat\Acf\AcfImporter($this->repo))->sources() !== []): ?>
-            <a href="<?php echo esc_url(add_query_arg(['page' => \CtrlField\Compat\Acf\AcfImportPage::SLUG], admin_url('admin.php'))); ?>" class="page-title-action"><?php esc_html_e('Import from ACF', 'ctrlfield'); ?></a>
+        <?php if (has_action('admin_post_ctrlfield_acf_import')): // Pro importer is running ?>
+            <a href="<?php echo esc_url(add_query_arg(['page' => 'ctrlfield-acf-import'], admin_url('admin.php'))); ?>" class="page-title-action"><?php esc_html_e('Import from ACF', 'ctrlfield'); ?></a>
+        <?php elseif ($this->hasAcfGroups()): ?>
+            <?php // Pro code present: its license page; Free download: the product page.
+            $proUrl = defined('CTRLFIELD_PRO_VERSION')
+                ? add_query_arg(['page' => 'ctrlfield-pro-license'], admin_url('admin.php'))
+                : 'https://ctrlcheese.de/ctrlfield'; ?>
+            <a href="<?php echo esc_url($proUrl); ?>" class="page-title-action" title="<?php esc_attr_e('Importing ACF field groups and their values is a CtrlField Pro feature.', 'ctrlfield'); ?>"><?php esc_html_e('Import from ACF (Pro)', 'ctrlfield'); ?></a>
         <?php endif; ?>
         <hr class="wp-header-end">
         <p class="description">
@@ -724,6 +730,17 @@ final class FieldGroupsPage
         }
 
         return $parts === [] ? '—' : implode(' · ', $parts);
+    }
+
+    /** ACF field groups in the database (ACF active or not) or in acf-json folders. */
+    private function hasAcfGroups(): bool
+    {
+        global $wpdb;
+        $inDb = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'acf-field-group' AND post_status <> 'trash'");
+
+        return $inDb > 0
+            || (glob(get_stylesheet_directory() . '/acf-json/group_*.json') ?: []) !== []
+            || (glob(get_template_directory() . '/acf-json/group_*.json') ?: []) !== [];
     }
 
     private function relativePath(string $path): string

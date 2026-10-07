@@ -7,8 +7,9 @@ namespace CtrlField\Compat\Acf;
 use CtrlField\Bootstrap\ServiceProvider;
 
 /**
- * ACF compatibility: ACF's template functions (when ACF is not active), the
- * acf/init hooks themes register groups on, and the ACF importer.
+ * ACF compatibility: ACF's template functions (when ACF is not active) and
+ * the acf/init hooks themes register groups on. The importer is Pro
+ * (pro/src/Compat/Acf).
  */
 final class AcfServiceProvider extends ServiceProvider
 {
@@ -22,14 +23,6 @@ final class AcfServiceProvider extends ServiceProvider
 
         // After every plugin is loaded, so an active ACF is detected.
         add_action('plugins_loaded', [$this, 'loadApi'], 20);
-
-        $page = new AcfImportPage();
-        add_action('admin_menu', [$page, 'registerMenu'], 20);
-        add_action('admin_post_ctrlfield_acf_import', [$page, 'handleImport']);
-
-        if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
-            \WP_CLI::add_command('ctrlfield acf-import', AcfImportCommand::class);
-        }
     }
 
     public function loadApi(): void
