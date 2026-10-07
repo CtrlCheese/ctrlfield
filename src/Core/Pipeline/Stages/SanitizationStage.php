@@ -10,6 +10,7 @@ use CtrlField\Core\Pipeline\Traits\BuildsFieldMap;
 use CtrlField\Fields\Contracts\FieldSanitizerInterface;
 use CtrlField\Fields\Contracts\NestedFieldInterface;
 use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\UserField;
 use CtrlField\Enums\FieldType;
 use CtrlField\Fields\Sanitizers\ColorSanitizer;
 use CtrlField\Fields\Sanitizers\DateSanitizer;
@@ -80,7 +81,7 @@ class SanitizationStage implements StageInterface
             FieldType::TEXT     => self::sanitizeText((string) $value),
             // Stored as typed (like ACF): stripping tags or whitespace would change the password.
             FieldType::PASSWORD => is_scalar($value) ? str_replace("\0", '', (string) $value) : '',
-            FieldType::TEXTAREA => self::sanitizeText((string) $value),
+            FieldType::TEXTAREA => self::sanitizeTextarea((string) $value),
             FieldType::EMAIL    => self::sanitizeEmail((string) $value),
             FieldType::URL      => self::sanitizeUrl((string) $value),
             FieldType::WYSIWYG  => self::sanitizeHtml((string) $value),
@@ -103,7 +104,8 @@ class SanitizationStage implements StageInterface
             FieldType::MAP,
             FieldType::CLONE    => is_array($value) ? $value : [],
             FieldType::COMPUTED   => $value, // passthrough — value set by ComputedFieldsStage
-            FieldType::TRUE_FALSE => (int)(bool) $value, // stores 1 or 0
+            // "false", "no", "off", "0" and "" are false — (bool) "false" is true in PHP.
+            FieldType::TRUE_FALSE => filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
             FieldType::DATE     => (new DateSanitizer())->sanitize($value),
             FieldType::TIME     => (new TimeSanitizer())->sanitize($value),
             FieldType::DATETIME => (new DateTimeSanitizer())->sanitize($value),
@@ -114,11 +116,10 @@ class SanitizationStage implements StageInterface
             // C-3: Button Group — single string value
             FieldType::BUTTON_GROUP => self::sanitizeText((string) $value),
             // C-4: User — single int or array of ints
-            FieldType::USER => is_array($value)
-                ? array_map(static fn(mixed $v) => (int) $v, $value)
-                : (int) $value,
+            FieldType::USER => self::sanitizeUsers($value, $definition),
             // C-5: Icon — string like "dashicons-admin-home"
-            FieldType::ICON => self::sanitizeText((string) $value),
+            // Icon = CSS class names only; anything else could break out of class="…".
+            FieldType::ICON => preg_match('/^[a-z0-9_-]+(?: [a-z0-9_-]+)*$/i', trim((string) $value)) ? trim((string) $value) : '',
             // C-6: Code — strip all tags; stored as text, escaped on output
             FieldType::CODE => function_exists('sanitize_textarea_field')
                 ? sanitize_textarea_field((string) $value)
@@ -216,6 +217,43 @@ class SanitizationStage implements StageInterface
             $map[$field->getKey()] = $field;
         }
         return $map;
+    }
+
+    /** Like text, but keeps line breaks (sanitize_text_field() collapses them). */
+    private static function sanitizeTextarea(string $value): string
+    {
+        if (function_exists('sanitize_textarea_field')) {
+            return sanitize_textarea_field($value);
+        }
+        return htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    /**
+     * Keeps only users that exist and, when the field restricts roles, have one
+     * of them (the picker only offers those; a crafted request could send any id).
+     *
+     * @return int|list<int>
+     */
+    private static function sanitizeUsers(mixed $value, ?FieldDefinition $definition): int|array
+    {
+        $roles = $definition instanceof UserField ? $definition->getRoles() : [];
+        $valid = static function (int $id) use ($roles): bool {
+            if ($id <= 0) {
+                return false;
+            }
+            if (! function_exists('get_userdata')) {
+                return true;
+            }
+            $user = get_userdata($id);
+            return $user !== false && ($roles === [] || array_intersect($roles, (array) $user->roles) !== []);
+        };
+
+        if (is_array($value)) {
+            return array_values(array_filter(array_map('intval', $value), $valid));
+        }
+
+        $id = (int) $value;
+        return $valid($id) ? $id : 0;
     }
 
     private static function sanitizeText(string $value): string

@@ -34,10 +34,11 @@ class TermMetaAdapter implements StorageAdapterInterface
         );
 
         if (function_exists('update_term_meta')) {
-            update_term_meta((int) $id, self::META_KEY, $payload);
+            // update_term_meta() unslashes; wp_slash() keeps the JSON escapes intact.
+            update_term_meta((int) $id, self::META_KEY, wp_slash($payload));
 
             foreach ($indexedFields as $key => $value) {
-                update_term_meta((int) $id, self::INDEX_KEY_PREFIX . $key, $value);
+                update_term_meta((int) $id, self::INDEX_KEY_PREFIX . $key, wp_slash($value));
             }
         }
 

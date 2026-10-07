@@ -58,7 +58,8 @@ final class PageLinkField extends FieldDefinition implements FieldSanitizerInter
     {
         $ids = array_values(array_filter(
             array_map('intval', is_array($value) ? $value : [$value]),
-            static fn (int $id) => $id > 0,
+            // Must exist and be one of the field's post types.
+            fn (int $id) => $id > 0 && (! function_exists('get_post_type') || in_array(get_post_type($id), $this->postTypes, true)),
         ));
 
         return $this->multiple ? $ids : ($ids[0] ?? 0);

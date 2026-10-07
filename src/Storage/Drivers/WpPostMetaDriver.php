@@ -12,7 +12,9 @@ class WpPostMetaDriver implements PostMetaDriverInterface
 {
     public function update(int $postId, string $key, mixed $value): void
     {
-        update_post_meta($postId, $key, $value);
+        // update_post_meta() unslashes its value; without wp_slash() every \" and
+        // \\ in the JSON blob lost its backslash and the whole blob became invalid.
+        update_post_meta($postId, $key, wp_slash($value));
     }
 
     public function get(int $postId, string $key): mixed

@@ -84,6 +84,15 @@ final class RelationshipField extends FieldDefinition implements ExternalStorage
             ? array_values(array_map('intval', array_filter($value, 'is_numeric')))
             : [];
 
+        // Only existing posts of the related post type; never the post itself.
+        $targetIds = array_values(array_unique(array_filter($targetIds, function (int $id) use ($postId): bool {
+            if ($id <= 0 || $id === $postId || ! function_exists('get_post_type')) {
+                return $id > 0 && $id !== $postId;
+            }
+            $type = get_post_type($id);
+            return $type !== false && ($this->relatedPostType === '' || $type === $this->relatedPostType);
+        })));
+
         $table = $this->getTableName();
         $key   = $this->getKey();
 

@@ -10,6 +10,7 @@ use CtrlField\Core\Pipeline\PipelineException;
 use CtrlField\Core\Pipeline\Traits\BuildsFieldMap;
 use CtrlField\Fields\Contracts\CollectionConstraintsInterface;
 use CtrlField\Fields\Contracts\FlexibleContentInterface;
+use CtrlField\Fields\Types\ButtonGroupField;
 use CtrlField\Fields\Types\CheckboxField;
 use CtrlField\Fields\Types\LinkField;
 use CtrlField\Fields\Types\RadioField;
@@ -70,7 +71,7 @@ class RulesVerificationStage implements StageInterface
 
             // Option bounds: value must be one of the declared options
             if ($value !== null && $value !== '') {
-                if ($definition instanceof SelectField || $definition instanceof RadioField) {
+                if ($definition instanceof SelectField || $definition instanceof RadioField || $definition instanceof ButtonGroupField) {
                     if (! array_key_exists((string) $value, $definition->getOptions())) {
                         throw new PipelineException(
                             errorCode:    'INVALID_OPTION',

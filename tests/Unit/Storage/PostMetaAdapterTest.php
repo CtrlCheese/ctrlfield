@@ -25,6 +25,26 @@ class PostMetaAdapterTest extends TestCase
     // save()
     // -------------------------------------------------------------------------
 
+    public function test_save_backs_up_unreadable_data_before_overwriting(): void
+    {
+        $corrupt = '{"schema_version":1,"fields":{"name":"Agência "Sol""}}'; // lost its backslashes
+        $this->driver->update(7, PostMetaAdapter::META_KEY, $corrupt);
+
+        $this->adapter->save(7, ['name' => 'new'], 1);
+
+        $this->assertSame($corrupt, $this->driver->get(7, PostMetaAdapter::BACKUP_KEY));
+        $this->assertSame(['name' => 'new'], $this->adapter->load(7));
+    }
+
+    public function test_save_does_not_back_up_readable_data(): void
+    {
+        $this->adapter->save(8, ['a' => 1], 1);
+        CacheAdapter::flush();
+        $this->adapter->save(8, ['a' => 2], 1);
+
+        $this->assertSame('', $this->driver->get(8, PostMetaAdapter::BACKUP_KEY));
+    }
+
     public function test_save_writes_json_blob_to_meta_key(): void
     {
         $this->adapter->save(1, ['client_name' => 'Acme'], 1);

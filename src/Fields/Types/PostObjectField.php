@@ -83,24 +83,26 @@ final class PostObjectField extends FieldDefinition implements FieldSanitizerInt
     // FieldSanitizerInterface
     // -------------------------------------------------------------------------
 
+    /** The post exists and, when post types are set, is one of them. */
+    private function isAllowedPost(int $id): bool
+    {
+        if ($id <= 0 || get_post($id) === null) {
+            return false;
+        }
+        return $this->postTypes === [] || ! function_exists('get_post_type')
+            || in_array(get_post_type($id), $this->postTypes, true);
+    }
+
     public function sanitizeForStorage(mixed $value): mixed
     {
         if ($this->multiple) {
             $ids = is_array($value) ? $value : [];
-            $valid = array_values(array_filter(
-                array_map('intval', $ids),
-                static fn (int $id) => $id > 0 && get_post($id) !== null,
-            ));
-            return $valid;
+            return array_values(array_filter(array_map('intval', $ids), fn (int $id) => $this->isAllowedPost($id)));
         }
 
         $id = is_numeric($value) ? (int) $value : 0;
 
-        if ($id <= 0 || get_post($id) === null) {
-            return 0;
-        }
-
-        return $id;
+        return $this->isAllowedPost($id) ? $id : 0;
     }
 
     // -------------------------------------------------------------------------

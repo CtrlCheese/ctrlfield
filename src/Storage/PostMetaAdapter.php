@@ -35,6 +35,7 @@ class PostMetaAdapter implements StorageAdapterInterface
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE
         );
 
+        $this->backupUnreadable($id);
         $this->driver->update($id, self::META_KEY, $payload);
 
         foreach ($indexedFields as $key => $value) {
@@ -42,6 +43,30 @@ class PostMetaAdapter implements StorageAdapterInterface
         }
 
         CacheAdapter::invalidate("post:{$id}");
+    }
+
+    public const BACKUP_KEY = '_ctrlfield_data_backup';
+
+    /**
+     * Stored data that load() cannot read (corrupt JSON, older schema version)
+     * would be overwritten by this save. Keep a copy instead of losing it.
+     */
+    private function backupUnreadable(int $id): void
+    {
+        $raw = $this->driver->get($id, self::META_KEY);
+
+        if (! is_string($raw) || $raw === '') {
+            return;
+        }
+
+        $decoded  = json_decode($raw, true);
+        $readable = is_array($decoded)
+            && isset($decoded['fields'])
+            && (int) ($decoded['schema_version'] ?? 0) >= $this->currentVersion;
+
+        if (! $readable) {
+            $this->driver->update($id, self::BACKUP_KEY, $raw);
+        }
     }
 
     /**
