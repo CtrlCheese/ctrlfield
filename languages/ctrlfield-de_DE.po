@@ -1385,3 +1385,108 @@ msgstr "— Immer anzeigen —"
 
 msgid "— Select —"
 msgstr "— Auswählen —"
+
+msgid "ACF is active. After the import, deactivate it: while both run, the fields appear twice and get_field() keeps reading ACF's data."
+msgstr "ACF ist aktiv. Deaktiviere es nach dem Import: Solange beide laufen, erscheinen die Felder doppelt und get_field() liest weiter die Daten von ACF."
+
+msgid "Also copy the values saved with ACF (posts, terms, users and options pages)"
+msgstr "Auch die mit ACF gespeicherten Werte übernehmen (Beiträge, Begriffe, Benutzer und Optionsseiten)"
+
+msgid "Also shown when any of these rules matches (imported from ACF; kept as is, edit them in PHP):"
+msgstr "Wird auch angezeigt, wenn eine dieser Regeln zutrifft (aus ACF importiert; unverändert übernommen, Bearbeitung in PHP):"
+
+msgid "Array"
+msgstr "Array"
+
+msgid "Default"
+msgstr "Standard"
+
+msgid "Field \"%1$s\" has the same key as a field of the group \"%2$s\"; on the same post both read and write one value."
+msgstr "Das Feld \"%1$s\" hat denselben Schlüssel wie ein Feld der Gruppe \"%2$s\"; im selben Beitrag lesen und schreiben beide denselben Wert."
+
+msgid "Field \"%1$s\" was renamed from \"%2$s\" to \"%3$s\"; update templates that use the old name."
+msgstr "Das Feld \"%1$s\" wurde von \"%2$s\" in \"%3$s\" umbenannt; passe Templates an, die den alten Namen verwenden."
+
+msgid "Field \"%1$s\": CtrlField relationships hold one post type; kept \"%2$s\"."
+msgstr "Feld \"%1$s\": CtrlField-Beziehungen nutzen einen Inhaltstyp; \"%2$s\" wurde beibehalten."
+
+msgid "Field \"%1$s\": the ACF type \"%2$s\" is not supported and was skipped."
+msgstr "Feld \"%1$s\": Der ACF-Typ \"%2$s\" wird nicht unterstützt und wurde übersprungen."
+
+msgid "Field \"%s\": a multiple select became checkboxes."
+msgstr "Feld \"%s\": Die Mehrfachauswahl wurde zu Checkboxen."
+
+msgid "Field \"%s\": its conditional logic has several rules; only simple conditions are imported, so it is always shown."
+msgstr "Feld \"%s\": Die Bedingungslogik hat mehrere Regeln; nur einfache Bedingungen werden importiert, daher wird es immer angezeigt."
+
+msgid "Field \"%s\": the relationship allowed every post type; it now uses \"post\"."
+msgstr "Feld \"%s\": Die Beziehung erlaubte alle Inhaltstypen; sie nutzt jetzt \"post\"."
+
+msgid "Field group"
+msgstr "Feldgruppe"
+
+msgid "Field groups are converted into CtrlField groups (JSON). ACF's own data is only read: nothing is changed or deleted, so you can switch back at any time. Templates keep working: get_field(), the_field(), have_rows() and update_field() are provided by CtrlField when ACF is not active."
+msgstr "Feldgruppen werden in CtrlField-Gruppen (JSON) umgewandelt. Die Daten von ACF werden nur gelesen: Nichts wird geändert oder gelöscht, du kannst jederzeit zurückwechseln. Templates funktionieren weiter: get_field(), the_field(), have_rows() und update_field() stellt CtrlField bereit, wenn ACF nicht aktiv ist."
+
+msgid "Flexible Content (layouts edited in PHP)"
+msgstr "Flexibler Inhalt (Layouts in PHP bearbeiten)"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Import"
+msgstr "Importieren"
+
+msgid "Import finished."
+msgstr "Import abgeschlossen."
+
+msgid "Import from ACF"
+msgstr "Aus ACF importieren"
+
+msgid "Imported"
+msgstr "Importiert"
+
+msgid "Imported as %s (importing again updates it)"
+msgstr "Importiert als %s (erneuter Import aktualisiert es)"
+
+msgid "Items with values"
+msgstr "Einträge mit Werten"
+
+msgid "Layout \"%s\": the key must be unique and use lowercase letters, numbers and underscores."
+msgstr "Layout \"%s\": Der Schlüssel muss eindeutig sein und darf nur Kleinbuchstaben, Zahlen und Unterstriche enthalten."
+
+msgid "Location \"taxonomy is all\" is not supported; pick the taxonomies after the import."
+msgstr "Die Position \"Taxonomie ist alle\" wird nicht unterstützt; wähle die Taxonomien nach dem Import."
+
+msgid "Location rule \"%s\" is not supported and was skipped."
+msgstr "Die Positionsregel \"%s\" wird nicht unterstützt und wurde übersprungen."
+
+msgid "No ACF field groups were found in the database or in acf-json folders."
+msgstr "In der Datenbank und in acf-json-Ordnern wurden keine ACF-Feldgruppen gefunden."
+
+msgid "Not imported"
+msgstr "Nicht importiert"
+
+msgid "Object"
+msgstr "Objekt"
+
+msgid "Options"
+msgstr "Optionen"
+
+msgid "Result"
+msgstr "Ergebnis"
+
+msgid "Source"
+msgstr "Quelle"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "The location has several groups of rules; only the first group was imported."
+msgstr "Die Position hat mehrere Regelgruppen; nur die erste wurde importiert."
+
+msgid "Value and label"
+msgstr "Wert und Bezeichnung"
+
+msgid "What templates receive. For dates: a PHP date format."
+msgstr "Was Templates erhalten. Bei Datumsfeldern: ein PHP-Datumsformat."

@@ -1,0 +1,54 @@
+# Migrating from ACF
+
+CtrlField imports ACF field groups and their saved values, and provides ACF's template functions, so a theme built for ACF keeps working after the switch.
+
+---
+
+## 1. Import
+
+**CtrlField → Field Groups → Import from ACF** lists every ACF group found in the database (ACF can already be deactivated) and in `acf-json` folders. Pick the groups, keep **Also copy the values saved with ACF** checked, and import.
+
+Or with WP-CLI:
+
+```bash
+wp ctrlfield acf-import --dry-run   # what would happen
+wp ctrlfield acf-import --data      # groups and values
+wp ctrlfield acf-import --group=group_5f2a… --data
+```
+
+- Each group becomes a CtrlField JSON group (see [Field groups in the admin](./field-groups-admin.mdx)).
+- Values are copied for every post, term, user and options page the group's location points at.
+- **ACF's data is only read.** Nothing is changed or deleted, so reactivating ACF brings everything back.
+- Importing again updates the same groups instead of creating copies.
+
+Then **deactivate ACF**. While both run, every field appears twice and `get_field()` keeps reading ACF's data.
+
+---
+
+## 2. Templates keep working
+
+When ACF is not active, CtrlField defines ACF's functions:
+
+| Function | Notes |
+|---|---|
+| `get_field()`, `the_field()`, `get_fields()`, `get_field_object()` | Same return formats as ACF: image arrays with `sizes`, post objects, labels, `d/m/Y` dates… |
+| `update_field()`, `delete_field()`, `add_row()` | Values are validated like an editor save |
+| `have_rows()`, `the_row()`, `get_sub_field()`, `the_sub_field()`, `get_row()`, `get_row_index()`, `get_row_layout()`, `reset_rows()` | Repeaters, flexible content and groups, nested |
+| `acf_add_local_field_group()` | Groups registered in code (also on `acf/init`) |
+| `acf_add_options_page()`, `acf_add_options_sub_page()` | `get_field('x', 'option')` reads the page the field is on |
+
+`$post_id` accepts what ACF accepts: a post ID or object, `'option'`, `'user_1'`, `'term_5'`, `'category_5'`, `'comment_3'`, `WP_Term` / `WP_User` objects. Field keys (`field_5f2a…`) work too.
+
+Turn the functions off with `add_filter('ctrlfield/acf_compat', '__return_false');`.
+
+---
+
+## What changes
+
+- **Field names with capitals or hyphens** are renamed to valid keys (`hero-Title` → `hero_title`). The importer lists them. `get_field('hero-Title')` still finds the field.
+- **Not imported:** the Clone field, accordions (layout only), and location rules CtrlField does not have (blocks, widgets, attachments, "taxonomy is all"). Complex conditional logic (several rules) is dropped and the field is always shown. The import report lists every case.
+- **Location with OR groups:** several one-rule groups become "any of"; otherwise only the first group is kept.
+- **Relationship fields** hold one post type; the first one is kept.
+- **A multiple select** becomes checkboxes.
+- **Options pages** created in ACF's admin (ACF 6.2+) are not imported; register them with `acf_add_options_page()` or `OptionsPage::make()`.
+- Repeater, Flexible Content and Gallery need CtrlField Pro, as in ACF.

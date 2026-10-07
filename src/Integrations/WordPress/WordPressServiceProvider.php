@@ -279,7 +279,7 @@ class WordPressServiceProvider extends ServiceProvider
                 <?php wp_nonce_field($action, "_ctrlfield_nonce_{$key}"); ?>
                 <input type="hidden" name="action" value="<?php echo esc_attr($action); ?>">
                 <table class="form-table" role="presentation">
-                    <?php foreach ($page->getFields() as $field): ?>
+                    <?php foreach ($this->optionsPageFields($page) as $field): ?>
                         <tr>
                             <th scope="row">
                                 <label for="ctrlfield_<?php echo esc_attr($field->getKey()); ?>">
@@ -296,6 +296,24 @@ class WordPressServiceProvider extends ServiceProvider
             </form>
         </div>
         <?php
+    }
+
+    /**
+     * The page's own fields plus every field group located on it
+     * (where('options_page', '==', key): ACF imports, admin-made groups).
+     *
+     * @return list<FieldDefinition>
+     */
+    private function optionsPageFields(OptionsPage $page): array
+    {
+        $fields = [];
+        foreach (\CtrlField\Registry\ContextRegistry::resolve(new \CtrlField\Builder\AdminContext(optionsPage: $page->getKey())) as $group) {
+            foreach ($group->getFields() as $field) {
+                $fields[$field->getKey()] = $field;
+            }
+        }
+
+        return array_values($fields);
     }
 
     private function saveOptionsPage(OptionsPage $page): void
@@ -319,7 +337,7 @@ class WordPressServiceProvider extends ServiceProvider
             : [];
 
         $data = [];
-        foreach ($page->getFields() as $field) {
+        foreach ($this->optionsPageFields($page) as $field) {
             $raw                      = $posted[$field->getKey()] ?? null;
             $data[$field->getKey()]   = $this->sanitizeField($field, $raw);
         }

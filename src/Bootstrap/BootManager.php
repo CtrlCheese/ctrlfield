@@ -67,6 +67,7 @@ class BootManager
             \CtrlField\Admin\Inspector\InspectorServiceProvider::class,
             \CtrlField\Admin\PostTypes\PostTypesServiceProvider::class,
             \CtrlField\Admin\FieldGroups\FieldGroupsServiceProvider::class,
+            \CtrlField\Compat\Acf\AcfServiceProvider::class,
             \CtrlField\Admin\SiteHealth\SiteHealthServiceProvider::class,
             \CtrlField\Integrations\Blade\ViewServiceProvider::class,
             \CtrlField\Integrations\REST\RestServiceProvider::class,

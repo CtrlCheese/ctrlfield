@@ -91,6 +91,9 @@ final class FieldGroupsPage
         ?>
         <h1 class="wp-heading-inline"><?php esc_html_e('Field Groups', 'ctrlfield'); ?></h1>
         <a href="<?php echo esc_url($this->url(['action' => 'new'])); ?>" class="page-title-action"><?php esc_html_e('Add New Field Group', 'ctrlfield'); ?></a>
+        <?php if ((new \CtrlField\Compat\Acf\AcfImporter($this->repo))->sources() !== []): ?>
+            <a href="<?php echo esc_url(add_query_arg(['page' => \CtrlField\Compat\Acf\AcfImportPage::SLUG], admin_url('admin.php'))); ?>" class="page-title-action"><?php esc_html_e('Import from ACF', 'ctrlfield'); ?></a>
+        <?php endif; ?>
         <hr class="wp-header-end">
         <p class="description">
             <?php if ($this->repo->canWriteFiles()): ?>
@@ -201,6 +204,7 @@ final class FieldGroupsPage
             'group'           => $values,
             'types'           => $this->typesConfig(),
             'locationChoices' => $this->locationChoices(),
+            'returnFormats'   => $this->returnFormats(),
             'i18n'            => ['confirmRemove' => __('Remove this field?', 'ctrlfield')],
         ];
         ?>
@@ -339,6 +343,14 @@ final class FieldGroupsPage
                 </tbody>
             </table>
             <p><button type="button" class="button" @click="addRule()">+ <?php esc_html_e('Add rule', 'ctrlfield'); ?></button></p>
+            <div x-show="group.locationAny.length > 0" class="notice notice-info inline" style="max-width:930px">
+                <p>
+                    <?php esc_html_e('Also shown when any of these rules matches (imported from ACF; kept as is, edit them in PHP):', 'ctrlfield'); ?>
+                    <template x-for="(rule, i) in group.locationAny" :key="i">
+                        <code style="margin-left:6px" x-text="rule.key + ' ' + rule.operator + ' ' + rule.value"></code>
+                    </template>
+                </p>
+            </div>
 
             <h2><?php esc_html_e('Settings', 'ctrlfield'); ?></h2>
             <table class="form-table" role="presentation">
@@ -423,7 +435,11 @@ final class FieldGroupsPage
         ]));
         $row('roles', __('Roles', 'ctrlfield'), $select('roles', $roles, true), __('Empty: all users.', 'ctrlfield'));
         $row('multiple', __('Multiple', 'ctrlfield'), $check('multiple', __('Allow more than one', 'ctrlfield')));
-        $row('returnFormat', __('Return format', 'ctrlfield'), $select('returnFormat', ['id' => __('Post ID', 'ctrlfield'), 'object' => __('Post object', 'ctrlfield')]));
+        $row('returnFormat', __('Return format', 'ctrlfield'),
+            '<template x-if="returnFormats(field)"><select x-model="field.returnFormat"><option value="">' . esc_html__('Default', 'ctrlfield') . '</option>'
+            . '<template x-for="(label, value) in returnFormats(field)" :key="value"><option :value="value" x-text="label" :selected="value === field.returnFormat"></option></template></select></template>'
+            . '<template x-if="!returnFormats(field)"><input type="text" class="regular-text" x-model="field.returnFormat" placeholder="d/m/Y"></template>',
+            __('What templates receive. For dates: a PHP date format.', 'ctrlfield'));
         $row('bidirectional', __('Bidirectional', 'ctrlfield'), $check('bidirectional', __('Also link back from the related posts', 'ctrlfield')));
         $row('minItems', __('Minimum items', 'ctrlfield'), $text('minItems', 'number'));
         $row('maxItems', __('Maximum items', 'ctrlfield'), $text('maxItems', 'number'));
@@ -542,6 +558,31 @@ final class FieldGroupsPage
         return $out;
     }
 
+    /** @return array<string, array<string, string>> type => [format => label]; dates take a free format */
+    private function returnFormats(): array
+    {
+        $id     = __('ID', 'ctrlfield');
+        $url    = __('URL', 'ctrlfield');
+        $arr    = __('Array', 'ctrlfield');
+        $obj    = __('Object', 'ctrlfield');
+        $choice = ['value' => __('Value', 'ctrlfield'), 'label' => __('Label', 'ctrlfield'), 'array' => __('Value and label', 'ctrlfield')];
+
+        return [
+            'image'         => ['array' => $arr, 'url' => $url, 'id' => $id],
+            'file'          => ['array' => $arr, 'url' => $url, 'id' => $id],
+            'gallery'       => ['array' => $arr, 'url' => $url, 'id' => $id],
+            'select'        => $choice,
+            'radio'         => $choice,
+            'checkbox'      => $choice,
+            'button_group'  => $choice,
+            'link'          => ['array' => $arr, 'url' => $url],
+            'post_object'   => ['object' => $obj, 'id' => $id],
+            'relationship'  => ['object' => $obj, 'id' => $id],
+            'taxonomy_term' => ['id' => $id, 'object' => $obj],
+            'user'          => ['array' => $arr, 'object' => $obj, 'id' => $id],
+        ];
+    }
+
     /** @return array<string, string> */
     private function typeLabels(): array
     {
@@ -559,6 +600,7 @@ final class FieldGroupsPage
             'icon' => __('Icon', 'ctrlfield'), 'code' => __('Code', 'ctrlfield'), 'group' => __('Group', 'ctrlfield'),
             'tab' => __('Tab', 'ctrlfield'), 'message' => __('Message', 'ctrlfield'), 'separator' => __('Separator', 'ctrlfield'),
             'repeater' => __('Repeater', 'ctrlfield'), 'gallery' => __('Gallery', 'ctrlfield'),
+            'flexible_content' => __('Flexible Content (layouts edited in PHP)', 'ctrlfield'),
         ];
     }
 
@@ -571,7 +613,7 @@ final class FieldGroupsPage
             __('Choice', 'ctrlfield')     => ['select', 'checkbox', 'radio', 'button_group', 'true_false'],
             __('Relational', 'ctrlfield') => ['link', 'post_object', 'page_link', 'relationship', 'taxonomy_term', 'user'],
             __('Advanced', 'ctrlfield')   => ['date', 'datetime', 'time', 'color', 'map', 'icon', 'code'],
-            __('Layout', 'ctrlfield')     => ['group', 'repeater', 'tab', 'message', 'separator'],
+            __('Layout', 'ctrlfield')     => ['group', 'repeater', 'flexible_content', 'tab', 'message', 'separator'],
         ];
     }
 

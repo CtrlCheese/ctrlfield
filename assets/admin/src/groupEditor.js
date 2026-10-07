@@ -70,6 +70,7 @@ export function fieldGroupEditor(config) {
         group: {
             ...config.group,
             location: (config.group.location ?? []).map((r) => ({ ...r })),
+            locationAny: (config.group.locationAny ?? []).map((r) => ({ ...r })),
             fields: (config.group.fields ?? []).map((f) => hydrateField(f)),
         },
         keyTouched: Boolean(config.group.key),
@@ -100,6 +101,9 @@ export function fieldGroupEditor(config) {
         },
         siblings(field) {
             return this.currentFields.filter((f) => f !== field && f.key);
+        },
+        returnFormats(field) {
+            return this.config.returnFormats?.[field.type] ?? null;
         },
         choicesFor(param) {
             return this.config.locationChoices[param] ?? null;

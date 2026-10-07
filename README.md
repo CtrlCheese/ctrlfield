@@ -198,6 +198,14 @@ Details: `docs/getting-started/field-groups-admin.mdx`.
 
 ---
 
+## Coming from ACF
+
+**CtrlField → Field Groups → Import from ACF** (or `wp ctrlfield acf-import --data`) converts ACF field groups and copies their values; ACF's data is only read. With ACF deactivated, CtrlField provides `get_field()`, `the_field()`, `have_rows()` / `get_sub_field()`, `update_field()`, `acf_add_local_field_group()` and `acf_add_options_page()`, so ACF themes keep working.
+
+Details: `docs/getting-started/migrating-from-acf.mdx`.
+
+---
+
 ## Fluent API
 
 Every field inherits these chainable methods:

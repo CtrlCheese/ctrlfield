@@ -41,24 +41,24 @@ final class JsonGroup
         'password'      => ['password', ['placeholder'], false],
         'wysiwyg'       => ['wysiwyg', [], false],
         'range'         => ['range', ['min', 'max', 'step', 'default'], false],
-        'select'        => ['select', ['options', 'default'], false],
-        'radio'         => ['radio', ['options', 'default'], false],
-        'checkbox'      => ['checkbox', ['options'], false],
-        'button_group'  => ['buttonGroup', ['options', 'allowNull', 'default'], false],
+        'select'        => ['select', ['options', 'default', 'returnFormat'], false],
+        'radio'         => ['radio', ['options', 'default', 'returnFormat'], false],
+        'checkbox'      => ['checkbox', ['options', 'returnFormat'], false],
+        'button_group'  => ['buttonGroup', ['options', 'allowNull', 'default', 'returnFormat'], false],
         'true_false'    => ['trueFalse', ['message'], false],
-        'date'          => ['date', ['format'], false],
-        'datetime'      => ['datetime', ['format'], false],
-        'time'          => ['time', [], false],
+        'date'          => ['date', ['format', 'returnFormat'], false],
+        'datetime'      => ['datetime', ['format', 'returnFormat'], false],
+        'time'          => ['time', ['returnFormat'], false],
         'color'         => ['color', ['default'], false],
-        'image'         => ['image', [], false],
-        'file'          => ['file', [], false],
-        'link'          => ['link', [], false],
+        'image'         => ['image', ['returnFormat'], false],
+        'file'          => ['file', ['returnFormat'], false],
+        'link'          => ['link', ['returnFormat'], false],
         'oembed'        => ['oembed', [], false],
         'page_link'     => ['pageLink', ['postType', 'multiple'], false],
         'post_object'   => ['postObject', ['postType', 'multiple', 'returnFormat'], false],
-        'relationship'  => ['relationship', ['relatedPostType', 'bidirectional', 'minItems', 'maxItems'], false],
-        'taxonomy_term' => ['taxonomyTerm', ['taxonomy', 'multiple', 'appearance'], false],
-        'user'          => ['user', ['roles', 'multiple'], false],
+        'relationship'  => ['relationship', ['relatedPostType', 'bidirectional', 'minItems', 'maxItems', 'returnFormat'], false],
+        'taxonomy_term' => ['taxonomyTerm', ['taxonomy', 'multiple', 'appearance', 'returnFormat'], false],
+        'user'          => ['user', ['roles', 'multiple', 'returnFormat'], false],
         'map'           => ['map', [], false],
         'icon'          => ['icon', [], false],
         'code'          => ['code', ['language'], false],
@@ -67,7 +67,9 @@ final class JsonGroup
         'message'       => ['message', ['content'], false],
         'separator'     => ['separator', [], false],
         'repeater'      => ['repeater', ['fields'], true],
-        'gallery'       => ['gallery', ['minItems', 'maxItems'], true],
+        'gallery'       => ['gallery', ['minItems', 'maxItems', 'returnFormat'], true],
+        // Layouts are kept and registered, but edited in PHP (no editor UI yet).
+        'flexible_content' => ['flexibleContent', ['layouts'], true],
     ];
 
     /** Settings every field type accepts (besides key / type / label). */
@@ -97,7 +99,7 @@ final class JsonGroup
         'postType'        => 'slugs',
         'relatedPostType' => 'slug',
         'multiple'        => 'bool',
-        'returnFormat'    => ['id', 'object'],
+        'returnFormat'    => 'format',
         'bidirectional'   => 'bool',
         'minItems'        => 'count',
         'maxItems'        => 'count',
@@ -106,6 +108,7 @@ final class JsonGroup
         'roles'           => 'slugs',
         'language'        => 'slug',
         'fields'          => 'fields',
+        'layouts'         => 'layouts',
     ];
 
     public const OPERATORS          = ['==', '!='];
@@ -143,25 +146,9 @@ final class JsonGroup
             $errors[] = __('Give the field group a title.', 'ctrlfield');
         }
 
-        $location = [];
-        foreach (is_array($data['location'] ?? null) ? $data['location'] : [] as $rule) {
-            if (! is_array($rule)) {
-                continue;
-            }
-            $rKey  = is_string($rule['key'] ?? null) ? $rule['key'] : '';
-            $op    = in_array($rule['operator'] ?? null, self::OPERATORS, true) ? $rule['operator'] : '==';
-            $value = self::text($rule['value'] ?? '', 200);
-            if (! ContextRegistry::isValidKey($rKey)) {
-                $errors[] = sprintf(__('Unknown location rule "%s".', 'ctrlfield'), $rKey);
-                continue;
-            }
-            if ($value === '') {
-                $errors[] = __('Every location rule needs a value.', 'ctrlfield');
-                continue;
-            }
-            $location[] = ['key' => $rKey, 'operator' => $op, 'value' => $value];
-        }
-        if ($location === [] && $errors === []) {
+        $location    = self::normalizeRules($data['location'] ?? null, $errors);
+        $locationAny = self::normalizeRules($data['locationAny'] ?? null, $errors);
+        if ($location === [] && $locationAny === [] && $errors === []) {
             $errors[] = __('Add at least one location rule, otherwise the group is shown nowhere.', 'ctrlfield');
         }
 
@@ -173,6 +160,7 @@ final class JsonGroup
             'title'          => $title,
             'active'         => ! array_key_exists('active', $data) || (bool) $data['active'],
             'location'       => $location,
+            'locationAny'    => $locationAny,
             'position'       => self::oneOf($data['position'] ?? null, self::POSITIONS),
             'style'          => self::oneOf($data['style'] ?? null, self::STYLES),
             'labelPlacement' => self::oneOf($data['labelPlacement'] ?? null, self::LABEL_PLACEMENTS),
@@ -189,6 +177,34 @@ final class JsonGroup
         }
 
         return [$group, array_values(array_unique($errors))];
+    }
+
+    /**
+     * @param  list<string> $errors
+     * @return list<array{key: string, operator: string, value: string}>
+     */
+    private static function normalizeRules(mixed $raw, array &$errors): array
+    {
+        $rules = [];
+        foreach (is_array($raw) ? $raw : [] as $rule) {
+            if (! is_array($rule)) {
+                continue;
+            }
+            $rKey  = is_string($rule['key'] ?? null) ? $rule['key'] : '';
+            $op    = in_array($rule['operator'] ?? null, self::OPERATORS, true) ? $rule['operator'] : '==';
+            $value = self::text($rule['value'] ?? '', 200);
+            if (! ContextRegistry::isValidKey($rKey)) {
+                $errors[] = sprintf(__('Unknown location rule "%s".', 'ctrlfield'), $rKey);
+                continue;
+            }
+            if ($value === '') {
+                $errors[] = __('Every location rule needs a value.', 'ctrlfield');
+                continue;
+            }
+            $rules[] = ['key' => $rKey, 'operator' => $op, 'value' => $value];
+        }
+
+        return $rules;
     }
 
     /**
@@ -246,6 +262,10 @@ final class JsonGroup
                     $field['fields'] = self::normalizeFields($f['fields'], $depth + 1, $errors, $count);
                     continue;
                 }
+                if ($setting === 'layouts') {
+                    $field['layouts'] = self::normalizeLayouts($f['layouts'], $depth, $errors, $count);
+                    continue;
+                }
                 $value = self::cleanSetting($setting, $f[$setting]);
                 if ($value !== null) {
                     $field[$setting] = $value;
@@ -263,6 +283,31 @@ final class JsonGroup
         }
 
         return $fields;
+    }
+
+    /**
+     * @param  list<string> $errors
+     * @return list<array{key: string, label: string, fields: list<array<string, mixed>>}>
+     */
+    private static function normalizeLayouts(mixed $raw, int $depth, array &$errors, int &$count): array
+    {
+        $layouts = [];
+        $seen    = [];
+        foreach (is_array($raw) ? $raw : [] as $l) {
+            $key = is_array($l) && is_string($l['key'] ?? null) ? trim($l['key']) : '';
+            if (! preg_match(self::KEY_PATTERN, $key) || isset($seen[$key])) {
+                $errors[] = sprintf(__('Layout "%s": the key must be unique and use lowercase letters, numbers and underscores.', 'ctrlfield'), $key);
+                continue;
+            }
+            $seen[$key] = true;
+            $layouts[]  = [
+                'key'    => $key,
+                'label'  => self::text($l['label'] ?? '', 200),
+                'fields' => self::normalizeFields($l['fields'] ?? [], $depth + 1, $errors, $count),
+            ];
+        }
+
+        return $layouts;
     }
 
     /** @return list<string> */
@@ -293,6 +338,8 @@ final class JsonGroup
             'slugs'  => ($l = self::slugs($v)) !== [] ? $l : null,
             'options'   => ($o = self::options($v)) !== [] ? $o : null,
             'condition' => self::condition($v),
+            // id, object, url, array, value, label, DateTime, timestamp — or a PHP date format.
+            'format'    => is_string($v) && preg_match('/^[A-Za-z0-9 :\/.,\\\\_-]{1,40}$/', $v) ? $v : null,
             default  => null,
         };
     }
@@ -418,10 +465,34 @@ final class JsonGroup
             foreach (self::fieldCalls($f) as [$method, $args]) {
                 if ($method === 'fields') {
                     $args = [self::buildFields($args[0])];
+                } elseif ($method === 'layouts') {
+                    $args = [self::buildLayouts($args[0])];
                 }
                 $def->{$method}(...$args);
             }
             $out[] = $def;
+        }
+
+        return $out;
+    }
+
+    /**
+     * FlexLayout lives in Pro; flexible content cannot be built without it
+     * (Field::flexibleContent() already throws a clear license error).
+     *
+     * @param  list<array<string, mixed>> $layouts
+     * @return list<object>
+     */
+    private static function buildLayouts(array $layouts): array
+    {
+        $class = '\\CtrlField\\Pro\\Fields\\FlexLayout';
+        $out   = [];
+        foreach ($layouts as $l) {
+            $layout = $class::make($l['key']);
+            if ($l['label'] !== '') {
+                $layout->label($l['label']);
+            }
+            $out[] = $layout->fields(self::buildFields($l['fields']));
         }
 
         return $out;
@@ -439,6 +510,13 @@ final class JsonGroup
         foreach ($group['location'] ?? [] as $rule) {
             $value   = ctype_digit($rule['value']) ? (int) $rule['value'] : $rule['value'];
             $calls[] = ['where', [$rule['key'], $rule['operator'], $value]];
+        }
+        if (($group['locationAny'] ?? []) !== []) {
+            $any = [];
+            foreach ($group['locationAny'] as $rule) {
+                $any[] = [$rule['key'], $rule['operator'], ctype_digit($rule['value']) ? (int) $rule['value'] : $rule['value']];
+            }
+            $calls[] = ['whereAny', [$any]];
         }
         if (($group['position'] ?? 'normal') !== 'normal') {
             $calls[] = ['position', [$group['position']]];
@@ -510,7 +588,8 @@ final class JsonGroup
                     $calls[] = ['postType', [$v]];
                     break;
                 case 'fields':
-                    $calls[] = ['fields', [$v]];
+                case 'layouts':
+                    $calls[] = [$setting, [$v]];
                     break;
                 default:
                     $calls[] = [$setting, [$v]];
@@ -528,7 +607,9 @@ final class JsonGroup
     public static function toPhp(array $group): string
     {
         $i   = '    ';
-        $out = "<?php\n\ndeclare(strict_types=1);\n\nuse CtrlField\\Builder\\FieldGroup;\nuse CtrlField\\Fields\\Field;\n\n"
+        $flex = str_contains((string) wp_json_encode($group['fields'] ?? []), '"layouts"');
+        $out  = "<?php\n\ndeclare(strict_types=1);\n\nuse CtrlField\\Builder\\FieldGroup;\nuse CtrlField\\Fields\\Field;\n"
+            . ($flex ? "use CtrlField\\Pro\\Fields\\FlexLayout;\n" : '') . "\n"
             . 'FieldGroup::make(' . self::lit($group['key']) . ")\n"
             . "{$i}->title(" . self::lit($group['title']) . ")\n";
 
@@ -551,6 +632,16 @@ final class JsonGroup
             foreach (self::fieldCalls($f) as [$method, $args]) {
                 if ($method === 'fields') {
                     $out .= "\n{$pad}    ->fields([\n" . self::phpFields($args[0], $level + 2) . "{$pad}    ])";
+                    continue;
+                }
+                if ($method === 'layouts') {
+                    $out .= "\n{$pad}    ->layouts([\n";
+                    foreach ($args[0] as $l) {
+                        $out .= "{$pad}        FlexLayout::make(" . self::lit($l['key']) . ')'
+                            . ($l['label'] !== '' ? '->label(' . self::lit($l['label']) . ')' : '')
+                            . "->fields([\n" . self::phpFields($l['fields'], $level + 3) . "{$pad}        ]),\n";
+                    }
+                    $out .= "{$pad}    ])";
                     continue;
                 }
                 $out .= "\n{$pad}    ->{$method}(" . implode(', ', array_map(self::lit(...), $args)) . ')';
