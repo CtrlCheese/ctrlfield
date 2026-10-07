@@ -67,7 +67,7 @@ class SavePipeline
                 return;
             }
 
-            $adminContext = new AdminContext(postType: $postType);
+            $adminContext = AdminContext::forPost($entityId); // same rules as the meta boxes shown
         }
 
         $groups = ContextRegistry::resolve($adminContext);
@@ -97,7 +97,7 @@ class SavePipeline
             return;
         }
 
-        $groups = ContextRegistry::resolve(new AdminContext(postType: $postType));
+        $groups = ContextRegistry::resolve(AdminContext::forPost($postId));
         if (empty($groups)) {
             return;
         }
@@ -117,7 +117,7 @@ class SavePipeline
             $userId,
             $jsonPayload,
             new UserMetaAdapter(),
-            new AdminContext(contextType: 'user_profile'),
+            AdminContext::forUser($userId),
         );
     }
 

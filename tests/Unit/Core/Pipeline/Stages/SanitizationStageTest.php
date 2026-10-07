@@ -201,6 +201,7 @@ class SanitizationStageTest extends TestCase
 
     public function test_user_single_cast_to_int(): void
     {
+        $GLOBALS['_wp_users'] = [42 => new \CtrlFieldStubUser(42, ['editor'])];
         $group   = $this->makeGroup([Field::user('author')]);
         $adapter = $this->makeAdapter();
         $stage   = new SanitizationStage($adapter);
@@ -210,19 +211,23 @@ class SanitizationStageTest extends TestCase
         $stage->handle($context);
 
         $this->assertSame(42, $context->fields['author']);
+        unset($GLOBALS['_wp_users']);
     }
 
     public function test_user_multiple_returns_array_of_ints(): void
     {
+        // 99 does not exist and is dropped; the others are kept as ints.
+        $GLOBALS['_wp_users'] = [3 => new \CtrlFieldStubUser(3), 7 => new \CtrlFieldStubUser(7), 12 => new \CtrlFieldStubUser(12)];
         $group   = $this->makeGroup([Field::user('contributors')->multiple()]);
         $adapter = $this->makeAdapter();
         $stage   = new SanitizationStage($adapter);
 
         $context         = new PipelineContext(1, [], [$group]);
-        $context->fields = ['contributors' => ['3', '7', '12']];
+        $context->fields = ['contributors' => ['3', '7', '99', '12']];
         $stage->handle($context);
 
         $this->assertSame([3, 7, 12], $context->fields['contributors']);
+        unset($GLOBALS['_wp_users']);
     }
 
     public function test_icon_sanitized_as_text(): void

@@ -74,6 +74,7 @@ final class AcfParityFieldsTest extends TestCase
 
     public function test_page_link_sanitizes_ids(): void
     {
+        $GLOBALS['_wp_post_types'] = [12 => 'page', 7 => 'page', 9 => 'page', 3 => 'post', 5 => 'page', 20 => 'project'];
         $single = Field::pageLink('a');
         $this->assertSame(12, $single->sanitizeForStorage('12'));
         $this->assertSame(0, $single->sanitizeForStorage('x'));
@@ -82,6 +83,8 @@ final class AcfParityFieldsTest extends TestCase
         $multi = Field::pageLink('b')->multiple()->postType(['page', 'post']);
         $this->assertSame([3, 5], $multi->sanitizeForStorage(['3', '-1', 'abc', 5]));
         $this->assertSame(['page', 'post'], $multi->getPostTypes());
+        $this->assertSame(0, $single->sanitizeForStorage(20), 'a project is not a page');
+        unset($GLOBALS['_wp_post_types']);
     }
 
     public function test_multiple_taxonomy_keeps_a_single_id(): void

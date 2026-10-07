@@ -1,0 +1,78 @@
+# Location rules
+
+Location rules decide where a field group appears — and the same rules decide what is saved, so a crafted request cannot write a group that is not shown.
+
+```php
+FieldGroup::make('home_hero')
+    ->title('Home hero')
+    ->where('post_type', '==', 'page')
+    ->where('page_type', '==', 'front_page')   // every where() must match (AND)
+    ->fields([...])
+    ->register();
+```
+
+Operators: `'=='` and `'!='`.
+
+---
+
+## Rules
+
+| Rule | Value | Matches when |
+|---|---|---|
+| `post_type` | `'page'`, `'project'`… | The post is of that type |
+| `page_template` (alias `post_template`) | `'default'`, `'templates/landing.php'`, block template slug (`'page-no-title'`) | The post uses that template |
+| `page_type` | `'front_page'`, `'posts_page'`, `'top_level'`, `'parent'`, `'child'` | Front page / posts page (Settings → Reading), no parent, has children, has a parent |
+| `post_parent` | Post ID | The post's direct parent is that post |
+| `post_status` | `'publish'`, `'draft'`, `'private'`… | The post has that status |
+| `post_format` | `'video'`, `'gallery'`… or `'standard'` | The post has that format (`'standard'` = none) |
+| `post_term` | `'category:news'` or a term ID | The post has that term |
+| `post` | Post ID | It is that specific post |
+| `taxonomy` | Taxonomy slug | Term add / edit screens of that taxonomy |
+| `options_page` | Options page key | That options page |
+| `context` | `'user_profile'`, `'comment'`, `'nav_menu_item'`, `'dashboard_widget'` | Those screens |
+| `user_role` | Role slug | The user **being edited** has that role (profile screens) |
+| `current_user_role` | Role slug | The person **using the admin** has that role |
+| `current_user_can` | Capability | The person using the admin has that capability |
+
+Post rules (`page_template` … `post`) need a concrete post. On screens without one (the post list, the schema endpoint) they do not match, neither with `'=='` nor with `'!='`.
+
+---
+
+## OR groups
+
+`whereAny()` matches when **any** of its conditions matches. It combines with `where()` as AND:
+
+```php
+FieldGroup::make('marketing')
+    ->where('post_type', '==', 'page')
+    ->whereAny([
+        ['page_template', '==', 'templates/landing.php'],
+        ['page_type', '==', 'front_page'],
+    ])
+    ->fields([...])
+    ->register();
+```
+
+---
+
+## Examples
+
+```php
+// Only administrators see these notes.
+->where('post_type', '==', 'project')
+->where('current_user_role', '==', 'administrator')
+
+// Child pages of the "Services" page (ID 12).
+->where('post_type', '==', 'page')
+->where('post_parent', '==', 12)
+
+// Posts in the "news" category.
+->where('post_type', '==', 'post')
+->where('post_term', '==', 'category:news')
+
+// Profile fields only for authors.
+->where('context', '==', 'user_profile')
+->where('user_role', '==', 'author')
+```
+
+In the block editor, groups are chosen when the screen loads: after changing the template or the parent, save and reload to see the matching groups.

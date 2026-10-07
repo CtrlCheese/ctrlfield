@@ -124,7 +124,7 @@ final class TranslationSyncHandler
             return [];
         }
 
-        $groups     = ContextRegistry::resolve(new AdminContext(postType: $postType));
+        $groups     = ContextRegistry::resolve(AdminContext::forPost($postId));
         $sharedKeys = [];
 
         foreach ($groups as $group) {

@@ -71,7 +71,8 @@ if (! function_exists('wp_get_attachment_image_url')) {
 if (! function_exists('current_user_can')) {
     function current_user_can(string $cap, mixed ...$args): bool
     {
-        return false;
+        // Tests grant capabilities through $GLOBALS['_wp_current_user_caps'].
+        return in_array($cap, $GLOBALS['_wp_current_user_caps'] ?? [], true);
     }
 }
 
@@ -264,6 +265,7 @@ if (! class_exists('WP_Post')) {
         public string $post_title  = '';
         public string $post_status = 'publish';
         public string $post_type   = 'post';
+        public int    $post_parent = 0;
     }
 }
 
@@ -301,5 +303,100 @@ if (! function_exists('is_wp_error')) {
     function is_wp_error(mixed $thing): bool
     {
         return $thing instanceof \WP_Error;
+    }
+}
+
+// ── Location-rule stubs: data comes from $GLOBALS so each test controls it ──
+
+if (! function_exists('get_option')) {
+    function get_option(string $option, mixed $default = false): mixed
+    {
+        return $GLOBALS['_wp_options'][$option] ?? $default;
+    }
+}
+
+if (! function_exists('get_post_type')) {
+    function get_post_type(mixed $post = null): string|false
+    {
+        $id = is_object($post) ? (int) $post->ID : (int) $post;
+        if (isset($GLOBALS['_wp_post_types'])) {
+            return $GLOBALS['_wp_post_types'][$id] ?? false;
+        }
+        $obj = get_post($id);
+        return is_object($obj) ? (string) $obj->post_type : false;
+    }
+}
+
+if (! function_exists('get_page_template_slug')) {
+    function get_page_template_slug(mixed $post = null): string|false
+    {
+        return $GLOBALS['_wp_templates'][(int) (is_object($post) ? $post->ID : $post)] ?? '';
+    }
+}
+
+if (! function_exists('get_children')) {
+    function get_children(array $args = []): array
+    {
+        $parent = (int) ($args['post_parent'] ?? 0);
+        return array_values(array_map(
+            static fn ($p) => $p->ID,
+            array_filter($GLOBALS['_wp_posts'] ?? [], static fn ($p) => (int) ($p->post_parent ?? 0) === $parent)
+        ));
+    }
+}
+
+if (! function_exists('get_post_status')) {
+    function get_post_status(mixed $post = null): string|false
+    {
+        $obj = get_post(is_object($post) ? $post->ID : (int) $post);
+        return is_object($obj) ? (string) $obj->post_status : false;
+    }
+}
+
+if (! function_exists('get_post_format')) {
+    function get_post_format(mixed $post = null): string|false
+    {
+        return $GLOBALS['_wp_post_formats'][(int) (is_object($post) ? $post->ID : $post)] ?? false;
+    }
+}
+
+if (! function_exists('has_term')) {
+    function has_term(mixed $term = '', string $taxonomy = '', mixed $post = null): bool
+    {
+        $terms = $GLOBALS['_wp_post_terms'][(int) (is_object($post) ? $post->ID : $post)][$taxonomy] ?? [];
+        return in_array($term, $terms, false);
+    }
+}
+
+if (! class_exists('CtrlFieldStubUser')) {
+    final class CtrlFieldStubUser
+    {
+        /** @param string[] $roles */
+        public function __construct(public int $ID = 0, public array $roles = []) {}
+        public function exists(): bool { return $this->ID > 0; }
+    }
+}
+
+if (! function_exists('wp_get_current_user')) {
+    function wp_get_current_user(): object
+    {
+        return $GLOBALS['_wp_current_user'] ?? new CtrlFieldStubUser();
+    }
+}
+
+if (! function_exists('get_userdata')) {
+    function get_userdata(int $userId): object|false
+    {
+        return $GLOBALS['_wp_users'][$userId] ?? false;
+    }
+}
+
+if (! class_exists('WP_Term')) {
+    class WP_Term
+    {
+        public int    $term_id  = 0;
+        public string $taxonomy = '';
+        public string $name     = '';
+        public string $slug     = '';
     }
 }

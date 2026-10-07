@@ -59,7 +59,7 @@ class FieldValueController
             return new \WP_REST_Response(['error' => 'Post not found.'], 404);
         }
 
-        $context = new AdminContext(postType: $postType);
+        $context = AdminContext::forPost($postId);
         $groups  = ContextRegistry::resolve($context);
 
         $schema = [];

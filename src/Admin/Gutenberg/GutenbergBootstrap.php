@@ -40,7 +40,8 @@ class GutenbergBootstrap
             return;
         }
 
-        $context = new AdminContext(postType: $postType);
+        $post    = $GLOBALS['post'] ?? null;
+        $context = $post instanceof \WP_Post ? AdminContext::forPost($post->ID) : new AdminContext(postType: $postType);
         $groups  = ContextRegistry::resolve($context);
 
         // Do not load sidebar on post types with no registered field groups.

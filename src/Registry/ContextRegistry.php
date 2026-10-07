@@ -25,6 +25,18 @@ class ContextRegistry
         'options_page' => OptionsPageResolver::class,
         'taxonomy'     => TaxonomyResolver::class,
         'context'      => ContextTypeResolver::class,
+        // Location rules (ACF / Carbon Fields parity). Post rules need AdminContext::forPost().
+        'page_template'     => Resolvers\PageTemplateResolver::class,
+        'post_template'     => Resolvers\PageTemplateResolver::class,
+        'page_type'         => Resolvers\PageTypeResolver::class,
+        'post_parent'       => Resolvers\PostParentResolver::class,
+        'post_status'       => Resolvers\PostStatusResolver::class,
+        'post_format'       => Resolvers\PostFormatResolver::class,
+        'post_term'         => Resolvers\PostTermResolver::class,
+        'post'              => Resolvers\PostResolver::class,
+        'current_user_role' => Resolvers\CurrentUserRoleResolver::class,
+        'current_user_can'  => Resolvers\CurrentUserCanResolver::class,
+        'user_role'         => Resolvers\UserRoleResolver::class,
     ];
 
     /**

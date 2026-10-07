@@ -26,9 +26,11 @@ class UserMetaRegistrar
         add_action('edit_user_profile_update', [$this, 'save']);
     }
 
-    public function render(\WP_User $user): void
+    /** @param \WP_User|string $user user_new_form passes a string ('add-new-user'), not a user. */
+    public function render(mixed $user): void
     {
-        $context = new AdminContext(contextType: 'user_profile');
+        $userId  = $user instanceof \WP_User ? $user->ID : 0;
+        $context = AdminContext::forUser($userId);
         $groups  = ContextRegistry::resolve($context);
 
         if (empty($groups)) {
@@ -36,7 +38,7 @@ class UserMetaRegistrar
         }
 
         $renderer = new MetaBoxRenderer();
-        $renderer->render($user->ID, array_values($groups));
+        $renderer->render($userId, array_values($groups));
     }
 
     public function save(int $userId): void
@@ -53,7 +55,7 @@ class UserMetaRegistrar
             entityId:        $userId,
             rawPost:         $_POST,
             adapterOverride: new UserMetaAdapter(),
-            contextOverride: new AdminContext(contextType: 'user_profile'),
+            contextOverride: AdminContext::forUser($userId),
         );
     }
 }

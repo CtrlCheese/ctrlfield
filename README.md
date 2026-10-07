@@ -174,6 +174,22 @@ Pro factories need an active license. Without it they throw a clear error, and a
 
 ---
 
+## Location rules
+
+Show a group only where it belongs — same rule set as ACF and Carbon Fields:
+
+```php
+->where('post_type', '==', 'page')
+->where('page_template', '==', 'templates/landing.php')   // also: page_type, post_parent,
+                                                          // post_status, post_format, post_term,
+                                                          // post, current_user_role,
+                                                          // current_user_can, user_role
+```
+
+Full list and OR groups (`whereAny()`): `docs/getting-started/location-rules.mdx`.
+
+---
+
 ## Fluent API
 
 Every field inherits these chainable methods:

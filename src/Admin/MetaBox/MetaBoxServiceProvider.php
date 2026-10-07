@@ -169,7 +169,7 @@ class MetaBoxServiceProvider extends ServiceProvider
             return;
         }
 
-        $groups = array_values(ContextRegistry::resolve(new AdminContext(postType: $postType)));
+        $groups = array_values(ContextRegistry::resolve(AdminContext::forPost($postId)));
         (new NotificationDispatcher())->dispatch($postId, $oldFields, $newFields, $groups);
     }
 

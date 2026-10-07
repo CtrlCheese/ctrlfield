@@ -27,10 +27,10 @@ class MetaBoxRegistrar
 
     public function register(): void
     {
-        add_action('add_meta_boxes', [$this, 'addMetaBoxes']);
+        add_action('add_meta_boxes', [$this, 'addMetaBoxes'], 10, 2);
     }
 
-    public function addMetaBoxes(): void
+    public function addMetaBoxes(string $postTypeArg = '', mixed $post = null): void
     {
         $screen = get_current_screen();
 
@@ -43,7 +43,8 @@ class MetaBoxRegistrar
             return;
         }
 
-        $context = new AdminContext(postType: $postType);
+        // The post itself is needed by location rules (template, parent, term…).
+        $context = $post instanceof \WP_Post ? AdminContext::forPost($post->ID) : new AdminContext(postType: $postType);
         $groups  = ContextRegistry::resolve($context);
 
         if (empty($groups)) {

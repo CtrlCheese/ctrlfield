@@ -98,7 +98,7 @@ class FieldsController
             return new \WP_REST_Response(['error' => 'Post not found.'], 404);
         }
 
-        $context = new AdminContext(postType: $post->post_type);
+        $context = AdminContext::forPost($post->ID);
         $groups  = ContextRegistry::resolve($context);
 
         $restKeys = [];
