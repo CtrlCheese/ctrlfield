@@ -20,6 +20,8 @@ class AutosaveTest extends WP_UnitTestCase
     {
         parent::setUp();
         CacheAdapter::flush();
+        // An editor-capable user: what is tested is the nonce / autosave / save path, not permissions.
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
     }
 
     public function test_autosave_does_not_write_ctrlfield_data(): void
@@ -35,7 +37,7 @@ class AutosaveTest extends WP_UnitTestCase
             'post_status'  => 'auto-draft',
         ]);
 
-        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $autosaveId);
+        $_POST['_ctrlfield_nonce']  = wp_create_nonce('ctrlfield_save');
         $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Should NOT save', 'score' => 0]);
 
         // Fire save_post for the autosave ID
@@ -50,7 +52,7 @@ class AutosaveTest extends WP_UnitTestCase
 
     public function tearDown(): void
     {
-        unset($_POST['ctrlfield_nonce'], $_POST['ctrlfield_payload']);
+        unset($_POST['_ctrlfield_nonce'], $_POST['ctrlfield_payload']);
         parent::tearDown();
     }
 }

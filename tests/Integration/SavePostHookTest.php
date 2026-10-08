@@ -25,6 +25,8 @@ class SavePostHookTest extends WP_UnitTestCase
     {
         parent::setUp();
         CacheAdapter::flush();
+        // An editor-capable user: what is tested is the nonce / autosave / save path, not permissions.
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
         $this->adapter = new PostMetaAdapter(new WpPostMetaDriver());
     }
 
@@ -44,7 +46,7 @@ class SavePostHookTest extends WP_UnitTestCase
         ]);
 
         // Simulate the form POST — set up $_POST with nonce and payload
-        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['_ctrlfield_nonce']  = wp_create_nonce('ctrlfield_save');
         $_POST['ctrlfield_payload'] = $payload;
 
         // Trigger save_post (MetaBoxServiceProvider has this hooked)
@@ -66,7 +68,7 @@ class SavePostHookTest extends WP_UnitTestCase
     {
         $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
-        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['_ctrlfield_nonce']  = wp_create_nonce('ctrlfield_save');
         $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Blob Test', 'score' => 0, 'hidden_field' => '']);
 
         do_action('save_post', $postId, get_post($postId), true);
@@ -87,7 +89,7 @@ class SavePostHookTest extends WP_UnitTestCase
     {
         $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
-        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['_ctrlfield_nonce']  = wp_create_nonce('ctrlfield_save');
         $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Indexed', 'score' => 99, 'hidden_field' => '']);
 
         do_action('save_post', $postId, get_post($postId), true);
@@ -104,7 +106,7 @@ class SavePostHookTest extends WP_UnitTestCase
     {
         $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
-        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['_ctrlfield_nonce']  = wp_create_nonce('ctrlfield_save');
         $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Queryable', 'score' => 77, 'hidden_field' => '']);
 
         do_action('save_post', $postId, get_post($postId), true);
@@ -132,7 +134,7 @@ class SavePostHookTest extends WP_UnitTestCase
         $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
         // First save: include hidden_field value
-        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['_ctrlfield_nonce']  = wp_create_nonce('ctrlfield_save');
         $_POST['ctrlfield_payload'] = json_encode([
             'title_extra'  => 'Preserving',
             'score'        => 0,
@@ -143,7 +145,7 @@ class SavePostHookTest extends WP_UnitTestCase
         CacheAdapter::flush();
 
         // Second save: hidden_field ABSENT from payload (field is hidden in UI)
-        $_POST['ctrlfield_nonce']   = wp_create_nonce('ctrlfield_save_' . $postId);
+        $_POST['_ctrlfield_nonce']  = wp_create_nonce('ctrlfield_save');
         $_POST['ctrlfield_payload'] = json_encode([
             'title_extra' => 'Updated',
             'score'       => 1,
@@ -160,7 +162,7 @@ class SavePostHookTest extends WP_UnitTestCase
 
     public function tearDown(): void
     {
-        unset($_POST['ctrlfield_nonce'], $_POST['ctrlfield_payload']);
+        unset($_POST['_ctrlfield_nonce'], $_POST['ctrlfield_payload']);
         parent::tearDown();
     }
 }

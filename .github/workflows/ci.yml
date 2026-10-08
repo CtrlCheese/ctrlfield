@@ -132,6 +132,11 @@ jobs:
       - name: Install PHP deps
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      # The WordPress test suite runs on PHPUnit 9 and needs the PHPUnit
+      # Polyfills; unit tests keep PHPUnit 11 (composer.json is not changed).
+      - name: PHPUnit 9 + Polyfills for the WordPress test suite
+        run: composer require --dev --no-interaction --no-progress -W "phpunit/phpunit:^9.6" "yoast/phpunit-polyfills:^2.0"
+
       - name: Use CI wp-env config (free plugin only)
         run: cp .wp-env.ci.json .wp-env.json
 
@@ -141,7 +146,7 @@ jobs:
       - name: Run integration tests
         run: |
           npx @wordpress/env run tests-cli --env-cwd="wp-content/plugins/$(basename "$PWD")" \
-            vendor/bin/phpunit --configuration phpunit-integration.xml --no-progress
+            vendor/bin/phpunit --configuration phpunit-integration.xml
 
       - name: Stop wp-env
         if: always()

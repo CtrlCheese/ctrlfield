@@ -20,13 +20,15 @@ class NonceRejectionTest extends WP_UnitTestCase
     {
         parent::setUp();
         CacheAdapter::flush();
+        // An editor-capable user: what is tested is the nonce / autosave / save path, not permissions.
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
     }
 
     public function test_invalid_nonce_does_not_write_data(): void
     {
         $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
-        $_POST['ctrlfield_nonce']   = 'totally_invalid_nonce';
+        $_POST['_ctrlfield_nonce']  = 'totally_invalid_nonce';
         $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Injected', 'score' => 0]);
 
         // Must not throw — pipeline catches nonce failure internally
@@ -44,7 +46,7 @@ class NonceRejectionTest extends WP_UnitTestCase
         $postId = $this->factory->post->create(['post_type' => 'ctrlf_test_post']);
 
         // No nonce in POST — ctrlfield_payload present but nonce absent
-        unset($_POST['ctrlfield_nonce']);
+        unset($_POST['_ctrlfield_nonce']);
         $_POST['ctrlfield_payload'] = json_encode(['title_extra' => 'Injected', 'score' => 0]);
 
         do_action('save_post', $postId, get_post($postId), true);
@@ -58,7 +60,7 @@ class NonceRejectionTest extends WP_UnitTestCase
 
     public function tearDown(): void
     {
-        unset($_POST['ctrlfield_nonce'], $_POST['ctrlfield_payload']);
+        unset($_POST['_ctrlfield_nonce'], $_POST['ctrlfield_payload']);
         parent::tearDown();
     }
 }

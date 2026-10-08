@@ -32,6 +32,11 @@ if (! file_exists($_wpTestsDir . '/includes/functions.php')) {
     exit(1);
 }
 
+// The WP test suite needs the PHPUnit Polyfills (installed for this run, see CI).
+if (! defined('WP_TESTS_PHPUNIT_POLYFILLS_PATH') && is_dir(dirname(__DIR__, 2) . '/vendor/yoast/phpunit-polyfills')) {
+    define('WP_TESTS_PHPUNIT_POLYFILLS_PATH', dirname(__DIR__, 2) . '/vendor/yoast/phpunit-polyfills');
+}
+
 // Load WP tests framework bootstrap functions.
 require_once $_wpTestsDir . '/includes/functions.php';
 
