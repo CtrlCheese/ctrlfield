@@ -14,11 +14,11 @@ playwright.config.js
 phpunit.xml
 phpunit-integration.xml
 .phpunit.result.cache
-vitest.config.js
+vitest.config.mjs
 TESTING.md
 
 # Build config
-vite.config.js
+vite.config.mjs
 package.json
 package-lock.json
 phpstan.neon
