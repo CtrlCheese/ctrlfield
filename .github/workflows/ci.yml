@@ -36,6 +36,48 @@ jobs:
             exit 1
           fi
 
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci
+
+      # Known vulnerabilities in what we ship: PHP packages (vendor/ is in the
+      # zip) and the JS bundled into assets/. Fails the build.
+      - name: Dependency audit (shipped code)
+        run: |
+          composer audit --no-dev
+          npm audit --omit=dev --audit-level=high
+
+      # Build and test tools never reach users' sites: reported, not blocking.
+      - name: Dependency audit (dev tools)
+        continue-on-error: true
+        run: |
+          composer audit
+          npm audit --audit-level=high
+
+      # Escaping, nonces, sanitizing, SQL (.phpcs.xml.dist). Findings already
+      # reviewed are in phpcs.baseline.xml; anything new fails the build.
+      - name: PHPCS security sniffs
+        run: vendor/bin/phpcs
+
+      # Follows $_GET / $_POST / database values into HTML, SQL, headers, files
+      # and shell. Installed outside composer.json (see psalm.xml).
+      - name: Taint analysis (Psalm)
+        run: |
+          composer --working-dir="$RUNNER_TEMP/psalm" require --no-interaction --no-progress "vimeo/psalm:^6.0"
+          "$RUNNER_TEMP/psalm/vendor/bin/psalm" --taint-analysis --no-progress --output-format=github
+
   # ─────────────────────────────────────────────────────────────────
   # 2. PHP static analysis
   # ─────────────────────────────────────────────────────────────────
@@ -64,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ['8.2', '8.3']
+        php: ['8.2', '8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v4
 
@@ -110,9 +152,16 @@ jobs:
   # ─────────────────────────────────────────────────────────────────
   # 5. PHP integration tests (wp-env, free plugin only)
   # ─────────────────────────────────────────────────────────────────
+  # WordPress latest must pass. Nightly (the next release) may fail without
+  # blocking: it is the early warning that something will break.
   integration:
-    name: Integration tests (wp-env)
+    name: Integration tests / WP ${{ matrix.wp }}
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.wp == 'nightly' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        wp: ['latest', 'nightly']
     steps:
       - uses: actions/checkout@v4
 
@@ -141,7 +190,9 @@ jobs:
         run: cp .wp-env.ci.json .wp-env.json
 
       - name: Start wp-env
-        run: npx @wordpress/env start
+        run: |
+          if [ "${{ matrix.wp }}" = "nightly" ]; then export WP_ENV_CORE="WordPress/WordPress#master"; fi
+          npx @wordpress/env start
 
       - name: Run integration tests
         run: |

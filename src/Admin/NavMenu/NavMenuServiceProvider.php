@@ -104,13 +104,21 @@ final class NavMenuServiceProvider extends ServiceProvider
             return;
         }
 
-        $raw    = $_POST['ctrlf_nav'][$menuItemDbId];
+        $raw    = wp_unslash($_POST['ctrlf_nav'][$menuItemDbId]);
         $fields = [];
 
-        foreach ($raw as $key => $value) {
-            $fields[sanitize_key((string) $key)] = is_array($value)
-                ? array_map('sanitize_text_field', $value)
-                : sanitize_text_field((string) $value);
+        // Only keys of the registered nav menu item fields; other POST keys are ignored.
+        foreach (ContextRegistry::resolve(new AdminContext(contextType: 'nav_menu_item')) as $group) {
+            foreach ($group->getFields() as $field) {
+                $key = $field->getKey();
+                if (! array_key_exists($key, $raw)) {
+                    continue;
+                }
+                $value        = $raw[$key];
+                $fields[$key] = is_array($value)
+                    ? array_map('sanitize_text_field', $value)
+                    : sanitize_text_field((string) $value);
+            }
         }
 
         if (empty($fields)) {

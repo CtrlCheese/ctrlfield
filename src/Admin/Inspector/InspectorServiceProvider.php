@@ -56,6 +56,10 @@ final class InspectorServiceProvider extends ServiceProvider
         }
 
         $filePath = (string) ($_FILES['csv_file']['tmp_name'] ?? '');
+        if (! is_uploaded_file($filePath)) {
+            wp_send_json_error(['message' => 'File upload failed.']);
+            return;
+        }
         $importer = new CsvImporter();
         $stats    = $importer->import($filePath, $postType, false, true, false);
 

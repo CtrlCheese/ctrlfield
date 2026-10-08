@@ -10,9 +10,12 @@
         "illuminate/support": "^11.0"
     },
     "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "digitalrevolution/php-codesniffer-baseline": "^1.1",
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^11.0|^12.0",
-        "szepeviktor/phpstan-wordpress": "^2.0"
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-coding-standards/wpcs": "^3.1"
     },
     "autoload": {
         "psr-4": {
@@ -32,6 +35,10 @@
         "sort-packages": true,
         "platform": {
             "php": "8.2"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "digitalrevolution/php-codesniffer-baseline": true
         }
     },
     "minimum-stability": "stable",

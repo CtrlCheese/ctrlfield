@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="8"
+    findUnusedCode="false"
+    findUnusedBaselineEntry="false"
+    resolveFromConfigFile="true"
+    xmlns="https://getpsalm.org/schema/config"
+>
+    <!-- Used only for taint analysis (the CI "Taint analysis" step): follows data from
+     $_GET / $_POST / the database to HTML, SQL, files and shell. Type checks are
+     PHPStan's job. Psalm is installed by CI outside composer.json (it needs
+     newer PHP patch versions than config.platform allows). -->
+    <projectFiles>
+        <file name="ctrlfield.php"/>
+        <directory name="src"/>
+        <directory name="pro/src"/>
+        <ignoreFiles allowMissingFiles="true">
+            <directory name="vendor"/>
+        </ignoreFiles>
+    </projectFiles>
+    <stubs>
+        <file name="vendor/php-stubs/wordpress-stubs/wordpress-stubs.php" preloadClasses="true"/>
+    </stubs>
+</psalm>

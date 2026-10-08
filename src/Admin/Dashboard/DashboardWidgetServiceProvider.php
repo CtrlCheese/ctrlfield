@@ -75,21 +75,27 @@ final class DashboardWidgetServiceProvider extends ServiceProvider
             return;
         }
 
-        $groupKey = isset($_POST['group']) ? sanitize_key((string) $_POST['group']) : '';
+        $groupKey = isset($_POST['group']) ? sanitize_key(wp_unslash((string) $_POST['group'])) : '';
         $groups   = FieldRegistry::all();
 
-        if (! isset($groups[$groupKey])) {
+        // Only dashboard-widget groups: this endpoint must not overwrite other option groups.
+        if (! isset($groups[$groupKey]) || $groups[$groupKey]->getDashboardWidgetConfig() === null) {
             wp_send_json_error(['message' => 'Group not found.'], 400);
             return;
         }
 
         $group  = $groups[$groupKey];
+        $cap    = $group->getRequiredCapability();
+        if ($cap !== '' && ! current_user_can($cap)) {
+            wp_send_json_error(['message' => 'Insufficient permissions.'], 403);
+            return;
+        }
         $fields = [];
 
         foreach ($group->getFields() as $field) {
             $key = $field->getKey();
-            if (isset($_POST['ctrlf_dw_' . $key])) {
-                $fields[$key] = sanitize_text_field((string) $_POST['ctrlf_dw_' . $key]);
+            if (isset($_POST['ctrlf_dw_' . $key]) && is_scalar($_POST['ctrlf_dw_' . $key])) {
+                $fields[$key] = sanitize_text_field(wp_unslash((string) $_POST['ctrlf_dw_' . $key]));
             }
         }
 

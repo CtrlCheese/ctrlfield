@@ -44,6 +44,10 @@ final class RelationshipField extends FieldDefinition implements ExternalStorage
 
     public function pivotTable(string $suffix): static
     {
+        // Becomes part of SQL (table names cannot be bound as placeholders).
+        if (! preg_match('/^[A-Za-z0-9_]{1,48}$/', $suffix)) {
+            throw new \InvalidArgumentException("Invalid pivot table name '{$suffix}': use letters, digits and underscores.");
+        }
         $this->pivotTable = $suffix;
         return $this;
     }

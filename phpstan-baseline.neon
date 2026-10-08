@@ -33,7 +33,7 @@ parameters:
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
-			count: 2
+			count: 3
 			path: src/Admin/Dashboard/DashboardWidgetServiceProvider.php
 
 		-
@@ -51,7 +51,7 @@ parameters:
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
-			count: 4
+			count: 5
 			path: src/Admin/Inspector/InspectorServiceProvider.php
 
 		-

@@ -40,3 +40,8 @@ pro/assets/builder/package-lock.json
 docs
 README.md
 .distignore
+
+# Security tooling
+.phpcs.xml.dist
+phpcs.baseline.xml
+psalm.xml

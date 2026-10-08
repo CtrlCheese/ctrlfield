@@ -299,7 +299,8 @@ final class SchemaInspectorRenderer
             }
 
             header('Content-Type: text/csv; charset=UTF-8');
-            header(sprintf('Content-Disposition: attachment; filename="%s-%s.csv"', $postType, $group));
+            $filename = sanitize_file_name($postType . '-' . $group . '.csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
 
             $exporter = new CsvExporter();
             foreach ($exporter->export($postType) as $row) {

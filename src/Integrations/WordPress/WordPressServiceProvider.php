@@ -383,7 +383,7 @@ class WordPressServiceProvider extends ServiceProvider
             ['page' => $slug, 'settings-updated' => '1'],
             admin_url('admin.php')
         );
-        wp_redirect($redirectUrl);
+        wp_safe_redirect($redirectUrl);
         exit;
     }
 
@@ -435,12 +435,12 @@ class WordPressServiceProvider extends ServiceProvider
         $nonceKey = "_ctrlfield_term_nonce_{$taxonomy}";
         $nonce    = isset($_POST[$nonceKey]) && is_string($_POST[$nonceKey]) ? $_POST[$nonceKey] : '';
 
-        if (! wp_verify_nonce($nonce, "ctrlfield_term_{$taxonomy}")) {
+        if (! wp_verify_nonce($nonce, "ctrlfield_term_{$taxonomy}") || ! current_user_can('edit_term', $termId)) {
             return;
         }
 
         $posted = isset($_POST['ctrlfield_term']) && is_array($_POST['ctrlfield_term'])
-            ? $_POST['ctrlfield_term']
+            ? (array) wp_unslash($_POST['ctrlfield_term'])
             : [];
 
         foreach ($fields as $field) {
