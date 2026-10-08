@@ -46,6 +46,12 @@ class FieldRegistry
         return self::$groups;
     }
 
+    /** Unregister one group (ACF local groups that receive fields after registration). */
+    public static function remove(string $key): void
+    {
+        unset(self::$groups[$key]);
+    }
+
     public static function reset(): void
     {
         self::$groups = [];

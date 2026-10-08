@@ -62,9 +62,11 @@ class MetaBoxRegistrar
         $position = $group->getPosition(); // 'normal' | 'side' | 'after_title'
         $style    = $group->getStyle();    // 'default' | 'seamless'
 
+        // Always pass the title: WordPress skips meta boxes without one. The
+        // seamless style hides the header with CSS (.ctrlfield-seamless) instead.
         add_meta_box(
             'ctrlfield-' . $key,
-            $style === 'seamless' ? '' : $title,
+            $title,
             function (\WP_Post $post) use ($group): void {
                 $this->renderer->renderGroup($post->ID, $group);
             },

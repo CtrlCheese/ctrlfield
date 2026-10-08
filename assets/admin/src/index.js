@@ -5,6 +5,8 @@ import { evaluateCondition } from './conditionEvaluator.js';
 import { pickValue, mergeGallery, mapWith, hasCoords, osmEmbedUrl } from './pickers.js';
 import { fieldGroupEditor } from './groupEditor.js';
 import { registerSortable, itemKey } from './sortable.js';
+import { registerWysiwyg } from './wysiwyg.js';
+import { registerUiState, uiPath, uiGet, uiSet } from './uiState.js';
 import { rowSummary } from './rows.js';
 
 function markBlockEditorDirty() {
@@ -70,6 +72,8 @@ function showSaveError(message) {
 
 Alpine.plugin(collapse);
 registerSortable(Alpine);
+registerWysiwyg(Alpine);
+registerUiState(Alpine);
 
 document.addEventListener('alpine:init', () => {
     // CtrlField → Field Groups editor; config comes from the root's data-config.
@@ -123,9 +127,8 @@ document.addEventListener('alpine:init', () => {
                 showSaveError(phData.saveError);
             }
 
-            // WYSIWYG bridge is initialised after the DOM + TinyMCE are ready.
+            // Code editors are initialised after the DOM is ready (WYSIWYG: x-ctrlf-wysiwyg).
             this.$nextTick(() => {
-                this.initWysiwygs();
                 this.initCodeEditors();
             });
         },
@@ -170,12 +173,20 @@ document.addEventListener('alpine:init', () => {
         isRowOpen(row) {
             return !this.closedRows[this.rowKey(row)];
         },
-        toggleRow(row) {
+        /** Restores a row collapsed before the last reload (uiState.js). */
+        initRow(row, el) {
+            if (uiGet(uiPath(el, 'row'), false)) this.closedRows[this.rowKey(row)] = true;
+        },
+        toggleRow(row, el = null) {
             const k = this.rowKey(row);
             this.closedRows[k] = !this.closedRows[k];
+            if (el) uiSet(uiPath(el, 'row'), this.closedRows[k]);
         },
-        setRowsOpen(list, open) {
+        setRowsOpen(list, open, el = null) {
             (Array.isArray(list) ? list : []).forEach((row) => { this.closedRows[this.rowKey(row)] = !open; });
+            // Remember for every row of this list (heads are the toggles' parents).
+            const rows = el?.closest('.ctrlf-repeater, .ctrlf-flex-content')?.querySelector(':scope > .ctrlf-rows');
+            rows?.querySelectorAll(':scope > [data-ctrlf-item] > .ctrlf-row__head').forEach((head) => uiSet(uiPath(head, 'row'), !open));
         },
         rowSummary(row) {
             return rowSummary(row);
@@ -226,45 +237,6 @@ document.addEventListener('alpine:init', () => {
         getAttachmentUrl(id) {
             if (!id) return '';
             return this.attachmentUrls[id] ?? '';
-        },
-
-        // -------------------------------------------------------------------
-        // WYSIWYG (TinyMCE bridge)
-        // -------------------------------------------------------------------
-
-        /**
-         * Iterates all [data-ctrlfield-wysiwyg] wrappers and attaches a
-         * TinyMCE change listener that keeps adminState in sync.
-         * Retries every 200ms until TinyMCE initialises (WP loads it async).
-         */
-        initWysiwygs() {
-            this.$el.querySelectorAll('[data-ctrlfield-wysiwyg]').forEach(wrapper => {
-                const fieldKey  = wrapper.dataset.ctrlfieldWysiwyg;
-                const statePath = wrapper.dataset.statepath;
-                const editorId  = 'ctrlf_wysiwyg_' + fieldKey;
-
-                const tryBind = setInterval(() => {
-                    const editor = window.tinymce?.get(editorId);
-                    if (!editor) return;
-
-                    clearInterval(tryBind);
-
-                    // Sync initial stored value into TinyMCE
-                    const stored = this.adminState[fieldKey] ?? '';
-                    if (stored && editor.getContent() !== stored) {
-                        editor.setContent(stored);
-                    }
-
-                    // Sync TinyMCE → adminState on every change
-                    editor.on('Change KeyUp SetContent Undo Redo', () => {
-                        this.adminState[fieldKey] = editor.getContent();
-                    });
-                }, 200);
-
-                // Stop polling after 10 s to avoid infinite loops on pages
-                // where TinyMCE never initialises (e.g. quick-edit context).
-                setTimeout(() => clearInterval(tryBind), 10_000);
-            });
         },
 
         // -------------------------------------------------------------------
@@ -517,9 +489,9 @@ document.addEventListener('alpine:init', () => {
         },
 
         /** Add a section of `layoutKey` to `list`; returns the list to assign back. */
-        withLayout(list, layoutKey, pickerKey) {
+        withLayout(list, layoutKey, pickerKey, defaults = {}) {
             const rows = Array.isArray(list) ? list : [];
-            rows.push({ _layout: layoutKey });
+            rows.push({ ...JSON.parse(JSON.stringify(defaults ?? {})), _layout: layoutKey });
             this.closeFlexPicker(pickerKey);
             return rows;
         },

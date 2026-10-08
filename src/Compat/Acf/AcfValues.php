@@ -180,15 +180,51 @@ final class AcfValues
     // CtrlField storage → get_field() output
     // -------------------------------------------------------------------------
 
-    public static function format(mixed $value, FieldDefinition $def): mixed
+    /**
+     * get_field() output for a stored value. With the ACF API loaded this runs
+     * ACF's filters — acf/format_value/type=, /name=, /key= and acf/format_value —
+     * so themes can transform values (Timber images, Flynt objects).
+     */
+    public static function format(mixed $value, FieldDefinition $def, mixed $postId = null): mixed
+    {
+        if (self::isLayoutOnly($def->getType())) {
+            return null;
+        }
+        // Nothing saved yet: ACF returns the default value, and a group with
+        // its sub-fields' defaults (themes read options that were never saved).
+        if ($value === null) {
+            if ($def->getType() === FieldType::GROUP) {
+                $value = [];
+            } elseif ($def->hasDefault()) {
+                $value = $def->getDefault();
+            } else {
+                return null;
+            }
+        }
+        if (! AcfFieldType::hooked() || ! function_exists('apply_filters')) {
+            return self::formatType($value, $def);
+        }
+
+        $field = AcfApi::fieldArray($def);
+        $value = apply_filters("acf/format_value/type={$field['type']}", $value, $postId, $field);
+        $value = apply_filters("acf/format_value/name={$field['name']}", $value, $postId, $field);
+        $value = apply_filters("acf/format_value/key={$field['key']}", $value, $postId, $field);
+
+        return apply_filters('acf/format_value', $value, $postId, $field);
+    }
+
+    private static function isLayoutOnly(FieldType $type): bool
+    {
+        return in_array($type, [FieldType::TAB, FieldType::MESSAGE, FieldType::SEPARATOR, FieldType::ACCORDION, FieldType::ACCORDION_END], true);
+    }
+
+    /** The type's own formatting (what ACF's field type format_value() does). */
+    public static function formatType(mixed $value, FieldDefinition $def): mixed
     {
         $type = $def->getType();
         $rf   = $def->getReturnFormat();
 
-        if (in_array($type, [FieldType::TAB, FieldType::MESSAGE, FieldType::SEPARATOR, FieldType::ACCORDION, FieldType::ACCORDION_END], true)) {
-            return null;
-        }
-        if ($value === null) {
+        if ($value === null || self::isLayoutOnly($type)) {
             return null;
         }
 
@@ -292,11 +328,11 @@ final class AcfValues
      * @param  array<string, FieldDefinition> $subs
      * @return array<string, mixed>
      */
-    public static function formatSubs(array $row, array $subs): array
+    public static function formatSubs(array $row, array $subs, mixed $postId = null): array
     {
         $out = [];
         foreach ($subs as $key => $sub) {
-            $out[$key] = self::format($row[$key] ?? null, $sub);
+            $out[$key] = self::format($row[$key] ?? null, $sub, $postId);
         }
 
         return $out;

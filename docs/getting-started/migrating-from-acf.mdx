@@ -43,12 +43,24 @@ When ACF is not active, CtrlField defines ACF's functions:
 
 Turn the functions off with `add_filter('ctrlfield/acf_compat', '__return_false');`.
 
+### Themes built on ACF (Flynt, Timber)
+
+Themes such as [Flynt](https://flyntwp.com) only start when ACF is present. With ACF inactive, CtrlField provides what they look for:
+
+- a stand-in `ACF` class (`class_exists('ACF')`), `acf()`, `acf_get_setting()`, `acf_get_field_type()`, `acf_format_date()`, `acf_add_local_field()`;
+- values formatted through `acf/format_value` (with `/type=`, `/name=`, `/key=`), so Timber's ACF integration returns `Timber\Image` and post objects;
+- `acf/load_field`, `acf/prepare_field` and `acf/fields/flexible_content/layout_title`;
+- `acf/init`, `acf/include_fields` and `acf/include_options_pages` fired on `init`; local groups register once init is done, so fields added later with `acf_add_local_field()` belong to them;
+- field names keep their case (`contentHtml`), and a field never saved returns its `default_value`.
+
+Turn the stand-in class off with `add_filter('ctrlfield/acf_compat_class', '__return_false');` if another plugin mistakes it for the real ACF.
+
 ---
 
 ## What changes
 
 - **Field names with capitals or hyphens** are renamed to valid keys (`hero-Title` → `hero_title`). The importer lists them. `get_field('hero-Title')` still finds the field.
-- **Not imported:** the Clone field, accordions (layout only), and location rules CtrlField does not have (blocks, widgets, attachments, "taxonomy is all"). Complex conditional logic (several rules) is dropped and the field is always shown. The import report lists every case.
+- **Not imported:** the Clone field and location rules CtrlField does not have (blocks, widgets, attachments, "taxonomy is all"). Complex conditional logic (several rules) is dropped and the field is always shown. The import report lists every case.
 - **Location with OR groups:** several one-rule groups become "any of"; otherwise only the first group is kept.
 - **Relationship fields** hold one post type; the first one is kept.
 - **A multiple select** becomes checkboxes.

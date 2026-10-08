@@ -180,3 +180,97 @@ if (! function_exists('acf_add_options_sub_page')) {
         return AcfApi::addOptionsPage($page, AcfApi::firstOptionsPage() ?? 'options-general.php');
     }
 }
+
+if (! function_exists('acf_add_local_field')) {
+    /** @param array<string, mixed> $field Needs 'parent': the ACF key of a local field group. */
+    function acf_add_local_field(array $field): bool
+    {
+        return AcfApi::addLocalField($field);
+    }
+}
+
+// ── Helpers themes and libraries (Timber, Flynt) call ────────────────────────
+
+if (! function_exists('acf_get_setting')) {
+    function acf_get_setting(string $name, mixed $default = null): mixed
+    {
+        return \CtrlField\Compat\Acf\AcfSettings::get($name, $default);
+    }
+}
+
+if (! function_exists('acf_update_setting')) {
+    function acf_update_setting(string $name, mixed $value): bool
+    {
+        \CtrlField\Compat\Acf\AcfSettings::set($name, $value);
+        return true;
+    }
+}
+
+if (! function_exists('acf_get_field_type')) {
+    function acf_get_field_type(string $name): \CtrlField\Compat\Acf\AcfFieldType
+    {
+        return \CtrlField\Compat\Acf\AcfFieldType::get($name);
+    }
+}
+
+if (! function_exists('acf_get_field')) {
+    /** @return array<string, mixed>|false */
+    function acf_get_field(string $selector): array|false
+    {
+        return AcfApi::getFieldObject($selector, false, true, false);
+    }
+}
+
+if (! function_exists('acf_format_date')) {
+    /** ACF stores dates as Ymd; returns the date in $format (site-local, no timezone shift). */
+    function acf_format_date(mixed $value, string $format): string
+    {
+        $value = (string) $value;
+        if ($value === '') {
+            return '';
+        }
+        $ts = ctype_digit($value) && strlen($value) === 8
+            ? (int) strtotime(substr($value, 0, 4) . '-' . substr($value, 4, 2) . '-' . substr($value, 6, 2))
+            : strtotime(str_replace('T', ' ', $value));
+
+        return $ts === false ? $value : date_i18n($format, $ts, true);
+    }
+}
+
+// ── "Is ACF there?" ──────────────────────────────────────────────────────────
+// Themes built for ACF (Flynt, Timber's ACF integration) only switch on when
+// class ACF exists. This stand-in answers that question; it is not ACF.
+// Turn it off with add_filter('ctrlfield/acf_compat_class', '__return_false').
+
+if (! class_exists('ACF', false) && apply_filters('ctrlfield/acf_compat_class', true)) {
+    // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName
+    final class ACF
+    {
+        /** Marks this as CtrlField's stand-in (see AcfApi::isRealAcf()). */
+        public const CTRLFIELD_SHIM = true;
+
+        public string $version = '6.3.0';
+
+        public function get_setting(string $name, mixed $default = null): mixed // phpcs:ignore
+        {
+            return acf_get_setting($name, $default);
+        }
+
+        public function update_setting(string $name, mixed $value): bool // phpcs:ignore
+        {
+            return acf_update_setting($name, $value);
+        }
+    }
+}
+
+if (! function_exists('acf')) {
+    function acf(): ?object
+    {
+        static $instance = null;
+        if ($instance === null && class_exists('ACF', false)) {
+            $instance = new ACF();
+        }
+
+        return $instance;
+    }
+}

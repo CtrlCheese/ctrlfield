@@ -275,23 +275,24 @@ class WordPressServiceProvider extends ServiceProvider
                     <p><?php esc_html_e('Settings saved.', 'ctrlfield'); ?></p>
                 </div>
             <?php endif; ?>
+            <?php foreach ($this->takeOptionsErrors($key) as $error): ?>
+                <div class="notice notice-error"><p><?php echo esc_html($error); ?></p></div>
+            <?php endforeach; ?>
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
                 <?php wp_nonce_field($action, "_ctrlfield_nonce_{$key}"); ?>
                 <input type="hidden" name="action" value="<?php echo esc_attr($action); ?>">
-                <table class="form-table" role="presentation">
-                    <?php foreach ($this->optionsPageFields($page) as $field): ?>
-                        <tr>
-                            <th scope="row">
-                                <label for="ctrlfield_<?php echo esc_attr($field->getKey()); ?>">
-                                    <?php echo esc_html($field->getDefinition()['label'] ?: $field->getKey()); ?>
-                                </label>
-                            </th>
-                            <td>
-                                <?php $this->renderBasicField($field, $saved[$field->getKey()] ?? null, 'ctrlfield_field'); ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </table>
+                <?php
+                // The same field UI as posts: tabs, groups, repeaters, WYSIWYG, drag and drop.
+                $renderer = new \CtrlField\Admin\MetaBox\MetaBoxRenderer();
+                foreach ($this->optionsPageGroups($page) as $group) {
+                    echo '<div class="postbox ctrlfield-options-group"><div class="inside">';
+                    if ($group->getTitle() !== '' && $group->getStyle() !== 'seamless') {
+                        echo '<h2 class="ctrlfield-options-group__title">' . esc_html($group->getTitle()) . '</h2>';
+                    }
+                    $renderer->renderStoredGroup($group, $saved);
+                    echo '</div></div>';
+                }
+                ?>
                 <?php submit_button(); ?>
             </form>
         </div>
@@ -307,13 +308,29 @@ class WordPressServiceProvider extends ServiceProvider
     private function optionsPageFields(OptionsPage $page): array
     {
         $fields = [];
-        foreach (\CtrlField\Registry\ContextRegistry::resolve(new \CtrlField\Builder\AdminContext(optionsPage: $page->getKey())) as $group) {
+        foreach ($this->optionsPageGroups($page) as $group) {
             foreach ($group->getFields() as $field) {
                 $fields[$field->getKey()] = $field;
             }
         }
 
         return array_values($fields);
+    }
+
+    /** @return list<\CtrlField\Builder\FieldGroup> */
+    private function optionsPageGroups(OptionsPage $page): array
+    {
+        return array_values(\CtrlField\Registry\ContextRegistry::resolve(new \CtrlField\Builder\AdminContext(optionsPage: $page->getKey())));
+    }
+
+    /** @return list<string> */
+    private function takeOptionsErrors(string $key): array
+    {
+        $tx     = 'ctrlfield_options_errors_' . get_current_user_id() . '_' . md5($key);
+        $errors = get_transient($tx);
+        delete_transient($tx);
+
+        return is_array($errors) ? array_values(array_map('strval', $errors)) : [];
     }
 
     private function saveOptionsPage(OptionsPage $page): void
@@ -332,18 +349,34 @@ class WordPressServiceProvider extends ServiceProvider
             wp_die(esc_html__('You do not have permission to save these settings.', 'ctrlfield'));
         }
 
-        $posted = isset($_POST['ctrlfield_field']) && is_array($_POST['ctrlfield_field'])
-            ? $_POST['ctrlfield_field']
+        // One JSON payload per group (MetaBoxRenderer), validated and sanitized
+        // like a post save; invalid fields are skipped and reported.
+        $payloads = isset($_POST['ctrlfield_payload']) && is_array($_POST['ctrlfield_payload'])
+            ? (array) wp_unslash($_POST['ctrlfield_payload'])
             : [];
-
-        $data = [];
-        foreach ($this->optionsPageFields($page) as $field) {
-            $raw                      = $posted[$field->getKey()] ?? null;
-            $data[$field->getKey()]   = $this->sanitizeField($field, $raw);
+        $values = [];
+        foreach ($payloads as $json) {
+            $decoded = is_string($json) ? json_decode($json, true) : null;
+            if (is_array($decoded)) {
+                $values = array_merge($values, $decoded);
+            }
         }
 
-        $adapter = new OptionsAdapter(new WpOptionsDriver());
-        $adapter->save($key, $data, SchemaVersion::CURRENT);
+        $defs = [];
+        foreach ($this->optionsPageFields($page) as $field) {
+            if (! $field->isUiOnly()) {
+                $defs[$field->getKey()] = $field;
+            }
+        }
+        $values  = array_intersect_key($values, $defs);
+        $skipped = \CtrlField\Data\FieldWriter::write('options', $key, $values, true, $defs);
+        if ($skipped !== []) {
+            $messages = [];
+            foreach ($skipped as $fieldKey => $why) {
+                $messages[] = sprintf('%s: %s', $fieldKey, $why);
+            }
+            set_transient('ctrlfield_options_errors_' . get_current_user_id() . '_' . md5($key), $messages, 300);
+        }
 
         $slug        = $page->getMenuSlug() ?: $key;
         $redirectUrl = add_query_arg(

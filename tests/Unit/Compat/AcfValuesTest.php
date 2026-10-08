@@ -39,7 +39,7 @@ final class AcfValuesTest extends TestCase
             ['name' => 'quote', 'sub_fields' => [['name' => 'text', 'type' => 'text']]],
         ]];
 
-        $this->assertSame([true, [['name' => 'Ana'], ['name' => 'Bruno', 'job_title' => 'Dev']]], AcfValues::readMeta($repeater, $get, 'team'));
+        $this->assertSame([true, [['name' => 'Ana'], ['name' => 'Bruno', 'Job_Title' => 'Dev']]], AcfValues::readMeta($repeater, $get, 'team'));
         $this->assertSame([true, ['city' => 'Berlin']], AcfValues::readMeta($group, $get, 'address'));
         $this->assertSame([false, []], AcfValues::readMeta($group, $get, 'nothing'));
         $this->assertSame(

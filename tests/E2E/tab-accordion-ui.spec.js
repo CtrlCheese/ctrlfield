@@ -69,7 +69,7 @@ test.describe('Tab and Accordion UI', () => {
             return;
         }
 
-        const body = accordion.locator('.ctrlf-accordion-body').first();
+        const body = accordion.locator('.ctrlf-accordion-content').first();
         await expect(body).not.toBeVisible();
     });
 
@@ -85,8 +85,8 @@ test.describe('Tab and Accordion UI', () => {
             return;
         }
 
-        const header = accordion.locator('.ctrlf-accordion-header').first();
-        const body   = accordion.locator('.ctrlf-accordion-body').first();
+        const header = accordion.locator('.ctrlf-accordion-toggle').first();
+        const body   = accordion.locator('.ctrlf-accordion-content').first();
 
         // Expand
         await header.click();
@@ -113,7 +113,7 @@ test.describe('Tab and Accordion UI', () => {
         }
 
         // Expand and fill a sub-field
-        await accordion.locator('.ctrlf-accordion-header').click();
+        await accordion.locator('.ctrlf-accordion-toggle').click();
         const subInput = accordion.locator('input[type="text"]').first();
         if (await subInput.isVisible()) {
             await subInput.fill('Accordion Value E2E');
@@ -126,7 +126,7 @@ test.describe('Tab and Accordion UI', () => {
         await expect(container).toBeVisible({ timeout: 10_000 });
 
         const reloadedAccordion = container.locator('.ctrlf-accordion').first();
-        await reloadedAccordion.locator('.ctrlf-accordion-header').click();
+        await reloadedAccordion.locator('.ctrlf-accordion-toggle').click();
 
         const reloadedInput = reloadedAccordion.locator('input[type="text"]').first();
         if (await reloadedInput.isVisible()) {

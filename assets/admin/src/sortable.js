@@ -37,6 +37,9 @@ export function itemKey(item, raw = (v) => v) {
 
 let listCounter = 0;
 
+// Editors that cannot survive a DOM move (TinyMCE iframes) listen to these.
+const announce = (name) => document.dispatchEvent(new CustomEvent(name));
+
 export function registerSortable(Alpine) {
     Alpine.magic('ctrlfKey', () => (item) => itemKey(item, Alpine.raw));
 
@@ -78,18 +81,25 @@ export function registerSortable(Alpine) {
             // attribute on the live item.
             onChoose: (evt) => Alpine.mutateDom(() => evt.item.setAttribute('x-ignore', '')),
             onUnchoose: (evt) => Alpine.mutateDom(() => evt.item.removeAttribute('x-ignore')),
-            onStart: () => document.body.classList.add('ctrlf-is-sorting'),
+            onStart: () => {
+                document.body.classList.add('ctrlf-is-sorting');
+                announce('ctrlf-sort-start');
+            },
             onEnd: (evt) => {
                 document.body.classList.remove('ctrlf-is-sorting');
                 const from = evt.oldDraggableIndex;
                 const to = evt.newDraggableIndex;
-                if (from === undefined || to === undefined || from === to) return;
+                if (from === undefined || to === undefined || from === to) {
+                    announce('ctrlf-sort-end');
+                    return;
+                }
 
                 // Undo Sortable's DOM move; Alpine re-orders the keyed nodes from the data.
                 const current = items().filter((n) => n !== evt.item);
                 const anchor = current[from] ?? null;
                 el.insertBefore(evt.item, anchor ?? (current.length ? current[current.length - 1].nextSibling : null));
                 move(from, to);
+                Alpine.nextTick(() => announce('ctrlf-sort-end'));
             },
         });
 
@@ -111,8 +121,12 @@ export function registerSortable(Alpine) {
             const from = nodes.indexOf(item);
             const to = from + delta;
             if (from < 0 || to < 0 || to >= nodes.length) return;
+            announce('ctrlf-sort-start');
             list._ctrlfMove(from, to);
-            Alpine.nextTick(() => el.focus());
+            Alpine.nextTick(() => {
+                announce('ctrlf-sort-end');
+                el.focus();
+            });
         };
         el.addEventListener('keydown', onKey);
         cleanup(() => el.removeEventListener('keydown', onKey));

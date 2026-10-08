@@ -23,7 +23,8 @@ final class AcfConverterTest extends TestCase
 
     public function test_keys_follow_acf_names(): void
     {
-        $this->assertSame('hero_title', AcfConverter::keyFor('hero-Title'));
+        $this->assertSame('hero_Title', AcfConverter::keyFor('hero-Title'));
+        $this->assertSame('contentHtml', AcfConverter::keyFor('contentHtml'), 'camelCase is kept');
         $this->assertSame('f_1st', AcfConverter::keyFor('1st'));
         $this->assertSame('a_b', AcfConverter::keyFor('__a  b__'));
     }
@@ -58,9 +59,10 @@ final class AcfConverterTest extends TestCase
             ['key' => 'field_3', 'name' => '', 'label' => 'Acc', 'type' => 'accordion'],
         ]);
 
-        $this->assertCount(1, $r['group']['fields']);
-        $this->assertSame(['Hero-Title' => 'hero_title'], $r['names']);
-        $this->assertCount(2, $r['warnings']);
+        $this->assertSame(['text', 'accordion'], array_column($r['group']['fields'], 'type'), 'clone skipped, accordion kept');
+        $this->assertTrue($r['group']['fields'][1]['closed'], 'ACF accordions start closed');
+        $this->assertSame(['Hero-Title' => 'Hero_Title'], $r['names']);
+        $this->assertCount(2, $r['warnings'], 'rename + unsupported clone');
     }
 
     public function test_type_specific_settings(): void

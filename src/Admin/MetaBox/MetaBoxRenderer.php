@@ -6,7 +6,10 @@ namespace CtrlField\Admin\MetaBox;
 
 use CtrlField\Builder\FieldGroup;
 use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Contracts\FlexibleContentInterface;
+use CtrlField\Fields\Contracts\NestedFieldInterface;
 use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Renderers\FieldLayout;
 use CtrlField\Fields\Renderers\RendererRegistry;
 use CtrlField\Fields\Types\GroupField;
 use CtrlField\Fields\Types\RelationshipField;
@@ -28,14 +31,27 @@ use CtrlField\Storage\RelationshipAdapter;
  */
 class MetaBoxRenderer
 {
+    /** @var array<string, mixed> values of the group being rendered (for ctrlfield/prepare_field) */
+    private array $currentValues = [];
+
     /**
      * Renders a single FieldGroup as a standalone Alpine component.
      */
     public function renderGroup(int $postId, FieldGroup $group): void
     {
-        $adapter    = new PostMetaAdapter(new WpPostMetaDriver());
-        $stored     = $adapter->load($postId) ?? [];
+        $adapter = new PostMetaAdapter(new WpPostMetaDriver());
+        $this->renderStoredGroup($group, $adapter->load($postId) ?? [], $postId);
+    }
+
+    /**
+     * Same UI for values that do not live in post meta (options pages).
+     *
+     * @param array<string, mixed> $stored
+     */
+    public function renderStoredGroup(FieldGroup $group, array $stored, int $postId = 0): void
+    {
         $values     = $this->buildValues([$group], $stored, $postId);
+        $this->currentValues = $values;
         $conditions = $this->buildConditions([$group]);
         $initJs     = $this->alpineInit($values, $conditions, [$group]);
 
@@ -52,16 +68,7 @@ class MetaBoxRenderer
             <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
 
             <div class="ctrlf-group-section">
-                <?php
-                $tabInfo = $this->extractTabSections($group->getFields());
-                if ($tabInfo['hasTabs']) {
-                    $this->renderGroupWithTabs($groupKey, $tabInfo, $labelPlacement, $instrPlacement);
-                } else {
-                    foreach ($group->getFields() as $field) {
-                        $this->renderField($field, $labelPlacement, $instrPlacement);
-                    }
-                }
-                ?>
+                <?= $this->renderFields($group->getFields(), $labelPlacement, $instrPlacement) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped per field ?>
             </div>
 
             <input type="hidden"
@@ -99,9 +106,7 @@ class MetaBoxRenderer
                     <h4 class="ctrlf-group-title"><?= esc_html($group->getTitle()) ?></h4>
                     <?php endif; ?>
 
-                    <?php foreach ($group->getFields() as $field): ?>
-                        <?php $this->renderField($field, 'top', 'label'); ?>
-                    <?php endforeach; ?>
+                    <?= $this->renderFields($group->getFields(), 'top', 'label') // phpcs:ignore WordPress.Security.EscapeOutput ?>
                 </div>
                 <?php endif; ?>
             <?php endforeach; ?>
@@ -123,9 +128,9 @@ class MetaBoxRenderer
         string $instrPlacement,
     ): void {
         // UI-only fields bypass the standard label/input wrapper.
-        // Tab fields are handled entirely by renderGroupWithTabs() — skip here.
+        // Tabs and accordions are laid out by FieldLayout — skip here.
         if ($field->isUiOnly()) {
-            if ($field->getType() === FieldType::TAB) {
+            if (in_array($field->getType(), [FieldType::TAB, FieldType::ACCORDION, FieldType::ACCORDION_END], true)) {
                 return;
             }
             $renderer = RendererRegistry::resolve($field->getType());
@@ -134,10 +139,13 @@ class MetaBoxRenderer
         }
 
         $key          = $field->getKey();
-        $definition   = $field->getDefinition();
-        $label        = $definition['label'] ?: $key;
+        $ui           = \CtrlField\Fields\Renderers\AbstractRenderer::prepare($field, $this->currentValues[$key] ?? null);
+        if ($ui['hidden']) {
+            return;
+        }
+        $label        = $ui['label'];
         $required     = $field->isRequired();
-        $instructions = $field->getInstructions();
+        $instructions = $ui['instructions'];
         $statePath    = "adminState['{$key}']";
         $renderer     = RendererRegistry::resolve($field->getType());
         $width        = $field->getWidth();
@@ -154,109 +162,29 @@ class MetaBoxRenderer
                     <span class="ctrlf-required" aria-hidden="true">*</span>
                 <?php endif; ?>
                 <?php if ($instructions !== '' && $instrPlacement === 'label'): ?>
-                    <span class="ctrlf-instructions"><?= esc_html($instructions) ?></span>
+                    <span class="ctrlf-instructions"><?= \CtrlField\Fields\Renderers\AbstractRenderer::instructionsHtml($instructions) // phpcs:ignore WordPress.Security.EscapeOutput -- wp_kses_post ?></span>
                 <?php endif; ?>
             </label>
             <?= $renderer->render($field, $statePath) ?>
             <?php if ($instructions !== '' && $instrPlacement === 'field'): ?>
-                <p class="ctrlf-instructions"><?= esc_html($instructions) ?></p>
+                <p class="ctrlf-instructions"><?= \CtrlField\Fields\Renderers\AbstractRenderer::instructionsHtml($instructions) // phpcs:ignore WordPress.Security.EscapeOutput -- wp_kses_post ?></p>
             <?php endif; ?>
         </div>
         <?php
     }
 
-    // -------------------------------------------------------------------------
-    // Tab grouping
-    // -------------------------------------------------------------------------
-
     /**
-     * Analyses a flat list of fields and separates them into tab sections.
+     * Fields with their accordions and tabs (FieldLayout), as one HTML string.
      *
-     * @param  FieldDefinition[] $fields
-     * @return array{hasTabs: bool, beforeTabs: list<FieldDefinition>, sections: list<array{key: string, label: string, fields: list<FieldDefinition>}>}
+     * @param array<int, FieldDefinition> $fields
      */
-    private function extractTabSections(array $fields): array
+    private function renderFields(array $fields, string $labelPlacement, string $instrPlacement): string
     {
-        $hasTabs    = false;
-        $beforeTabs = [];
-        $sections   = [];
-        $open       = null; // section being filled, copied into $sections when the next tab starts
-
-        foreach ($fields as $field) {
-            if ($field instanceof TabField) {
-                if ($open !== null) {
-                    $sections[] = $open;
-                }
-                $hasTabs = true;
-                $def     = $field->getDefinition();
-                $open    = [
-                    'key'    => $field->getKey(),
-                    'label'  => $def['label'] ?: $field->getKey(),
-                    'fields' => [],
-                ];
-            } elseif ($open !== null) {
-                $open['fields'][] = $field;
-            } else {
-                $beforeTabs[] = $field;
-            }
-        }
-
-        if ($open !== null) {
-            $sections[] = $open;
-        }
-        // No PHP references here on purpose: the previous version kept one to the
-        // open section, and assigning the next tab through it overwrote every
-        // earlier section — all tabs showed the last label and repeated its fields.
-
-        return [
-            'hasTabs'    => $hasTabs,
-            'beforeTabs' => $beforeTabs,
-            'sections'   => $sections,
-        ];
-    }
-
-    /**
-     * Renders fields that contain at least one tab divider.
-     *
-     * @param array{hasTabs: bool, beforeTabs: list<FieldDefinition>, sections: list<array{key: string, label: string, fields: list<FieldDefinition>}>} $tabInfo
-     */
-    private function renderGroupWithTabs(
-        string $groupKey,
-        array  $tabInfo,
-        string $labelPlacement,
-        string $instrPlacement,
-    ): void {
-        $sections    = $tabInfo['sections'];
-        $beforeTabs  = $tabInfo['beforeTabs'];
-        $firstTabKey = ! empty($sections) ? esc_js($sections[0]['key']) : '';
-        $escapedGroup = esc_js($groupKey);
-
-        ?>
-        <div class="ctrlf-tabs">
-            <div class="ctrlf-tabs-nav">
-                <?php foreach ($sections as $section): ?>
-                    <button type="button" class="ctrlf-tab-btn"
-                        :class="{'is-active': (activeTabs['<?= $escapedGroup ?>'] ?? '<?= esc_js($sections[0]['key']) ?>') === '<?= esc_js($section['key']) ?>'}"
-                        @click="activeTabs['<?= $escapedGroup ?>'] = '<?= esc_js($section['key']) ?>'">
-                        <?= esc_html($section['label']) ?>
-                    </button>
-                <?php endforeach; ?>
-            </div>
-
-            <?php foreach ($beforeTabs as $field): ?>
-                <?php $this->renderField($field, $labelPlacement, $instrPlacement); ?>
-            <?php endforeach; ?>
-
-            <?php foreach ($sections as $section): ?>
-                <div class="ctrlf-tab-panel"
-                     x-show="(activeTabs['<?= $escapedGroup ?>'] ?? '<?= esc_js($sections[0]['key']) ?>') === '<?= esc_js($section['key']) ?>'">
-                    <?php foreach ($section['fields'] as $field): ?>
-                        <?php $this->renderField($field, $labelPlacement, $instrPlacement); ?>
-                    <?php endforeach; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <?php
+        return FieldLayout::render(array_values($fields), function (FieldDefinition $field) use ($labelPlacement, $instrPlacement): string {
+            ob_start();
+            $this->renderField($field, $labelPlacement, $instrPlacement);
+            return (string) ob_get_clean();
+        });
     }
 
     // -------------------------------------------------------------------------
@@ -329,15 +257,44 @@ class MetaBoxRenderer
             return array_values(array_filter(array_map('intval', array_filter($list, 'is_scalar')), static fn (int $i) => $i > 0));
         };
 
+        // Walk nested values too: images and posts inside groups, repeater rows
+        // and flexible content sections need their thumbnails / titles as well.
+        $visit = static function (FieldDefinition $field, mixed $value) use (&$visit, $ids, &$postIds, &$termIds, &$attachmentIds): void {
+            match ($field->getType()) {
+                FieldType::POST_OBJECT, FieldType::RELATIONSHIP => $postIds = array_merge($postIds, $ids($value)),
+                FieldType::TAXONOMY_TERM                        => $termIds = array_merge($termIds, $ids($value)),
+                FieldType::IMAGE, FieldType::GALLERY            => $attachmentIds = array_merge($attachmentIds, $ids($value)),
+                default                                         => null,
+            };
+            if (! is_array($value)) {
+                return;
+            }
+            if ($field->getType() === FieldType::GROUP && $field instanceof NestedFieldInterface) {
+                foreach ($field->getFields() as $sub) {
+                    $visit($sub, $value[$sub->getKey()] ?? null);
+                }
+            } elseif ($field->getType() === FieldType::REPEATER && $field instanceof NestedFieldInterface) {
+                foreach ($value as $row) {
+                    foreach ($field->getFields() as $sub) {
+                        $visit($sub, is_array($row) ? ($row[$sub->getKey()] ?? null) : null);
+                    }
+                }
+            } elseif ($field instanceof FlexibleContentInterface) {
+                foreach ($value as $row) {
+                    $layout = is_array($row) ? (string) ($row['_layout'] ?? '') : '';
+                    if (! in_array($layout, $field->getLayoutKeys(), true)) {
+                        continue;
+                    }
+                    foreach ($field->getLayoutFields($layout) as $sub) {
+                        $visit($sub, $row[$sub->getKey()] ?? null);
+                    }
+                }
+            }
+        };
+
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
-                $value = $values[$field->getKey()] ?? null;
-                match ($field->getType()) {
-                    FieldType::POST_OBJECT, FieldType::RELATIONSHIP => $postIds = array_merge($postIds, $ids($value)),
-                    FieldType::TAXONOMY_TERM                        => $termIds = array_merge($termIds, $ids($value)),
-                    FieldType::IMAGE, FieldType::GALLERY            => $attachmentIds = array_merge($attachmentIds, $ids($value)),
-                    default                                         => null,
-                };
+                $visit($field, $values[$field->getKey()] ?? null);
             }
         }
 

@@ -1529,3 +1529,18 @@ msgstr "Zeile"
 
 msgid "There are no sections yet."
 msgstr "Noch keine Abschnitte."
+
+msgid "Accordion"
+msgstr "Akkordeon"
+
+msgid "Accordion end"
+msgstr "Akkordeon-Ende"
+
+msgid "An accordion runs until the next accordion or an \"Accordion end\"."
+msgstr "Ein Akkordeon reicht bis zum nächsten Akkordeon oder bis zu einem \"Akkordeon-Ende\"."
+
+msgid "Start closed"
+msgstr "Geschlossen starten"
+
+msgid "The section is collapsed until opened"
+msgstr "Der Abschnitt bleibt zugeklappt, bis er geöffnet wird"

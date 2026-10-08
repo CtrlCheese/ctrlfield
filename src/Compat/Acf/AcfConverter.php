@@ -24,7 +24,7 @@ final class AcfConverter
         'taxonomy' => 'taxonomy_term', 'user' => 'user',
         'google_map' => 'map', 'date_picker' => 'date', 'date_time_picker' => 'datetime', 'time_picker' => 'time',
         'color_picker' => 'color', 'icon_picker' => 'icon',
-        'message' => 'message', 'tab' => 'tab',
+        'message' => 'message', 'tab' => 'tab', 'accordion' => 'accordion',
         'group' => 'group', 'repeater' => 'repeater', 'flexible_content' => 'flexible_content',
     ];
 
@@ -80,13 +80,16 @@ final class AcfConverter
         return ['group' => $group, 'warnings' => $this->warnings, 'fieldKeys' => $this->fieldKeys, 'names' => $names];
     }
 
-    /** A CtrlField key for an ACF field name (ACF allows hyphens and capitals). */
+    /**
+     * A CtrlField key for an ACF field name. Case is kept (templates read
+     * contentHtml, not contenthtml); hyphens, spaces and accents are not.
+     */
     public static function keyFor(string $acfName): string
     {
         if (function_exists('remove_accents')) {
             $acfName = remove_accents($acfName); // "Opções" → "Opcoes"
         }
-        $key = strtolower((string) preg_replace('/[^A-Za-z0-9_]+/', '_', $acfName));
+        $key = (string) preg_replace('/[^A-Za-z0-9_]+/', '_', $acfName);
         $key = trim($key, '_');
         if ($key === '' || ! ctype_alpha($key[0])) {
             $key = 'f_' . $key;
@@ -130,15 +133,16 @@ final class AcfConverter
         $name    = (string) ($f['name'] ?? '');
         $shown   = $label !== '' ? $label : $name;
 
-        if ($acfType === 'accordion') {
-            return null; // layout only; nothing is stored
-        }
         if (! isset(self::TYPES[$acfType])) {
             $this->warnings[] = sprintf(__('Field "%1$s": the ACF type "%2$s" is not supported and was skipped.', 'ctrlfield'), $shown, $acfType);
             return null;
         }
 
         $type = self::TYPES[$acfType];
+        // An accordion with "endpoint" closes the open one instead of starting a new one.
+        if ($acfType === 'accordion' && ! empty($f['endpoint'])) {
+            $type = 'accordion_end';
+        }
         // Tabs and messages have no name in ACF.
         $key = self::keyFor($name !== '' ? $name : ($type . '_' . substr(md5((string) ($f['key'] ?? $label)), 0, 6)));
         if ($name !== '' && $key !== $name) {
@@ -281,6 +285,11 @@ final class AcfConverter
                 break;
             case 'message':
                 $out['content'] = (string) ($f['message'] ?? '');
+                break;
+            case 'accordion':
+                if ($type === 'accordion' && empty($f['open'])) {
+                    $out['closed'] = true; // ACF accordions start closed unless "open" is set
+                }
                 break;
             case 'group':
             case 'repeater':

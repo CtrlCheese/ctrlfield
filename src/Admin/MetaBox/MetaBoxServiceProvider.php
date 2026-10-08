@@ -79,7 +79,7 @@ class MetaBoxServiceProvider extends ServiceProvider
 
     public function enqueueAssets(string $hook): void
     {
-        if (! in_array($hook, ['post.php', 'post-new.php'], true)) {
+        if (! in_array($hook, ['post.php', 'post-new.php'], true) && ! self::isOptionsPageScreen()) {
             return;
         }
 
@@ -114,9 +114,28 @@ class MetaBoxServiceProvider extends ServiceProvider
         // WP media library — needed for image/file fields
         wp_enqueue_media();
 
+        // TinyMCE + Quicktags for WYSIWYG fields (initialised per instance in JS).
+        wp_enqueue_editor();
+
         // CodeMirror — needed for code editor fields
         wp_enqueue_script('wp-codemirror');
         wp_enqueue_style('wp-codemirror');
+    }
+
+    /** An options page (OptionsPage / acf_add_options_page) uses the same field UI. */
+    private static function isOptionsPageScreen(): bool
+    {
+        $page = isset($_GET['page']) ? sanitize_key(wp_unslash((string) $_GET['page'])) : '';
+        if ($page === '') {
+            return false;
+        }
+        foreach (\CtrlField\Builder\OptionsPage::all() as $key => $options) {
+            if (strtolower($options->getMenuSlug() ?: (string) $key) === $page) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function onSavePost(int $postId): void

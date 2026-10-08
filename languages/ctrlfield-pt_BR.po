@@ -1529,3 +1529,18 @@ msgstr "Linha"
 
 msgid "There are no sections yet."
 msgstr "Ainda não há seções."
+
+msgid "Accordion"
+msgstr "Acordeão"
+
+msgid "Accordion end"
+msgstr "Fim do acordeão"
+
+msgid "An accordion runs until the next accordion or an \"Accordion end\"."
+msgstr "Um acordeão vai até o próximo acordeão ou até um \"Fim do acordeão\"."
+
+msgid "Start closed"
+msgstr "Começa fechado"
+
+msgid "The section is collapsed until opened"
+msgstr "A seção fica recolhida até ser aberta"

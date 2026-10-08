@@ -432,6 +432,7 @@ final class FieldGroupsPage
         $row('max', __('Maximum', 'ctrlfield'), $text('max', 'number'));
         $row('step', __('Step', 'ctrlfield'), $text('step', 'number'));
         $row('message', __('Message', 'ctrlfield'), $text('message'), __('Text shown next to the checkbox.', 'ctrlfield'));
+        $row('closed', __('Start closed', 'ctrlfield'), $check('closed', __('The section is collapsed until opened', 'ctrlfield')), __('An accordion runs until the next accordion or an "Accordion end".', 'ctrlfield'));
         $row('content', __('Message', 'ctrlfield'), '<textarea class="large-text" rows="3" x-model="field.content"></textarea>');
         $row('format', __('Display format', 'ctrlfield'), $text('format'), __('PHP date format, e.g. d/m/Y. Empty: the site\'s format.', 'ctrlfield'));
         $row('postType', __('Post types', 'ctrlfield'), $select('postType', $postTypes, true), __('Empty: all post types.', 'ctrlfield'));
@@ -608,6 +609,7 @@ final class FieldGroupsPage
             'tab' => __('Tab', 'ctrlfield'), 'message' => __('Message', 'ctrlfield'), 'separator' => __('Separator', 'ctrlfield'),
             'repeater' => __('Repeater', 'ctrlfield'), 'gallery' => __('Gallery', 'ctrlfield'),
             'flexible_content' => __('Flexible Content (layouts edited in PHP)', 'ctrlfield'),
+            'accordion' => __('Accordion', 'ctrlfield'), 'accordion_end' => __('Accordion end', 'ctrlfield'),
         ];
     }
 
@@ -620,7 +622,7 @@ final class FieldGroupsPage
             __('Choice', 'ctrlfield')     => ['select', 'checkbox', 'radio', 'button_group', 'true_false'],
             __('Relational', 'ctrlfield') => ['link', 'post_object', 'page_link', 'relationship', 'taxonomy_term', 'user'],
             __('Advanced', 'ctrlfield')   => ['date', 'datetime', 'time', 'color', 'map', 'icon', 'code'],
-            __('Layout', 'ctrlfield')     => ['group', 'repeater', 'flexible_content', 'tab', 'message', 'separator'],
+            __('Layout', 'ctrlfield')     => ['group', 'repeater', 'flexible_content', 'tab', 'accordion', 'accordion_end', 'message', 'separator'],
         ];
     }
 

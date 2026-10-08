@@ -39,7 +39,7 @@ final class JsonGroup
         'email'         => ['email', ['placeholder', 'default'], false],
         'url'           => ['url', ['placeholder', 'default'], false],
         'password'      => ['password', ['placeholder'], false],
-        'wysiwyg'       => ['wysiwyg', [], false],
+        'wysiwyg'       => ['wysiwyg', ['default'], false],
         'range'         => ['range', ['min', 'max', 'step', 'default'], false],
         'select'        => ['select', ['options', 'default', 'returnFormat'], false],
         'radio'         => ['radio', ['options', 'default', 'returnFormat'], false],
@@ -64,6 +64,8 @@ final class JsonGroup
         'code'          => ['code', ['language'], false],
         'group'         => ['object', ['fields'], false],
         'tab'           => ['tab', [], false],
+        'accordion'     => ['accordion', ['closed'], false],
+        'accordion_end' => ['accordionEnd', [], false],
         'message'       => ['message', ['content'], false],
         'separator'     => ['separator', [], false],
         'repeater'      => ['repeater', ['fields'], true],
@@ -76,11 +78,12 @@ final class JsonGroup
     private const COMMON = ['required', 'instructions', 'width', 'showInRest', 'adminColumn', 'visibleWhen'];
 
     /** Types that hold no value (layout only): no required / column / REST. */
-    private const LAYOUT_TYPES = ['tab', 'message', 'separator'];
+    private const LAYOUT_TYPES = ['tab', 'message', 'separator', 'accordion', 'accordion_end'];
 
     /** Setting => kind. Only these reach a FieldDefinition method. */
     private const SETTINGS = [
         'required'        => 'bool',
+        'closed'          => 'bool',
         'instructions'    => 'text',
         'width'           => 'width',
         'showInRest'      => 'bool',
@@ -117,7 +120,9 @@ final class JsonGroup
     public const STYLES             = ['default', 'seamless'];
     public const LABEL_PLACEMENTS   = ['top', 'left'];
 
-    private const KEY_PATTERN = '/^[a-z][a-z0-9_]{0,63}$/';
+    // Mixed case is allowed: ACF themes use camelCase names (contentHtml) and
+    // templates read them by that exact name. The editor proposes lowercase.
+    private const KEY_PATTERN = '/^[A-Za-z][A-Za-z0-9_]{0,63}$/';
     private const MAX_DEPTH   = 5;
     private const MAX_FIELDS  = 300;
 
@@ -266,7 +271,10 @@ final class JsonGroup
                     $field['layouts'] = self::normalizeLayouts($f['layouts'], $depth, $errors, $count);
                     continue;
                 }
-                $value = self::cleanSetting($setting, $f[$setting]);
+                // A WYSIWYG default is HTML: keep safe markup instead of plain text.
+                $value = $setting === 'default' && $type === 'wysiwyg'
+                    ? (is_scalar($f['default']) && ($html = mb_substr(wp_kses_post((string) $f['default']), 0, 5000)) !== '' ? $html : null)
+                    : self::cleanSetting($setting, $f[$setting]);
                 if ($value !== null) {
                     $field[$setting] = $value;
                 }
@@ -557,6 +565,9 @@ final class JsonGroup
                 case 'bidirectional':
                 case 'allowNull':
                     $calls[] = [$setting, []];
+                    break;
+                case 'closed':
+                    $calls[] = ['open', [false]];
                     break;
                 case 'adminColumn':
                     // A column needs the index row (sorting / filtering).
