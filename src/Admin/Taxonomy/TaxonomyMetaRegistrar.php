@@ -78,6 +78,8 @@ class TaxonomyMetaRegistrar
             rawPost:         $_POST,
             adapterOverride: new TermMetaAdapter(),
             contextOverride: new AdminContext(taxonomy: $taxonomy),
+            capability:       '',
+            objectCapability: 'edit_term',
         );
     }
 

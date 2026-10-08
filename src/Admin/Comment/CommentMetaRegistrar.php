@@ -75,6 +75,8 @@ class CommentMetaRegistrar
             rawPost:         $_POST,
             adapterOverride: new CommentMetaAdapter(),
             contextOverride: new AdminContext(contextType: 'comment'),
+            capability:       '',
+            objectCapability: 'edit_comment',
         );
     }
 }

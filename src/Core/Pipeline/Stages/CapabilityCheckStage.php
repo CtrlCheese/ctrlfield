@@ -16,12 +16,15 @@ class CapabilityCheckStage implements StageInterface
     public function __construct(
         private readonly CapabilityCheckerInterface $checker,
         private readonly string $capability = 'edit_posts',
+        // Meta capability for the object being saved: edit_post, edit_user,
+        // edit_term or edit_comment. Checked against the context's ID.
+        private readonly string $objectCapability = 'edit_post',
     ) {}
 
     public function handle(PipelineContext $context): void
     {
-        // Base capability gate
-        if (! $this->checker->currentUserCan($this->capability)) {
+        // Base capability gate ('' = none: the object check below is enough)
+        if ($this->capability !== '' && ! $this->checker->currentUserCan($this->capability)) {
             throw new PipelineException(
                 errorCode:    'INSUFFICIENT_CAPABILITY',
                 errorMessage: "You do not have permission to save these fields ({$this->capability}).",
@@ -30,12 +33,14 @@ class CapabilityCheckStage implements StageInterface
             );
         }
 
-        // Per-post check: being able to edit posts in general is not being able to
-        // edit THIS post (an author saving someone else's post).
-        if ($context->postId > 0 && ! $this->checker->currentUserCan('edit_post', $context->postId)) {
+        // Per-object check: being able to edit posts in general is not being able
+        // to edit THIS post (an author saving someone else's post).
+        if ($context->postId > 0 && ! $this->checker->currentUserCan($this->objectCapability, $context->postId)) {
             throw new PipelineException(
                 errorCode:    'INSUFFICIENT_CAPABILITY',
-                errorMessage: 'You do not have permission to edit this post.',
+                errorMessage: $this->objectCapability === 'edit_post'
+                    ? 'You do not have permission to edit this post.'
+                    : "You do not have permission to edit this item ({$this->objectCapability}).",
                 fieldKey:     null,
                 stageName:    self::NAME,
             );

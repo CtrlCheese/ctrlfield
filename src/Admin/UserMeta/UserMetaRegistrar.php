@@ -56,6 +56,8 @@ class UserMetaRegistrar
             rawPost:         $_POST,
             adapterOverride: new UserMetaAdapter(),
             contextOverride: AdminContext::forUser($userId),
+            capability:       '',
+            objectCapability: 'edit_user',
         );
     }
 }

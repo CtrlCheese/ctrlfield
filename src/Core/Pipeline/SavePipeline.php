@@ -50,13 +50,20 @@ class SavePipeline
     /**
      * WP admin / save_post entry point (full pipeline including nonce + capability).
      *
+     * Users, terms and comments pass their own capabilities: the default
+     * edit_post check would read the user / term / comment ID as a post ID.
+     *
      * @param array<string, mixed> $rawPost
+     * @param string $capability       general capability ('' = none)
+     * @param string $objectCapability meta capability checked against $entityId
      */
     public static function run(
         int $entityId,
         array $rawPost,
         ?StorageAdapterInterface $adapterOverride = null,
         ?AdminContext $contextOverride = null,
+        string $capability = 'edit_posts',
+        string $objectCapability = 'edit_post',
     ): void {
         if ($contextOverride !== null) {
             $adminContext = $contextOverride;
@@ -81,7 +88,7 @@ class SavePipeline
 
         $context  = new PipelineContext($entityId, $unslashed, array_values($groups));
         $adapter  = $adapterOverride ?? new PostMetaAdapter(new WpPostMetaDriver());
-        $pipeline = new self(self::buildFullStages($adapter));
+        $pipeline = new self(self::buildFullStages($adapter, $capability, $objectCapability));
 
         self::dispatch($pipeline, $context, $entityId, $unslashed);
     }
@@ -147,11 +154,14 @@ class SavePipeline
      *
      * @return StageInterface[]
      */
-    private static function buildFullStages(StorageAdapterInterface $adapter): array
-    {
+    private static function buildFullStages(
+        StorageAdapterInterface $adapter,
+        string $capability = 'edit_posts',
+        string $objectCapability = 'edit_post',
+    ): array {
         return [
             new NonceValidationStage(new NonceValidator()),
-            new CapabilityCheckStage(new CapabilityChecker()),
+            new CapabilityCheckStage(new CapabilityChecker(), $capability, $objectCapability),
             ...self::buildDataStages($adapter),
         ];
     }
