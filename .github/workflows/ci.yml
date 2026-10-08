@@ -75,6 +75,9 @@ jobs:
       # and shell. Installed outside composer.json (see psalm.xml).
       - name: Taint analysis (Psalm)
         run: |
+          # The public Free repo has no pro/: analyse what exists.
+          [ -d pro/src ] || sed -i '/pro\/src/d' psalm.xml
+          mkdir -p "$RUNNER_TEMP/psalm"
           composer --working-dir="$RUNNER_TEMP/psalm" require --no-interaction --no-progress "vimeo/psalm:^6.0"
           "$RUNNER_TEMP/psalm/vendor/bin/psalm" --taint-analysis --no-progress --output-format=github
 
