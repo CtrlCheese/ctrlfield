@@ -43,7 +43,7 @@ final class CsvExporter
                 'fields'         => 'all',
             ]);
 
-            foreach ($query->posts as $post) {
+            foreach ($query->posts ?? [] as $post) {
                 /** @var \WP_Post $post */
                 $data   = FieldDataService::getInstance()->getAll($post->ID, 'post');
                 $row    = [$post->ID, $post->post_title, $post->post_status];

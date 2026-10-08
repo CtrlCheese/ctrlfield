@@ -122,7 +122,7 @@ final class SearchController
 
         $results = [];
 
-        foreach ($query->posts as $post) {
+        foreach ($query->posts ?? [] as $post) {
             $thumbnail = get_the_post_thumbnail_url($post->ID, [60, 60]);
             $results[] = [
                 'id'        => $post->ID,

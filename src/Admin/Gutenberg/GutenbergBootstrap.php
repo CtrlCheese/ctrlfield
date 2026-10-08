@@ -56,8 +56,9 @@ class GutenbergBootstrap
             ? (array) require $assetFile
             : ['dependencies' => [], 'version' => CTRLFIELD_VERSION];
 
-        /** @var string[] $dependencies */
-        $dependencies = is_array($asset['dependencies'] ?? null) ? $asset['dependencies'] : [];
+        $dependencies = is_array($asset['dependencies'] ?? null)
+            ? array_values(array_filter($asset['dependencies'], static fn ($d): bool => is_string($d) && $d !== ''))
+            : [];
         $version      = is_string($asset['version'] ?? null) ? $asset['version'] : CTRLFIELD_VERSION;
 
         wp_enqueue_script(
