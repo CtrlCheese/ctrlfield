@@ -19,6 +19,23 @@ Field::repeater(string $key): RepeaterField  // Pro
 ```
 The sub-fields for each row. Accepts any `FieldDefinition` instances.
 
+```php
+->minItems(int $min): static
+->maxItems(int $max): static
+```
+Row limits. At the maximum, **Add** and **Duplicate** are disabled ("Maximum of N rows reached"); below the minimum, saving shows an error on the field. Both are checked again when saving.
+
+```php
+->buttonLabel(string $label): static
+```
+Text of the **Add** button, e.g. `'Add button'`. Default: "Add Row".
+
+### Editing rows
+
+- **+** on the gap above a row inserts a row there; **Add** appends one, and the new row opens with the cursor in its first field.
+- **Duplicate** copies a row (with everything inside it) right below.
+- With 4 rows or more, an **Add** button also shows above the list (it adds at the top).
+
 ---
 
 ## Storage

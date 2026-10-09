@@ -155,6 +155,25 @@ class RulesVerificationStage implements StageInterface
             );
         }
 
+        // Per-layout limits (Pro FlexLayout::max()).
+        if (method_exists($definition, 'getLayoutMax')) {
+            $perLayout = array_count_values(array_map(
+                static fn ($i): string => is_array($i) && is_string($i['_layout'] ?? null) ? $i['_layout'] : '',
+                $instances
+            ));
+            foreach ($perLayout as $layoutKey => $n) {
+                $layoutMax = $definition->getLayoutMax((string) $layoutKey);
+                if ($layoutMax !== null && $n > $layoutMax) {
+                    throw new PipelineException(
+                        errorCode:    'VALIDATION_FAILED',
+                        errorMessage: "Field '{$key}' allows at most {$layoutMax} '{$layoutKey}' section(s), got {$n}.",
+                        fieldKey:     $key,
+                        stageName:    self::NAME,
+                    );
+                }
+            }
+        }
+
         // Required sub-field checks per layout instance
         foreach ($instances as $instance) {
             if (! is_array($instance)) {

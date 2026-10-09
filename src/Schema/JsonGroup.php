@@ -68,10 +68,11 @@ final class JsonGroup
         'accordion_end' => ['accordionEnd', [], false],
         'message'       => ['message', ['content'], false],
         'separator'     => ['separator', [], false],
-        'repeater'      => ['repeater', ['fields'], true],
+        'repeater'      => ['repeater', ['fields', 'minItems', 'maxItems', 'buttonLabel'], true],
+        'clone'         => ['clone', ['cloneFrom', 'clonePrefix', 'cloneDisplay'], true],
         'gallery'       => ['gallery', ['minItems', 'maxItems', 'returnFormat'], true],
         // Layouts are kept and registered, but edited in PHP (no editor UI yet).
-        'flexible_content' => ['flexibleContent', ['layouts'], true],
+        'flexible_content' => ['flexibleContent', ['layouts', 'globalBlocks', 'buttonLabel'], true],
     ];
 
     /** Settings every field type accepts (besides key / type / label). */
@@ -113,6 +114,11 @@ final class JsonGroup
         'noAnchors'       => 'bool',
         'toolbar'         => 'slug',
         'noMedia'         => 'bool',
+        'globalBlocks'    => 'bool',
+        'buttonLabel'     => 'string',
+        'cloneFrom'       => 'groupkey',
+        'clonePrefix'     => 'slug',
+        'cloneDisplay'    => ['seamless', 'group'],
         'styles'          => 'options',
         'language'        => 'slug',
         'fields'          => 'fields',
@@ -300,7 +306,7 @@ final class JsonGroup
 
     /**
      * @param  list<string> $errors
-     * @return list<array{key: string, label: string, fields: list<array<string, mixed>>}>
+     * @return list<array{key: string, label: string, fields: list<array<string, mixed>>, max?: int}>
      */
     private static function normalizeLayouts(mixed $raw, int $depth, array &$errors, int &$count): array
     {
@@ -313,11 +319,15 @@ final class JsonGroup
                 continue;
             }
             $seen[$key] = true;
-            $layouts[]  = [
+            $layout = [
                 'key'    => $key,
                 'label'  => self::text($l['label'] ?? '', 200),
                 'fields' => self::normalizeFields($l['fields'] ?? [], $depth + 1, $errors, $count),
             ];
+            if (is_numeric($l['max'] ?? null) && (int) $l['max'] > 0) {
+                $layout['max'] = (int) $l['max'];
+            }
+            $layouts[] = $layout;
         }
 
         return $layouts;
@@ -348,6 +358,8 @@ final class JsonGroup
             'count'  => is_numeric($v) && (int) $v >= 0 ? (int) $v : null,
             'width'  => in_array((int) $v, [25, 50, 75], true) ? (int) $v : null,
             'slug'   => is_string($v) && ($s = sanitize_key($v)) !== '' ? $s : null,
+            // Field group keys keep their case (ACF themes: group_GlobalOptions_Default).
+            'groupkey' => is_string($v) && preg_match(self::KEY_PATTERN, $v) ? $v : null,
             'slugs'  => ($l = self::slugs($v)) !== [] ? $l : null,
             'options'   => ($o = self::options($v)) !== [] ? $o : null,
             'condition' => self::condition($v),
@@ -505,6 +517,9 @@ final class JsonGroup
             if ($l['label'] !== '') {
                 $layout->label($l['label']);
             }
+            if (isset($l['max'])) {
+                $layout->max((int) $l['max']);
+            }
             $out[] = $layout->fields(self::buildFields($l['fields']));
         }
 
@@ -565,6 +580,7 @@ final class JsonGroup
 
             switch ($setting) {
                 case 'required':
+                case 'globalBlocks':
                 case 'showInRest':
                 case 'multiple':
                 case 'bidirectional':
@@ -579,6 +595,15 @@ final class JsonGroup
                     break;
                 case 'noMedia':
                     $calls[] = ['mediaButtons', [false]];
+                    break;
+                case 'cloneFrom':
+                    $calls[] = ['from', [$v]];
+                    break;
+                case 'clonePrefix':
+                    $calls[] = ['prefix', [$v]];
+                    break;
+                case 'cloneDisplay':
+                    $calls[] = ['display', [$v]];
                     break;
                 case 'adminColumn':
                     // A column needs the index row (sorting / filtering).
@@ -662,6 +687,7 @@ final class JsonGroup
                     foreach ($args[0] as $l) {
                         $out .= "{$pad}        FlexLayout::make(" . self::lit($l['key']) . ')'
                             . ($l['label'] !== '' ? '->label(' . self::lit($l['label']) . ')' : '')
+                            . (isset($l['max']) ? '->max(' . (int) $l['max'] . ')' : '')
                             . "->fields([\n" . self::phpFields($l['fields'], $level + 3) . "{$pad}        ]),\n";
                     }
                     $out .= "{$pad}    ])";

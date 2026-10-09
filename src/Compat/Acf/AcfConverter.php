@@ -303,6 +303,13 @@ final class AcfConverter
             case 'group':
             case 'repeater':
                 $out['fields'] = $this->convertFields(is_array($f['sub_fields'] ?? null) ? $f['sub_fields'] : [], $names);
+                if ($acfType === 'repeater') {
+                    self::copyCount($f, $out, 'min', 'minItems');
+                    self::copyCount($f, $out, 'max', 'maxItems');
+                    if (is_string($f['button_label'] ?? null) && $f['button_label'] !== '') {
+                        $out['buttonLabel'] = $f['button_label'];
+                    }
+                }
                 break;
             case 'flexible_content':
                 $out['layouts'] = [];
@@ -310,11 +317,18 @@ final class AcfConverter
                     if (! is_array($layout)) {
                         continue;
                     }
-                    $out['layouts'][] = [
+                    $converted = [
                         'key'    => self::keyFor((string) ($layout['name'] ?? 'layout')),
                         'label'  => (string) ($layout['label'] ?? ''),
                         'fields' => $this->convertFields(is_array($layout['sub_fields'] ?? null) ? $layout['sub_fields'] : [], $names),
                     ];
+                    if (is_numeric($layout['max'] ?? null) && (int) $layout['max'] > 0) {
+                        $converted['max'] = (int) $layout['max'];
+                    }
+                    $out['layouts'][] = $converted;
+                }
+                if (is_string($f['button_label'] ?? null) && $f['button_label'] !== '') {
+                    $out['buttonLabel'] = $f['button_label'];
                 }
                 break;
         }

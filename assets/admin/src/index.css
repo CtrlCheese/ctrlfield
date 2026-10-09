@@ -408,11 +408,54 @@ body.ctrlf-is-sorting * {
 }
 
 .ctrlf-row {
+    position: relative;
     border: 1px solid var(--ctrlf-line);
     border-radius: 4px;
     background: #fff;
 
     &:focus-within { border-color: var(--ctrlf-accent); }
+}
+
+/* "+" on the gap above a row: insert there. Shows on hover / keyboard focus. */
+.ctrlf-row__insert {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    z-index: 2;
+    width: 22px;
+    height: 22px;
+    margin-left: -11px;
+    padding: 0;
+    border: 1px solid var(--ctrlf-accent);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--ctrlf-accent-strong);
+    font-size: 15px;
+    line-height: 18px;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity .12s;
+
+    .ctrlf-row:hover > &,
+    &:focus-visible { opacity: 1; }
+    &:hover { background: var(--ctrlf-accent-soft); }
+    &:focus-visible { outline: 2px solid var(--ctrlf-accent); outline-offset: 1px; }
+}
+
+.ctrlf-row__action {
+    flex: none;
+    align-self: center;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--ctrlf-muted);
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover:not([disabled]) { color: var(--ctrlf-accent-strong); background: var(--ctrlf-accent-soft); }
+    &:focus-visible { outline: 2px solid var(--ctrlf-accent); outline-offset: 0; }
+    &[disabled] { opacity: .4; cursor: default; }
 }
 
 .ctrlf-row__head {
@@ -514,6 +557,8 @@ body.ctrlf-is-sorting * {
 .ctrlf-row__body .ctrlf-row { background: var(--ctrlf-surface); }
 .ctrlf-row__body .ctrlf-row__body .ctrlf-row { background: #fff; }
 
+.ctrlf-rows__limit { color: var(--ctrlf-muted); font-size: 12px; }
+
 .ctrlf-rows__empty {
     margin: 0;
     padding: 4px 0;
@@ -526,6 +571,10 @@ body.ctrlf-is-sorting * {
     align-items: center;
     gap: 12px;
     margin-top: 12px;
+
+    &.ctrlf-rows__toolbar--top { margin: 0 0 12px; }
+
+    button[disabled] { opacity: .45; cursor: not-allowed; }
 
     .ctrlf-btn--add,
     .ctrlf-flex-add {
@@ -827,6 +876,47 @@ body.ctrlf-is-sorting * {
     .ctrlf-linkdlg__results { max-height: 230px; border-top: 0; }
     .ctrlf-linkdlg__item { padding: 6px 10px; }
 }
+
+/* ── Field group editor: flexible content layouts ───────────────────── */
+
+.ctrlf-ge-layout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 8px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #fff;
+
+    .code { width: 160px; }
+}
+
+/* ── Global block row (Pro) ──────────────────────────────────────────── */
+
+.ctrlf-gblock {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+
+    p { margin: 0; }
+}
+
+.ctrlf-gblock__line strong { color: #1d2327; }
+.ctrlf-gblock__hint { color: var(--ctrlf-muted); font-size: 12px; }
+.ctrlf-gblock__warning { color: #b32d2e; }
+.ctrlf-gblock__actions { display: flex; gap: 8px; margin-top: 4px; }
+
+.ctrlf-gblock__section {
+    padding: 8px 10px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.ctrlf-gblock__toggle { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.ctrlf-gblock__fields { display: grid; gap: 12px; margin-top: 10px; }
 
 /* ── Gallery: square tiles ───────────────────────────────────────────── */
 

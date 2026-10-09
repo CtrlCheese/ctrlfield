@@ -64,7 +64,7 @@ final class AcfApi
     /**
      * @return array{0: FieldDefinition|null, 1: mixed} the field and its stored value
      */
-    public static function rawField(string $selector, mixed $postId = false): array
+    public static function rawField(string $selector, mixed $postId = false, bool $forReading = true): array
     {
         $key = self::resolveKey($selector);
         $def = $key !== null ? FieldWriter::findField($key) : null;
@@ -85,7 +85,12 @@ final class AcfApi
             return [$def, $ids];
         }
 
-        return [$def, FieldDataService::getInstance()->getAll($id, $type)[$key] ?? null];
+        $value = FieldDataService::getInstance()->getAll($id, $type)[$key] ?? null;
+        if ($forReading && $def->getType() === FieldType::FLEXIBLE_CONTENT && function_exists('apply_filters')) {
+            $value = apply_filters('ctrlfield/flexible_rows', $value, $def); // get_field / have_rows see expanded rows
+        }
+
+        return [$def, $value];
     }
 
     /** @return array<string, mixed>|false */
@@ -165,7 +170,7 @@ final class AcfApi
     /** Append a row to a repeater or flexible content field; returns the new row count. */
     public static function addRow(string $selector, mixed $row, mixed $postId = false): int|false
     {
-        [$def, $raw] = self::rawField($selector, $postId);
+        [$def, $raw] = self::rawField($selector, $postId, forReading: false); // written back: keep global block rows
         if ($def === null || ! in_array($def->getType(), [FieldType::REPEATER, FieldType::FLEXIBLE_CONTENT], true)) {
             return false;
         }

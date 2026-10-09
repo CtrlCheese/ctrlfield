@@ -1,0 +1,74 @@
+# Global blocks (Pro)
+
+Sections you edit once and place on many pages — a newsletter sign-up, a CTA band, a contact strip. Change the block and every page that uses it changes.
+
+---
+
+## Turning it on
+
+```php
+Field::flexibleContent('components')
+    ->layouts([...])
+    ->globalBlocks(),
+```
+
+In the Field Groups editor (JSON), set `"globalBlocks": true` on the flexible content field.
+
+For a field registered elsewhere — an ACF theme's field group, for instance:
+
+```php
+add_filter('ctrlfield/global_blocks/enable', fn (bool $on, string $key) => $on || $key === 'pageComponents', 10, 2);
+```
+
+As soon as one field uses it, **Global blocks** appears in the admin menu.
+
+---
+
+## The library
+
+**Global blocks** is a list of blocks; each one is edited with the same sections (layouts) as the fields that use it. The list shows how many sections a block has and how many pages use it.
+
+A block cannot contain another global block.
+
+---
+
+## On a page
+
+**+ Add** opens the picker with a **Global blocks** tab: one card per published block, with the sections it contains. The block is added as one row that shows:
+
+- what it contains, and where else it is used;
+- **Edit block** — opens the block in a new tab; changes apply to every page;
+- **Customize on this page** (per section) — shows the section's simple fields (text, rich text, link, number, choices, colour…) filled with the block's values; what you change applies to this page only. Turn it off to go back to the block's values. Media, repeaters and nested rows always come from the block.
+- **Detach** — replaces the row with a copy of the block's sections (with this page's customizations), to edit everything on this page only. Later changes to the block no longer reach it.
+
+If a block is deleted or unpublished, its rows show a warning and nothing is shown on the site.
+
+---
+
+## Storage
+
+A page stores a reference only:
+
+```json
+{
+  "_layout": "ctrlf_global_block",
+  "block": 2108,
+  "overrides": { "fb2ee341de": { "contentHtml": "<h2>Only on this page</h2>" } }
+}
+```
+
+`overrides` is keyed by the `_instance_id` of the block's sections (given when the block is saved). The block's sections are stored on the block (field `ctrlf_block_sections`, post type `ctrlf_block`).
+
+---
+
+## Templates
+
+Nothing to change. When values are read, a global block row is replaced by the block's sections, so templates receive ordinary rows:
+
+- `ctrlfield_get()`, `ctrlfield_get_flexible()`, `@flexible`;
+- `get_field()` / `have_rows()` in themes built for ACF (Flynt works as is);
+- components rendered with `ctrlfield_render_component()`.
+
+Customized values replace the block's ones, each sanitized for its field type; only the overridable fields of that section are taken. Unpublished or missing blocks are skipped, and a block that would include itself is ignored.
+
+Only top-level flexible content fields are expanded; a flexible field inside a group or repeater row is returned as stored.

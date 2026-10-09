@@ -7,7 +7,7 @@ import { fieldGroupEditor } from './groupEditor.js';
 import { registerSortable, itemKey } from './sortable.js';
 import { registerWysiwyg } from './wysiwyg.js';
 import { registerUiState, uiPath, uiGet, uiSet } from './uiState.js';
-import { rowSummary } from './rows.js';
+import { rowSummary, newInstanceId, cloneRow, canAdd, canAddLayout } from './rows.js';
 import { registerLink } from './link.js';
 import { registerWpLinkTabs } from './wplinkTabs.js';
 
@@ -78,6 +78,8 @@ registerWysiwyg(Alpine);
 registerUiState(Alpine);
 registerLink(Alpine);
 registerWpLinkTabs();
+// A global block of the library by id (FlexibleContentRenderer prints window.ctrlfieldGlobalBlocks).
+Alpine.magic('ctrlfBlock', () => (id) => window.ctrlfieldGlobalBlocks?.blocks?.[id] ?? null);
 
 document.addEventListener('alpine:init', () => {
     // CtrlField → Field Groups editor; config comes from the root's data-config.
@@ -161,11 +163,46 @@ document.addEventListener('alpine:init', () => {
         /** { rowKey: false } — rows are open unless collapsed. */
         closedRows: {},
 
-        /** Append a copy of `row` to `list` (created when missing); returns the list to assign back. */
-        withRow(list, row) {
+        /**
+         * Add a copy of `row` to `list` (created when missing), at `index` or at
+         * the end; returns the list to assign back.
+         */
+        withRow(list, row, index = null) {
             const rows = Array.isArray(list) ? list : [];
-            rows.push(JSON.parse(JSON.stringify(row)));
+            const copy = JSON.parse(JSON.stringify(row));
+            if (index === null || index >= rows.length) rows.push(copy);
+            else rows.splice(Math.max(0, index), 0, copy);
             return rows;
+        },
+        /** "Duplicate": a deep copy right below the row. */
+        duplicateRowIn(list, idx) {
+            if (!Array.isArray(list) || !list[idx]) return;
+            list.splice(idx + 1, 0, cloneRow(list[idx]));
+        },
+        canAdd(list, max) {
+            return canAdd(list, max);
+        },
+        canAddLayout(list, layout, layoutMax, fieldMax) {
+            return canAddLayout(list, layout, layoutMax, fieldMax);
+        },
+        /**
+         * After adding: scroll the new row into view and put the cursor in its
+         * first field. `el` is any element of the list's field.
+         */
+        revealRow(el, index) {
+            this.$nextTick(() => {
+                const rows = el?.closest?.('.ctrlf-repeater, .ctrlf-flex-content')?.querySelector(':scope > .ctrlf-rows');
+                if (!rows) return;
+                rows.dispatchEvent(new CustomEvent('ctrlf-sorted', { bubbles: true })); // positions changed (uiState)
+                const items = rows.querySelectorAll(':scope > [data-ctrlf-item]');
+                const row = items[Math.min(index, items.length - 1)];
+                if (!row) return;
+                row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                setTimeout(() => {
+                    row.querySelector('.ctrlf-row__body input:not([type=hidden]):not([disabled]), .ctrlf-row__body textarea, .ctrlf-row__body select')
+                        ?.focus({ preventScroll: true });
+                }, 350); // after x-collapse opens
+            });
         },
         removeRowFrom(list, idx, message = 'Remove this row?') {
             if (!Array.isArray(list) || !window.confirm(message)) return;
@@ -441,12 +478,15 @@ document.addEventListener('alpine:init', () => {
 
         /** { 'fieldKey': bool } — picker modal visibility */
         flexPickerOpen:   {},
+        flexPickerIndex:  {},
         /** { 'fieldKey': string } — live search query */
         flexPickerSearch:   {},
         /** { 'fieldKey': string } — active category tab */
         flexPickerCategory: {},
 
-        openFlexPicker(key) {
+        /** Picker for `key`; the section goes to `index` (null = the end). */
+        openFlexPicker(key, index = null) {
+            this.flexPickerIndex[key]   = index;
             this.flexPickerOpen[key]    = true;
             this.flexPickerSearch[key]  = '';
             this.$nextTick(() => {
@@ -492,11 +532,54 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        /**
+         * Replace a global block row with a copy of the block's sections (only
+         * layouts this field accepts); later edits to the block no longer apply.
+         */
+        detachGlobalBlock(list, idx, blockId, allowed = [], message = '') {
+            const block = window.ctrlfieldGlobalBlocks?.blocks?.[blockId];
+            if (!Array.isArray(list) || !block || (message && !window.confirm(message))) return;
+            const overrides = this.overridesOf(list[idx]);
+            const rows = JSON.parse(JSON.stringify(block.rows ?? []))
+                .filter((row) => !allowed.length || allowed.includes(row._layout))
+                // This page's customizations are kept in the copy.
+                .map(({ _instance_id, ...row }) => ({ ...row, ...(overrides[_instance_id] ?? {}), _instance_id: newInstanceId() }));
+            list.splice(idx, 1, ...rows);
+        },
+
+        /** Page overrides of a global block row: { section id: { field: value } }. */
+        overridesOf(row) {
+            if (!row) return {};
+            if (!row.overrides || Array.isArray(row.overrides)) row.overrides = {}; // PHP stores {} as []
+            return row.overrides;
+        },
+        hasOverride(row, section) {
+            return !!(section?._instance_id && row?.overrides && !Array.isArray(row.overrides) && row.overrides[section._instance_id]);
+        },
+        /** Turn customizing a section on (starting from the block's values) or off. */
+        toggleOverride(row, section, on, keys = []) {
+            const map = this.overridesOf(row);
+            if (on) {
+                map[section._instance_id] = Object.fromEntries(keys.map((k) => [k, JSON.parse(JSON.stringify(section[k] ?? null))]));
+            } else {
+                delete map[section._instance_id];
+            }
+        },
+        ctrlfOverride(row, sectionId) {
+            const map = this.overridesOf(row);
+            map[sectionId] ??= {};
+            return map[sectionId];
+        },
+
         /** Add a section of `layoutKey` to `list`; returns the list to assign back. */
         withLayout(list, layoutKey, pickerKey, defaults = {}) {
             const rows = Array.isArray(list) ? list : [];
-            rows.push({ ...JSON.parse(JSON.stringify(defaults ?? {})), _layout: layoutKey });
+            const row = { ...JSON.parse(JSON.stringify(defaults ?? {})), _layout: layoutKey, _instance_id: newInstanceId() };
+            const at = this.flexPickerIndex[pickerKey];
+            const index = at === null || at === undefined || at >= rows.length ? rows.length : Math.max(0, at);
+            rows.splice(index, 0, row);
             this.closeFlexPicker(pickerKey);
+            this.revealRow(document.querySelector(`[data-ctrlf-picker="${pickerKey}"]`), index);
             return rows;
         },
     }));

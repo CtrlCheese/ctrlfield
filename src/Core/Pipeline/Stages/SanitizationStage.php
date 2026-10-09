@@ -8,6 +8,7 @@ use CtrlField\Core\Pipeline\Contracts\StageInterface;
 use CtrlField\Core\Pipeline\PipelineContext;
 use CtrlField\Core\Pipeline\Traits\BuildsFieldMap;
 use CtrlField\Fields\Contracts\FieldSanitizerInterface;
+use CtrlField\Fields\Contracts\FlexibleContentInterface;
 use CtrlField\Fields\Contracts\NestedFieldInterface;
 use CtrlField\Fields\FieldDefinition;
 use CtrlField\Fields\Types\UserField;
@@ -95,7 +96,7 @@ class SanitizationStage implements StageInterface
                 : [],
             FieldType::GROUP    => self::sanitizeGroup($value, $definition),
             FieldType::REPEATER => self::sanitizeRepeater($value, $definition),
-            FieldType::FLEXIBLE_CONTENT,
+            FieldType::FLEXIBLE_CONTENT => self::sanitizeFlexible($value, $definition),
             FieldType::POST_OBJECT,
             FieldType::PAGE_LINK,
             FieldType::TAXONOMY_TERM,
@@ -189,6 +190,48 @@ class SanitizationStage implements StageInterface
                 $value
             )
         );
+    }
+
+    /**
+     * Sanitizes FLEXIBLE_CONTENT rows: each sub-field by the type its layout
+     * declares; keys a layout does not declare are dropped.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function sanitizeFlexible(mixed $value, ?FieldDefinition $definition): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $rows = [];
+        foreach ($value as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $layout = is_string($row['_layout'] ?? null) ? $row['_layout'] : '';
+            $clean  = ['_layout' => $layout];
+            if (is_string($row['_instance_id'] ?? null) && preg_match('/^[A-Za-z0-9_-]{1,64}$/', $row['_instance_id'])) {
+                $clean['_instance_id'] = $row['_instance_id'];
+            }
+
+            $fields = $definition instanceof FlexibleContentInterface ? $definition->getLayoutFields($layout) : [];
+            foreach ($fields as $key => $subDef) {
+                if (! array_key_exists($key, $row)) {
+                    continue;
+                }
+                if ($row[$key] === null) {
+                    $clean[$key] = null; // not filled in: stays as stored
+                    continue;
+                }
+                $clean[$key] = $subDef instanceof FieldSanitizerInterface
+                    ? $subDef->sanitizeForStorage($row[$key])
+                    : self::sanitize($row[$key], $subDef->getType(), $subDef);
+            }
+            $rows[] = $clean;
+        }
+
+        return $rows;
     }
 
     /**

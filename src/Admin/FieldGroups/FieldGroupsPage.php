@@ -71,6 +71,8 @@ final class FieldGroupsPage
             $this->renderForm($group);
         } elseif ($action === 'code' && ($group = $this->repo->get($key)) !== null) {
             $this->renderCode($group);
+        } elseif ($action === 'usage') {
+            $this->renderUsage($key);
         } else {
             $this->renderList();
         }
@@ -144,6 +146,7 @@ final class FieldGroupsPage
                         <?php endif; ?>
                         <div class="row-actions">
                             <span><a href="<?php echo esc_url($editUrl); ?>"><?php esc_html_e('Edit', 'ctrlfield'); ?></a> | </span>
+                            <span><a href="<?php echo esc_url($this->url(['action' => 'usage', self::ARG => $key])); ?>"><?php esc_html_e('Template code', 'ctrlfield'); ?></a> | </span>
                             <span><a href="<?php echo esc_url($this->url(['action' => 'code', self::ARG => $key])); ?>"><?php esc_html_e('Export PHP', 'ctrlfield'); ?></a> | </span>
                             <span class="trash"><a href="<?php echo esc_url($this->deleteUrl($key)); ?>" onclick="return confirm('<?php echo esc_js(__('Delete this field group? The values already saved in posts stay in the database and come back if you recreate the fields with the same keys.', 'ctrlfield')); ?>');"><?php esc_html_e('Delete', 'ctrlfield'); ?></a></span>
                         </div>
@@ -177,7 +180,10 @@ final class FieldGroupsPage
                     $rules = array_values(array_map(static fn ($c) => ['key' => $c['key'], 'operator' => $c['operator'], 'value' => is_scalar($c['value']) ? (string) $c['value'] : '…'], $g->getAndConditions()));
                     ?>
                     <tr>
-                        <td><strong><?php echo esc_html($g->getTitle() !== '' ? $g->getTitle() : $key); ?></strong></td>
+                        <td>
+                            <strong><?php echo esc_html($g->getTitle() !== '' ? $g->getTitle() : $key); ?></strong>
+                            <div class="row-actions"><span><a href="<?php echo esc_url($this->url(['action' => 'usage', self::ARG => $key])); ?>"><?php esc_html_e('Template code', 'ctrlfield'); ?></a></span></div>
+                        </td>
                         <td><code><?php echo esc_html($key); ?></code></td>
                         <td><?php echo esc_html($this->locationSummary($rules)); ?></td>
                         <td><?php echo esc_html((string) count($g->getFields())); ?></td>
@@ -211,7 +217,10 @@ final class FieldGroupsPage
             'types'           => $this->typesConfig(),
             'locationChoices' => $this->locationChoices(),
             'returnFormats'   => $this->returnFormats(),
-            'i18n'            => ['confirmRemove' => __('Remove this field?', 'ctrlfield')],
+            'i18n'            => [
+                'confirmRemove'       => __('Remove this field?', 'ctrlfield'),
+                'confirmRemoveLayout' => __('Remove this layout and its fields?', 'ctrlfield'),
+            ],
         ];
         ?>
         <h1><?php echo $isNew
@@ -458,10 +467,22 @@ final class FieldGroupsPage
             . '<template x-if="!returnFormats(field)"><input type="text" class="regular-text" x-model="field.returnFormat" placeholder="d/m/Y"></template>',
             __('What templates receive. For dates: a PHP date format.', 'ctrlfield'));
         $row('bidirectional', __('Bidirectional', 'ctrlfield'), $check('bidirectional', __('Also link back from the related posts', 'ctrlfield')));
+        $row('buttonLabel', __('Button label', 'ctrlfield'), $text('buttonLabel'), __('Text of the "Add" button. Empty: the default.', 'ctrlfield'));
         $row('minItems', __('Minimum items', 'ctrlfield'), $text('minItems', 'number'));
         $row('maxItems', __('Maximum items', 'ctrlfield'), $text('maxItems', 'number'));
         $row('language', __('Language', 'ctrlfield'), $select('language', [
             'html' => 'HTML', 'css' => 'CSS', 'javascript' => 'JavaScript', 'php' => 'PHP', 'json' => 'JSON',
+        ]));
+        $row('layouts', __('Layouts', 'ctrlfield'), $this->layoutsEditor(), __('Each layout is one kind of section, with its own fields. Editors pick them with "+ Add".', 'ctrlfield'));
+        $groupChoices = [];
+        foreach (FieldRegistry::all() as $gk => $g) {
+            $groupChoices[$gk] = ($g->getTitle() !== '' ? $g->getTitle() : $gk) . ' (' . $gk . ')';
+        }
+        $row('cloneFrom', __('Clone from', 'ctrlfield'), $select('cloneFrom', $groupChoices), __('The fields of this group are inserted here. The group should have no location rules of its own (a library group).', 'ctrlfield'));
+        $row('clonePrefix', __('Key prefix', 'ctrlfield'), $text('clonePrefix'), __('Prepended to every cloned key. Empty: this field\'s key.', 'ctrlfield'));
+        $row('cloneDisplay', __('Display', 'ctrlfield'), $select('cloneDisplay', [
+            'seamless' => __('Seamless (the fields appear inline)', 'ctrlfield'),
+            'group'    => __('Group (inside a labelled box)', 'ctrlfield'),
         ]));
         $row('fields', __('Sub-fields', 'ctrlfield'), '<button type="button" class="button" @click="enter(index)">'
             . esc_html__('Edit sub-fields', 'ctrlfield') . ' (<span x-text="field.fields.length"></span>)</button>');
@@ -482,6 +503,88 @@ final class FieldGroupsPage
             . '</select> '
             . '<input type="text" x-model="field._cond.value" x-show="field._cond.field && ![\'empty\', \'not_empty\'].includes(field._cond.operator)" placeholder="' . esc_attr__('Value', 'ctrlfield') . '">',
             __('Another field of this group decides whether this one is shown.', 'ctrlfield'));
+    }
+
+    /**
+     * "Template code": how to print this group's fields in a theme, in PHP,
+     * Blade, Twig (Timber) or ACF functions.
+     */
+    private function renderUsage(string $key): void
+    {
+        $group = FieldRegistry::has($key) ? FieldRegistry::get($key) : null;
+        if ($group === null && ($stored = $this->repo->get($key)) !== null && $stored['_errors'] === []) {
+            $group = JsonGroup::build($stored);
+        }
+        if ($group === null) {
+            echo '<p>' . esc_html__('Field group not found.', 'ctrlfield') . '</p>';
+            return;
+        }
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only tab choice, checked against a fixed list below
+        $dialect  = isset($_GET['dialect']) ? sanitize_key((string) $_GET['dialect']) : 'php';
+        $dialect  = in_array($dialect, TemplateSnippets::DIALECTS, true) ? $dialect : 'php';
+        $dialects = [
+            'php'   => __('PHP', 'ctrlfield'),
+            'blade' => __('Blade', 'ctrlfield'),
+            'twig'  => __('Twig (Timber)', 'ctrlfield'),
+            'acf'   => __('ACF functions', 'ctrlfield'),
+        ];
+        $notes = [
+            'php'   => __('ctrlfield_get() returns the value as stored, with the field\'s return format applied. Every value is escaped for where it is printed.', 'ctrlfield'),
+            'blade' => __('{{ }} escapes; {!! !!} is used only for HTML that is already safe (rich text through wp_kses_post, WordPress image tags).', 'ctrlfield'),
+            'twig'  => __('Timber does not escape by default, so the code escapes explicitly (|e). function() calls any WordPress function.', 'ctrlfield'),
+            'acf'   => __('For themes written for ACF: get_field() and have_rows() work the same with CtrlField (without ACF installed).', 'ctrlfield'),
+        ];
+        $code = TemplateSnippets::generate($group, $dialect);
+        ?>
+        <h1><?php echo esc_html(sprintf(__('Template code: %s', 'ctrlfield'), $group->getTitle() !== '' ? $group->getTitle() : $key)); ?></h1>
+        <p><a href="<?php echo esc_url($this->url()); ?>">&larr; <?php esc_html_e('All field groups', 'ctrlfield'); ?></a></p>
+        <nav class="nav-tab-wrapper" aria-label="<?php esc_attr_e('Template language', 'ctrlfield'); ?>">
+            <?php foreach ($dialects as $d => $label): ?>
+                <a href="<?php echo esc_url($this->url(['action' => 'usage', self::ARG => $key, 'dialect' => $d])); ?>"
+                   class="nav-tab<?php echo $d === $dialect ? ' nav-tab-active' : ''; ?>"<?php echo $d === $dialect ? ' aria-current="page"' : ''; ?>><?php echo esc_html($label); ?></a>
+            <?php endforeach; ?>
+        </nav>
+        <p class="description" style="margin-top:12px"><?php echo esc_html($notes[$dialect]); ?></p>
+        <p>
+            <button type="button" class="button" id="ctrlf-copy-code"
+                    data-done="<?php esc_attr_e('Copied', 'ctrlfield'); ?>"
+                    onclick="var t=document.getElementById('ctrlf-template-code'),b=this;navigator.clipboard.writeText(t.value).then(function(){b.textContent=b.dataset.done;});"><?php esc_html_e('Copy', 'ctrlfield'); ?></button>
+        </p>
+        <textarea id="ctrlf-template-code" class="large-text code" rows="<?php echo esc_attr((string) min(40, max(8, substr_count($code, "\n") + 2))); ?>" readonly onclick="this.select()"><?php echo esc_textarea($code); ?></textarea>
+        <?php
+    }
+
+    /** Flexible content: the list of layouts (label, key, limit) and their fields. */
+    private function layoutsEditor(): string
+    {
+        $label  = esc_attr__('Label', 'ctrlfield');
+        $key    = esc_attr__('Key', 'ctrlfield');
+        $max    = esc_attr__('Max', 'ctrlfield');
+        $edit   = esc_html__('Edit fields', 'ctrlfield');
+        $remove = esc_html__('Remove', 'ctrlfield');
+        $up     = esc_attr__('Move up', 'ctrlfield');
+        $down   = esc_attr__('Move down', 'ctrlfield');
+        $add    = esc_html__('Add layout', 'ctrlfield');
+        $none   = esc_html__('No layouts yet.', 'ctrlfield');
+
+        return <<<HTML
+<div class="ctrlf-ge-layouts">
+    <p class="description" x-show="!(field.layouts ?? []).length">{$none}</p>
+    <template x-for="(layout, l) in field.layouts ?? []" :key="layout._uid">
+        <div class="ctrlf-ge-layout">
+            <input type="text" class="regular-text" placeholder="{$label}" aria-label="{$label}" x-model="layout.label" @input="layoutLabelChanged(layout)">
+            <input type="text" class="code" placeholder="{$key}" aria-label="{$key}" x-model="layout.key" @input="layout._keyTouched = true" pattern="[A-Za-z][A-Za-z0-9_]*">
+            <input type="number" min="0" class="small-text" placeholder="{$max}" aria-label="{$max}" title="{$max}" x-model="layout.max">
+            <button type="button" class="button" @click="enterLayout(index, l)">{$edit} (<span x-text="layout.fields.length"></span>)</button>
+            <button type="button" class="button-link" @click="moveLayout(field, l, -1)" aria-label="{$up}" title="{$up}">&uarr;</button>
+            <button type="button" class="button-link" @click="moveLayout(field, l, 1)" aria-label="{$down}" title="{$down}">&darr;</button>
+            <button type="button" class="button-link button-link-delete" @click="removeLayout(field, l)">{$remove}</button>
+        </div>
+    </template>
+    <p><button type="button" class="button" @click="addLayout(field)">+ {$add}</button></p>
+</div>
+HTML;
     }
 
     /** @param array<string, mixed> $group */
@@ -617,7 +720,7 @@ final class FieldGroupsPage
             'icon' => __('Icon', 'ctrlfield'), 'code' => __('Code', 'ctrlfield'), 'group' => __('Group', 'ctrlfield'),
             'tab' => __('Tab', 'ctrlfield'), 'message' => __('Message', 'ctrlfield'), 'separator' => __('Separator', 'ctrlfield'),
             'repeater' => __('Repeater', 'ctrlfield'), 'gallery' => __('Gallery', 'ctrlfield'),
-            'flexible_content' => __('Flexible Content (layouts edited in PHP)', 'ctrlfield'),
+            'flexible_content' => __('Flexible Content', 'ctrlfield'), 'clone' => __('Clone', 'ctrlfield'),
             'accordion' => __('Accordion', 'ctrlfield'), 'accordion_end' => __('Accordion end', 'ctrlfield'),
         ];
     }
@@ -631,7 +734,7 @@ final class FieldGroupsPage
             __('Choice', 'ctrlfield')     => ['select', 'checkbox', 'radio', 'button_group', 'true_false'],
             __('Relational', 'ctrlfield') => ['link', 'post_object', 'page_link', 'relationship', 'taxonomy_term', 'user'],
             __('Advanced', 'ctrlfield')   => ['date', 'datetime', 'time', 'color', 'map', 'icon', 'code'],
-            __('Layout', 'ctrlfield')     => ['group', 'repeater', 'flexible_content', 'tab', 'accordion', 'accordion_end', 'message', 'separator'],
+            __('Layout', 'ctrlfield')     => ['group', 'repeater', 'flexible_content', 'clone', 'tab', 'accordion', 'accordion_end', 'message', 'separator'],
         ];
     }
 

@@ -123,3 +123,20 @@ describe('fieldGroupEditor', () => {
         expect(ed.choicesFor('post')).toBeNull();
     });
 });
+
+describe('flexible content layouts in the editor', () => {
+    it('keep their fields and limit through hydrate / dehydrate', async () => {
+        const { hydrateField, dehydrateField } = await import('../../assets/admin/src/groupEditor.js');
+        const stored = {
+            key: 'sections', type: 'flexible_content', label: 'Sections',
+            layouts: [{ key: 'hero', label: 'Hero', max: 1, fields: [{ key: 'headline', type: 'text', label: 'Headline' }] }],
+        };
+        const out = dehydrateField(hydrateField(stored));
+        expect(out.layouts).toEqual([{ key: 'hero', label: 'Hero', max: 1, fields: [{ key: 'headline', type: 'text', label: 'Headline' }] }]);
+    });
+
+    it('drops an empty layout list from other fields', async () => {
+        const { hydrateField, dehydrateField } = await import('../../assets/admin/src/groupEditor.js');
+        expect(dehydrateField(hydrateField({ key: 'a', type: 'text', label: 'A' }))).not.toHaveProperty('layouts');
+    });
+});

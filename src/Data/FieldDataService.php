@@ -92,6 +92,11 @@ final class FieldDataService
             $value = LinkResolver::resolve($value);
         }
 
+        if ($field !== null && $field->getType() === FieldType::FLEXIBLE_CONTENT && function_exists('apply_filters')) {
+            /** Rows of a flexible content field as templates see them (Pro: global blocks are expanded). */
+            $value = apply_filters('ctrlfield/flexible_rows', $value, $field);
+        }
+
         if ($field === null || $field->getReturnFormat() === '') {
             return $value;
         }

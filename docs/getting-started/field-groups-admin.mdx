@@ -32,21 +32,34 @@ JSON is data, not code: a group can only produce the field types and settings th
 
 ## What the editor offers
 
-- **All Free field types**, plus Repeater and Gallery with a Pro license.
+- **All Free field types**, plus Repeater, Gallery, Flexible Content and Clone with a Pro license.
 - **Sub-fields** for Group and Repeater, at any depth ("Edit sub-fields").
 - **Per-type settings:** choices, default, placeholder, min / max / step, date format, post types, taxonomy, roles, multiple, return format, bidirectional relationships…
 - **Common settings:** required, instructions, width, admin column, REST API, and "Show only when" another field has a value.
 - **Location rules:** every rule from [Location rules](./location-rules.mdx), combined with AND.
 - **Tabs and accordions** at any level (groups, repeater rows, flexible sections). An accordion runs until the next accordion or an "Accordion end"; tabs inside it belong to it.
 - **Group settings:** position (normal, side, after the title), style, label placement, active / inactive.
-
-Flexible Content and Clone are not in the editor yet; use PHP or the Pro Visual Builder for them.
+- **Flexible Content:** a list of layouts (label, key, an optional maximum per page); **Edit fields** opens each layout's fields, with the same breadcrumb as sub-fields.
+- **Clone:** the fields of another group (a library group without location rules), with a key prefix and inline or boxed display.
 
 ---
 
 ## Code always wins
 
 Groups registered in PHP load first. If a JSON group uses the same key as a PHP group, the PHP group is kept and the JSON group is marked "Not active" in the list. PHP groups appear in a separate, read-only "Defined in code" table.
+
+---
+
+## Template code
+
+**Template code** (in the row actions of every group, including the ones defined in code) shows how to print the group's fields in a theme, in four languages:
+
+- **PHP** — `ctrlfield_get()`;
+- **Blade** — `{{ }}` / `{!! !!}`;
+- **Twig (Timber)** — `ctrlf()` (Timber does not escape by default, so the code escapes with `|e`);
+- **ACF functions** — `get_field()` / `have_rows()`, for themes written for ACF.
+
+Each field is escaped for where it is printed (text, URL, attribute, rich text through `wp_kses_post`), images use `wp_get_attachment_image()` or the return format you chose, links use `ctrlfield_link_attrs()`, and repeaters / flexible content come with their loops. Values are read from where the group is shown: a post, a term, a user or an options page. **Copy** puts the code on the clipboard.
 
 ---
 

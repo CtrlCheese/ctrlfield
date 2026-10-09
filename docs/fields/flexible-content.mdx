@@ -35,6 +35,24 @@ Label for the "Add" button. Default: `'Add layout'`.
 ->minLayouts(int $n): static
 ->maxLayouts(int $n): static
 ```
+Limits for the whole field. At the maximum, **Add** is disabled.
+
+```php
+FlexLayout::make('hero')->max(1)
+```
+At most this many sections of one layout (e.g. one hero per page). In the picker the card turns grey ("Limit reached"); saving more is refused.
+
+```php
+->globalBlocks(bool $enabled = true): static
+```
+Offer the [Global blocks](../pro/global-blocks) library in the picker.
+
+### Editing sections
+
+- **+** on the gap above a section opens the picker and inserts the new section there.
+- **Duplicate** copies a section right below (disabled when its layout is at its limit).
+- With 4 sections or more, an **Add** button also shows above the list (it adds at the top).
+- Each section gets an `_instance_id` (a stable id, kept when sections are reordered).
 
 ---
 
@@ -94,3 +112,5 @@ FlexibleContentField::make('page_builder')
 - FlexibleContent cannot be nested inside another FlexibleContent or inside a Repeater.
 - Repeaters can be nested inside FlexLayout sub-fields.
 - See [ComponentRegistry](../pro/component-registry) and [FlexLayout](../pro/flexible-content) for the full component system.
+
+Sections reused across pages: see [Global blocks](../pro/global-blocks) (`->globalBlocks()`).
