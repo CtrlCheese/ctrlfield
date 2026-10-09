@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CtrlField\Data;
 
+use CtrlField\Enums\FieldType;
 use CtrlField\Fields\FieldDefinition;
 use CtrlField\Registry\FieldRegistry;
 use CtrlField\Storage\CommentMetaAdapter;
@@ -86,6 +87,10 @@ final class FieldDataService
     private function decorate(mixed $value, string $key): mixed
     {
         $field = $this->resolveFieldDefinition($key);
+
+        if ($field !== null && $field->getType() === FieldType::LINK) {
+            $value = LinkResolver::resolve($value);
+        }
 
         if ($field === null || $field->getReturnFormat() === '') {
             return $value;

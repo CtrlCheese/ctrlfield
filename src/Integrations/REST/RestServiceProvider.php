@@ -34,5 +34,6 @@ class RestServiceProvider extends ServiceProvider
         (new UserFieldsController())->register();
         (new TermFieldsController())->register();
         (new SearchController())->register();
+        (new LinkController())->register();
     }
 }

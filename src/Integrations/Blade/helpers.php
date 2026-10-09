@@ -19,6 +19,29 @@ if (! function_exists('ctrlfield_get')) {
     }
 }
 
+if (! function_exists('ctrlfield_link')) {
+    /**
+     * A link value with its URL brought up to date (a link to a post follows
+     * permalink changes). Top-level link fields read with ctrlfield_get() are
+     * already resolved; use this for links inside repeater / flexible rows.
+     */
+    function ctrlfield_link(mixed $link): mixed
+    {
+        return \CtrlField\Data\LinkResolver::resolve($link);
+    }
+}
+
+if (! function_exists('ctrlfield_link_attrs')) {
+    /**
+     * href, target and rel of a link, escaped: <a <?= ctrlfield_link_attrs($cta) ?>>.
+     * Empty string when the link has no URL.
+     */
+    function ctrlfield_link_attrs(mixed $link): string
+    {
+        return \CtrlField\Data\LinkResolver::attributes($link);
+    }
+}
+
 if (! function_exists('ctrlfield_get_all')) {
     /**
      * Returns all stored field values for a post.

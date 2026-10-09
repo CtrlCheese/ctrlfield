@@ -179,7 +179,7 @@ class TypeCoercionStage implements StageInterface
         return $hex;
     }
 
-    /** @return array{url: string, title: string, target: string} */
+    /** @return array<string, string|int> */
     private static function coerceLink(mixed $value): array
     {
         if (is_string($value)) {
@@ -191,11 +191,22 @@ class TypeCoercionStage implements StageInterface
             $value = [];
         }
 
-        return [
+        $link = [
             'url'    => isset($value['url']) ? (string) $value['url'] : '',
             'title'  => isset($value['title']) ? (string) $value['title'] : '',
             'target' => (($value['target'] ?? '') === '_blank') ? '_blank' : '_self',
         ];
+        // Set by the link dialog; the sanitizer checks the allowed values.
+        foreach (['type', 'object', 'style'] as $k) {
+            if (isset($value[$k]) && is_scalar($value[$k]) && (string) $value[$k] !== '') {
+                $link[$k] = (string) $value[$k];
+            }
+        }
+        if (isset($value['id']) && is_numeric($value['id'])) {
+            $link['id'] = (int) $value['id'];
+        }
+
+        return $link;
     }
 
     /** @return array<int, array<string, mixed>> */

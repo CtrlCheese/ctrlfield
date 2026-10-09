@@ -52,7 +52,7 @@ final class JsonGroup
         'color'         => ['color', ['default'], false],
         'image'         => ['image', ['returnFormat'], false],
         'file'          => ['file', ['returnFormat'], false],
-        'link'          => ['link', ['returnFormat'], false],
+        'link'          => ['link', ['postType', 'taxonomies', 'noAnchors', 'styles', 'returnFormat'], false],
         'oembed'        => ['oembed', [], false],
         'page_link'     => ['pageLink', ['postType', 'multiple'], false],
         'post_object'   => ['postObject', ['postType', 'multiple', 'returnFormat'], false],
@@ -109,6 +109,9 @@ final class JsonGroup
         'taxonomy'        => 'slug',
         'appearance'      => ['select', 'checkbox', 'radio'],
         'roles'           => 'slugs',
+        'taxonomies'      => 'slugs',
+        'noAnchors'       => 'bool',
+        'styles'          => 'options',
         'language'        => 'slug',
         'fields'          => 'fields',
         'layouts'         => 'layouts',
@@ -569,6 +572,9 @@ final class JsonGroup
                 case 'closed':
                     $calls[] = ['open', [false]];
                     break;
+                case 'noAnchors':
+                    $calls[] = ['anchors', [false]];
+                    break;
                 case 'adminColumn':
                     // A column needs the index row (sorting / filtering).
                     $calls[] = ['setIndex', []];
@@ -578,11 +584,12 @@ final class JsonGroup
                     $calls[] = ['visibleWhen', [$v['field'], $v['operator'], $v['value']]];
                     break;
                 case 'options':
+                case 'styles':
                     $opts = [];
                     foreach ($v as [$value, $label]) {
                         $opts[$value] = $label;
                     }
-                    $calls[] = ['options', [$opts]];
+                    $calls[] = [$setting, [$opts]];
                     break;
                 case 'default':
                     $calls[] = ['default', [$f['type'] === 'number' || $f['type'] === 'range' ? (is_numeric($v) ? 0 + $v : $v) : $v]];

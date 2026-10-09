@@ -8,6 +8,7 @@ import { registerSortable, itemKey } from './sortable.js';
 import { registerWysiwyg } from './wysiwyg.js';
 import { registerUiState, uiPath, uiGet, uiSet } from './uiState.js';
 import { rowSummary } from './rows.js';
+import { registerLink } from './link.js';
 
 function markBlockEditorDirty() {
     const editor = window.wp?.data?.select?.('core/editor');
@@ -74,6 +75,7 @@ Alpine.plugin(collapse);
 registerSortable(Alpine);
 registerWysiwyg(Alpine);
 registerUiState(Alpine);
+registerLink(Alpine);
 
 document.addEventListener('alpine:init', () => {
     // CtrlField → Field Groups editor; config comes from the root's data-config.

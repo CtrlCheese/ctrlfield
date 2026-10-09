@@ -438,6 +438,9 @@ final class FieldGroupsPage
         $row('postType', __('Post types', 'ctrlfield'), $select('postType', $postTypes, true), __('Empty: all post types.', 'ctrlfield'));
         $row('relatedPostType', __('Post type', 'ctrlfield'), $select('relatedPostType', $postTypes));
         $row('taxonomy', __('Taxonomy', 'ctrlfield'), $select('taxonomy', $taxonomies));
+        $row('taxonomies', __('Taxonomies', 'ctrlfield'), $select('taxonomies', $taxonomies, true), __('Terms of these taxonomies can be linked (one tab each).', 'ctrlfield'));
+        $row('noAnchors', __('Anchors', 'ctrlfield'), $check('noAnchors', __('Hide the "Anchors" tab (links to #ids on the page)', 'ctrlfield')));
+        $row('styles', __('Button styles', 'ctrlfield'), '<textarea class="large-text code" rows="3" x-model="field._stylesText"></textarea>', __('One per line, "value : Label". Empty: no style choice.', 'ctrlfield'));
         $row('appearance', __('Appearance', 'ctrlfield'), $select('appearance', [
             'select' => __('Dropdown', 'ctrlfield'), 'checkbox' => __('Checkboxes', 'ctrlfield'), 'radio' => __('Radio buttons', 'ctrlfield'),
         ]));

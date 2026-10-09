@@ -41,6 +41,8 @@ export function hydrateField(field, open = false) {
     f.fields = (f.fields ?? []).map((sub) => hydrateField(sub));
     f.postType = f.postType ?? [];
     f.roles = f.roles ?? [];
+    f.taxonomies = f.taxonomies ?? [];
+    f._stylesText = optionsToText(f.styles);
     return f;
 }
 
@@ -55,10 +57,11 @@ export function dehydrateField(f) {
         if (!k.startsWith('_')) out[k] = v;
     }
     out.options = textToOptions(f._optionsText);
+    out.styles = textToOptions(f._stylesText);
     if (f._cond?.field) out.visibleWhen = { ...f._cond };
     else delete out.visibleWhen;
     out.fields = (f.fields ?? []).map(dehydrateField);
-    for (const k of ['options', 'fields', 'postType', 'roles']) {
+    for (const k of ['options', 'fields', 'postType', 'roles', 'taxonomies', 'styles']) {
         if (Array.isArray(out[k]) && out[k].length === 0) delete out[k];
     }
     return out;

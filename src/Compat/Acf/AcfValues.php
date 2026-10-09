@@ -279,6 +279,7 @@ final class AcfValues
                 return is_array($value) ? array_values(array_filter(array_map($map, $value))) : $map($value);
 
             case FieldType::LINK:
+                $value = \CtrlField\Data\LinkResolver::resolve($value);
                 if ($rf === 'url') {
                     return is_array($value) ? (string) ($value['url'] ?? '') : (string) $value;
                 }

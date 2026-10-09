@@ -110,7 +110,9 @@ class SanitizationStage implements StageInterface
             FieldType::TIME     => (new TimeSanitizer())->sanitize($value),
             FieldType::DATETIME => (new DateTimeSanitizer())->sanitize($value),
             FieldType::COLOR    => (new ColorSanitizer())->sanitize($value),
-            FieldType::LINK     => (new LinkSanitizer())->sanitize($value),
+            FieldType::LINK     => (new LinkSanitizer(
+                $definition instanceof \CtrlField\Fields\Types\LinkField ? array_keys($definition->getStyles()) : []
+            ))->sanitize($value),
             FieldType::RANGE    => (new RangeSanitizer())->sanitize($value),
             FieldType::OEMBED   => (new OembedSanitizer())->sanitize($value),
             // C-3: Button Group — single string value

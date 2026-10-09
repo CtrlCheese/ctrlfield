@@ -109,6 +109,7 @@ class MetaBoxServiceProvider extends ServiceProvider
             'restUrl'     => rest_url(),
             'restNonce'   => wp_create_nonce('wp_rest'),
             'saveError'   => $this->takeSaveError(),
+            'i18n'        => ['link' => self::linkStrings()],
         ]);
 
         // WP media library — needed for image/file fields
@@ -333,5 +334,31 @@ class MetaBoxServiceProvider extends ServiceProvider
         // We keep it simple: pass an empty map and let Alpine fetch lazily.
         // Full pre-population can be added without changing the JS contract.
         return [];
+    }
+
+    /** @return array<string, string> Texts of the Link field dialog (assets/admin/src/link.js). */
+    private static function linkStrings(): array
+    {
+        return [
+            'title'     => __('Insert/edit link', 'ctrlfield'),
+            'url'       => __('URL', 'ctrlfield'),
+            'text'      => __('Link text', 'ctrlfield'),
+            'style'     => __('Style', 'ctrlfield'),
+            'newTab'    => __('Open link in a new tab', 'ctrlfield'),
+            'hint'      => __('Or link to existing content', 'ctrlfield'),
+            'all'       => __('All', 'ctrlfield'),
+            'anchors'   => __('Anchors', 'ctrlfield'),
+            'anchor'    => __('Anchor', 'ctrlfield'),
+            'external'  => __('External', 'ctrlfield'),
+            'search'    => __('Search', 'ctrlfield'),
+            'results'   => __('Results', 'ctrlfield'),
+            'loading'   => __('Loading…', 'ctrlfield'),
+            'noResults' => __('Nothing found.', 'ctrlfield'),
+            'noAnchors' => __('No anchors on this page yet. Type #name in the URL.', 'ctrlfield'),
+            'cancel'    => __('Cancel', 'ctrlfield'),
+            'add'       => __('Add link', 'ctrlfield'),
+            'update'    => __('Update', 'ctrlfield'),
+            'close'     => __('Close', 'ctrlfield'),
+        ];
     }
 }
