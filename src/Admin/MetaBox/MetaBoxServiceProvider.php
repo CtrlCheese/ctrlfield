@@ -110,7 +110,15 @@ class MetaBoxServiceProvider extends ServiceProvider
             'restNonce'   => wp_create_nonce('wp_rest'),
             'saveError'   => $this->takeSaveError(),
             'i18n'        => ['link' => self::linkStrings()],
+            'wysiwyg'     => [
+                'template' => WysiwygEditorSettings::TEMPLATE_ID,
+                'toolbars' => WysiwygEditorSettings::toolbars(),
+            ],
+            'wplink'      => self::wpLinkConfig(),
         ]);
+
+        // The theme's editor setup (toolbars, formats, plugins) for WYSIWYG fields.
+        add_action('admin_footer', [WysiwygEditorSettings::class, 'printTemplate']);
 
         // WP media library — needed for image/file fields
         wp_enqueue_media();
@@ -360,5 +368,23 @@ class MetaBoxServiceProvider extends ServiceProvider
             'update'    => __('Update', 'ctrlfield'),
             'close'     => __('Close', 'ctrlfield'),
         ];
+    }
+
+    /**
+     * Tabs added to the WordPress link dialog of WYSIWYG editors (wplinkTabs.js):
+     * every public post type, the taxonomies shown in menus, and page anchors.
+     * Return false from the filter to keep the dialog as WordPress ships it.
+     *
+     * @return array<string, mixed>|false
+     */
+    private static function wpLinkConfig(): array|false
+    {
+        $taxonomies = array_values(get_taxonomies(['public' => true, 'show_in_nav_menus' => true]));
+        $config     = \CtrlField\Fields\Renderers\LinkRenderer::config(
+            \CtrlField\Fields\Field::link('wplink')->taxonomies($taxonomies)
+        );
+        $config = apply_filters('ctrlfield/wplink/config', $config);
+
+        return is_array($config) ? $config : false;
     }
 }

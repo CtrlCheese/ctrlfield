@@ -1,6 +1,6 @@
 # Link
 
-A URL + title + target link picker. Stored as a structured array.
+A link chosen in a dialog like the WordPress "Insert/edit link" one: type a URL (or `#anchor`), or pick a post, page, term or anchor from tabs with search. Good for buttons and calls to action.
 
 ---
 
@@ -15,7 +15,38 @@ Field::link(string $key): LinkField
 ```php
 ->showTarget(bool $show = true): static
 ```
-Show the "Open in new tab" checkbox. Default: `true`.
+Show the "Open link in a new tab" checkbox. Default: `true`.
+
+```php
+->postType(string|array $types): static
+```
+Post types offered as tabs (one tab each, plus "All"). Default: every public post type.
+
+```php
+->taxonomies(string|array $taxonomies): static
+```
+Taxonomies whose terms can be linked (one tab each). Default: none.
+
+```php
+->anchors(bool $anchors = true): static
+```
+Show the "Anchors" tab: the `#ids` found on the page being edited (in its content, and in fields whose name contains "anchor"). Default: `true`.
+
+```php
+->styles(array $styles): static
+```
+Button styles the editor picks from, `['value' => 'Label']`. The first one is the default. Default: none (no style choice).
+
+---
+
+## The dialog
+
+- **URL** accepts any address or `#anchor`; **Link text** is filled from the picked result unless you typed one.
+- **Tabs**: All, each post type, each taxonomy, Anchors. Results show type, status, date and thumbnail; scroll to load more.
+- Keyboard: arrows to move, Enter to pick, double click to pick and close, Esc to cancel.
+- In the field, a set link shows as one line: text · kind · URL · style · new tab, with **Edit** and **Remove**. A link to content that was deleted or unpublished is marked in red.
+
+The same tabs also appear in the link dialog of [WYSIWYG](./wysiwyg.mdx) editors.
 
 ---
 
@@ -24,14 +55,26 @@ Show the "Open in new tab" checkbox. Default: `true`.
 ```json
 {
   "cta": {
-    "url":    "https://example.com",
-    "title":  "Learn More",
-    "target": "_blank"
+    "url":    "https://example.com/about/",
+    "title":  "About us",
+    "target": "_blank",
+    "type":   "post",
+    "id":     12,
+    "object": "page",
+    "style":  "primary"
   }
 }
 ```
 
-`target` is `'_blank'` or `''`.
+| Key | Value |
+|---|---|
+| `url`, `title` | The address and link text |
+| `target` | `'_blank'` or `'_self'` |
+| `type` | `post`, `term`, `anchor` or `external` (links saved before this existed have none) |
+| `id`, `object` | For posts and terms: the ID and the post type / taxonomy |
+| `style` | One of `->styles()`, when set |
+
+**Links follow permalink changes.** For posts and terms the URL is rebuilt from `id` when the value is read, so a renamed page keeps working. If the content was deleted or is not published, the stored URL is returned. A `#fragment` after the address is kept.
 
 ---
 
@@ -39,22 +82,50 @@ Show the "Open in new tab" checkbox. Default: `true`.
 
 ```php
 Field::link('cta_button')
-    ->label('CTA Button')
-    ->showTarget(true),
+    ->label('Button')
+    ->postType(['page', 'service'])
+    ->taxonomies(['category'])
+    ->styles(['primary' => 'Primary', 'outline' => 'Outline']),
 ```
 
 ---
 
 ## Template usage
 
-```blade
-@php $link = ctrlfield_get('cta_button') @endphp
+`ctrlfield_get()` returns the link with an up-to-date URL. `ctrlfield_link_attrs()` prints `href`, and `target` + `rel` for new tabs, escaped:
 
-@if(!empty($link['url']))
-    <a href="{{ $link['url'] }}"
-       target="{{ $link['target'] ?? '' }}"
-       rel="{{ $link['target'] === '_blank' ? 'noopener noreferrer' : '' }}">
-        {{ $link['title'] ?? 'Learn More' }}
+```php
+<?php $cta = ctrlfield_get('cta_button'); ?>
+<?php if (! empty($cta['url'])) : ?>
+    <a class="button button--<?= esc_attr($cta['style'] ?? 'primary') ?>" <?= ctrlfield_link_attrs($cta) ?>>
+        <?= esc_html($cta['title']) ?>
     </a>
+<?php endif; ?>
+```
+
+```blade
+@php $cta = ctrlfield_get('cta_button') @endphp
+@if(!empty($cta['url']))
+    <a {!! ctrlfield_link_attrs($cta) !!}>{{ $cta['title'] }}</a>
 @endif
+```
+
+Links inside repeater or flexible rows are read with their row; pass them through `ctrlfield_link()` (or `ctrlfield_link_attrs()`, which does it for you) to get the current URL:
+
+```php
+foreach (ctrlfield_get('buttons') ?: [] as $row) {
+    $link = ctrlfield_link($row['link']);
+}
+```
+
+Themes built for ACF (`get_field()`) receive the usual `['url', 'title', 'target']` array, with the current URL.
+
+### Filters
+
+```php
+// Anchors offered for a post (e.g. section ids of your own builder).
+add_filter('ctrlfield/link/anchors', function (array $anchors, int $postId) {
+    $anchors[] = ['anchor' => 'contact', 'label' => 'Contact form'];
+    return $anchors;
+}, 10, 2);
 ```

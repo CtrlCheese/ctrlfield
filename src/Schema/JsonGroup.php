@@ -39,7 +39,7 @@ final class JsonGroup
         'email'         => ['email', ['placeholder', 'default'], false],
         'url'           => ['url', ['placeholder', 'default'], false],
         'password'      => ['password', ['placeholder'], false],
-        'wysiwyg'       => ['wysiwyg', ['default'], false],
+        'wysiwyg'       => ['wysiwyg', ['default', 'toolbar', 'noMedia'], false],
         'range'         => ['range', ['min', 'max', 'step', 'default'], false],
         'select'        => ['select', ['options', 'default', 'returnFormat'], false],
         'radio'         => ['radio', ['options', 'default', 'returnFormat'], false],
@@ -111,6 +111,8 @@ final class JsonGroup
         'roles'           => 'slugs',
         'taxonomies'      => 'slugs',
         'noAnchors'       => 'bool',
+        'toolbar'         => 'slug',
+        'noMedia'         => 'bool',
         'styles'          => 'options',
         'language'        => 'slug',
         'fields'          => 'fields',
@@ -574,6 +576,9 @@ final class JsonGroup
                     break;
                 case 'noAnchors':
                     $calls[] = ['anchors', [false]];
+                    break;
+                case 'noMedia':
+                    $calls[] = ['mediaButtons', [false]];
                     break;
                 case 'adminColumn':
                     // A column needs the index row (sorting / filtering).

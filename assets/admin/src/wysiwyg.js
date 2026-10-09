@@ -11,21 +11,46 @@ let counter = 0;
 
 // wp.editor and its settings (tinyMCEPreInit) are printed in the footer,
 // after this script runs: build editors once the page has loaded.
-const pageLoaded = document.readyState === 'complete'
+const pageLoaded = typeof document === 'undefined' || document.readyState === 'complete'
     ? Promise.resolve()
     : new Promise((resolve) => window.addEventListener('load', resolve, { once: true }));
 
-function settings() {
-    const base = window.wp?.editor?.getDefaultSettings?.() ?? {};
+// Fallback when the template editor is missing (another screen printed no footer).
+const FALLBACK_TOOLBARS = {
+    toolbar1: 'formatselect,bold,italic,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,wp_adv',
+    toolbar2: 'strikethrough,hr,forecolor,pastetext,removeformat,charmap,outdent,indent,undo,redo',
+};
+
+/**
+ * Settings for one editor. They start from the hidden template editor that
+ * WysiwygEditorSettings.php prints, so the theme's formats, plugins, CSS and
+ * toolbars apply (as in the WordPress editor). The field picks a named
+ * toolbar (data-toolbar) and whether "Add Media" shows (data-media).
+ */
+export function editorSettings(el, preInit = globalThis.window?.tinyMCEPreInit, config = globalThis.window?.ctrlfieldData?.wysiwyg) {
+    const base = globalThis.window?.wp?.editor?.getDefaultSettings?.() ?? {};
+    const template = config?.template;
+    const mce = { ...(preInit?.mceInit?.[template] ?? {}) };
+    const qt = { ...(preInit?.qtInit?.[template] ?? {}) };
+    for (const key of ['selector', 'wp_skip_init', 'body_class']) delete mce[key];
+    delete qt.id;
+
+    const hasTemplate = Object.keys(mce).length > 0;
+    const toolbars = config?.toolbars ?? {};
+    const name = el.dataset.toolbar || 'full';
+    // Named toolbars come from the mce_buttons* and acf/fields/wysiwyg/toolbars
+    // filters (PHP); an unknown name falls back to "full".
+    const toolbar = toolbars[name] ?? toolbars.full ?? (hasTemplate ? {} : FALLBACK_TOOLBARS);
+
     return {
         ...base,
-        mediaButtons: true,
-        quicktags: true,
+        mediaButtons: el.dataset.media !== '0',
+        quicktags: Object.keys(qt).length ? qt : true,
         tinymce: {
             ...(base.tinymce ?? {}),
-            wpautop: true,
-            toolbar1: 'formatselect,bold,italic,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,wp_adv',
-            toolbar2: 'strikethrough,hr,forecolor,pastetext,removeformat,charmap,outdent,indent,undo,redo',
+            ...mce,
+            wpautop: mce.wpautop ?? true,
+            ...toolbar,
         },
     };
 }
@@ -56,7 +81,7 @@ export function registerWysiwyg(Alpine) {
             if (!window.wp?.editor?.initialize) {
                 return; // no TinyMCE on this screen: a plain textarea still works
             }
-            const s = settings();
+            const s = editorSettings(el);
             s.tinymce.setup = (ed) => {
                 editor = ed;
                 ed.on('change keyup undo redo input', () => write(ed.getContent()));

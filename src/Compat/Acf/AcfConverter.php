@@ -204,6 +204,15 @@ final class AcfConverter
                     unset($out['default']);
                 }
                 break;
+            case 'wysiwyg':
+                $toolbar = strtolower((string) preg_replace('/[^A-Za-z0-9_-]/', '', (string) ($f['toolbar'] ?? 'full')));
+                if ($toolbar !== '' && $toolbar !== 'full') {
+                    $out['toolbar'] = $toolbar;
+                }
+                if (isset($f['media_upload']) && empty($f['media_upload'])) {
+                    $out['noMedia'] = true;
+                }
+                break;
             case 'true_false':
                 if (is_string($f['message'] ?? null) && $f['message'] !== '') {
                     $out['message'] = $f['message'];

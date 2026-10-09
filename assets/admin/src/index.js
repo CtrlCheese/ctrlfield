@@ -9,6 +9,7 @@ import { registerWysiwyg } from './wysiwyg.js';
 import { registerUiState, uiPath, uiGet, uiSet } from './uiState.js';
 import { rowSummary } from './rows.js';
 import { registerLink } from './link.js';
+import { registerWpLinkTabs } from './wplinkTabs.js';
 
 function markBlockEditorDirty() {
     const editor = window.wp?.data?.select?.('core/editor');
@@ -76,6 +77,7 @@ registerSortable(Alpine);
 registerWysiwyg(Alpine);
 registerUiState(Alpine);
 registerLink(Alpine);
+registerWpLinkTabs();
 
 document.addEventListener('alpine:init', () => {
     // CtrlField → Field Groups editor; config comes from the root's data-config.

@@ -1,6 +1,6 @@
 # WYSIWYG
 
-A full WordPress TinyMCE rich-text editor.
+The WordPress rich-text editor (TinyMCE), at any depth: groups, repeater rows and flexible sections.
 
 ---
 
@@ -11,6 +11,38 @@ Field::wysiwyg(string $key): WysiwygField
 ```
 
 ### Type-specific methods
+
+```php
+->toolbar(string $name): static
+```
+Named toolbar: `'full'` (default — the theme's editor toolbar) or `'basic'`, or one added with a filter (below).
+
+```php
+->mediaButtons(bool $show = true): static
+```
+Show the "Add Media" button. Default: `true`.
+
+---
+
+## The theme's editor setup applies
+
+The editor is set up the way WordPress sets up its own, so what a theme configures for the classic editor also applies to every WYSIWYG field:
+
+- toolbars from `mce_buttons`, `mce_buttons_2`… filters;
+- **Formats** (`style_formats`), block formats, entities and other options from `tiny_mce_before_init` — e.g. a theme's "Button" format;
+- TinyMCE plugins (`mce_external_plugins`) and editor CSS (`add_editor_style()`).
+
+Themes built for ACF keep their toolbars: the `acf/fields/wysiwyg/toolbars` filter is applied too, with the same format.
+
+```php
+// A "minimal" toolbar for ->toolbar('minimal').
+add_filter('ctrlfield/wysiwyg/toolbars', function (array $toolbars) {
+    $toolbars['Minimal'] = [1 => ['bold', 'italic', 'link']];
+    return $toolbars;
+});
+```
+
+The link button opens the WordPress link dialog with extra tabs — every public post type, the taxonomies shown in menus, and the page's anchors — and richer results (type, status, date, thumbnail). Return `false` from `ctrlfield/wplink/config` to keep the dialog as WordPress ships it.
 
 ---
 
@@ -26,6 +58,11 @@ Stored as an HTML string. Sanitized with `wp_kses_post()`.
 Field::wysiwyg('content')
     ->label('Content')
     ->width(100),
+
+Field::wysiwyg('note')
+    ->label('Note')
+    ->toolbar('basic')
+    ->mediaButtons(false),
 ```
 
 ---

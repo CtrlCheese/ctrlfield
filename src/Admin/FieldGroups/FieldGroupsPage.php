@@ -433,6 +433,12 @@ final class FieldGroupsPage
         $row('step', __('Step', 'ctrlfield'), $text('step', 'number'));
         $row('message', __('Message', 'ctrlfield'), $text('message'), __('Text shown next to the checkbox.', 'ctrlfield'));
         $row('closed', __('Start closed', 'ctrlfield'), $check('closed', __('The section is collapsed until opened', 'ctrlfield')), __('An accordion runs until the next accordion or an "Accordion end".', 'ctrlfield'));
+        $toolbars = [];
+        foreach (array_keys(\CtrlField\Admin\MetaBox\WysiwygEditorSettings::toolbars()) as $name) {
+            $toolbars[$name] = ucfirst($name);
+        }
+        $row('toolbar', __('Toolbar', 'ctrlfield'), $select('toolbar', $toolbars), __('Empty: Full (the theme\'s editor toolbar).', 'ctrlfield'));
+        $row('noMedia', __('Media', 'ctrlfield'), $check('noMedia', __('Hide the "Add Media" button', 'ctrlfield')));
         $row('content', __('Message', 'ctrlfield'), '<textarea class="large-text" rows="3" x-model="field.content"></textarea>');
         $row('format', __('Display format', 'ctrlfield'), $text('format'), __('PHP date format, e.g. d/m/Y. Empty: the site\'s format.', 'ctrlfield'));
         $row('postType', __('Post types', 'ctrlfield'), $select('postType', $postTypes, true), __('Empty: all post types.', 'ctrlfield'));

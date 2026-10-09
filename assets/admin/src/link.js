@@ -103,18 +103,12 @@ function el(tag, attrs = {}, children = []) {
     return node;
 }
 
-function openDialog(value, set, config, opener) {
-    const link = value && typeof value === 'object' ? value : {};
-    const styles = Object.entries(config.styles ?? {});
-    const form = {
-        url: link.url ?? '',
-        title: link.title ?? '',
-        newTab: link.target === '_blank',
-        style: link.style ?? (styles[0]?.[0] ?? ''),
-    };
-    let picked = link.id ? { kind: link.type, id: link.id, object: link.object, url: link.url } : null;
-    let autoTitle = ''; // the title filled from a result, replaced by the next pick
-
+/**
+ * Tabs + search results of the link dialogs (the Link field's and the
+ * WordPress one in WYSIWYG editors): one tab per post type / taxonomy, plus
+ * the anchors of the page.
+ */
+export function linkBrowser(config, { search, onChoose, onConfirm, selectedUrl = () => '' }) {
     const postTabs = (config.tabs ?? []).filter((tab) => tab.source.startsWith('post:'));
     const tabs = [
         ...(postTabs.length > 1 || (config.tabs ?? []).length > postTabs.length
@@ -129,46 +123,16 @@ function openDialog(value, set, config, opener) {
     let request = 0;
     let searchTimer = null;
 
-    // Fields
-    const urlInput = el('input', { type: 'text', class: 'ctrlf-linkdlg__input', id: 'ctrlf-linkdlg-url', value: form.url, placeholder: 'https:// · #anchor', autocomplete: 'off' });
-    const titleInput = el('input', { type: 'text', class: 'ctrlf-linkdlg__input', id: 'ctrlf-linkdlg-title', value: form.title });
-    const newTab = config.showTarget
-        ? el('input', { type: 'checkbox', id: 'ctrlf-linkdlg-newtab', checked: form.newTab })
-        : null;
-    const styleSelect = styles.length
-        ? el('select', { class: 'ctrlf-linkdlg__input', id: 'ctrlf-linkdlg-style' },
-            styles.map(([v, label]) => el('option', { value: v, text: label, selected: v === form.style })))
-        : null;
-
-    const search = el('input', { type: 'search', class: 'ctrlf-linkdlg__search', placeholder: t('search', 'Search'), 'aria-label': t('search', 'Search') });
     const list = el('ul', { class: 'ctrlf-linkdlg__results', role: 'listbox', 'aria-label': t('results', 'Results') });
     const status = el('p', { class: 'ctrlf-linkdlg__status', 'aria-live': 'polite' });
     const tabBar = el('div', { class: 'ctrlf-linkdlg__tabs', role: 'tablist' });
 
-    urlInput.addEventListener('input', () => {
-        form.url = urlInput.value;
-        markSelected();
-    });
-    titleInput.addEventListener('input', () => { form.title = titleInput.value; autoTitle = ''; });
-
-    function markSelected() {
+    function markSelected(url = selectedUrl()) {
         for (const li of list.children) {
-            const on = li.dataset.url !== undefined && li.dataset.url === form.url.trim();
+            const on = li.dataset.url !== undefined && li.dataset.url === String(url ?? '').trim();
             li.classList.toggle('is-selected', on);
             li.setAttribute('aria-selected', on ? 'true' : 'false');
         }
-    }
-
-    function choose(item) {
-        picked = item.kind === 'anchor' ? null : item;
-        form.url = item.url;
-        urlInput.value = item.url;
-        if (form.title === '' || form.title === autoTitle) {
-            form.title = item.title;
-            titleInput.value = item.title;
-            autoTitle = item.title;
-        }
-        markSelected();
     }
 
     function row(item) {
@@ -183,10 +147,10 @@ function openDialog(value, set, config, opener) {
             ]),
             el('span', { class: 'ctrlf-linkdlg__item-url', text: item.url.replace(/^https?:\/\/[^/]+/, '') || '/' }),
         ]);
-        li.addEventListener('click', () => choose(item));
-        li.addEventListener('dblclick', () => { choose(item); submit(); });
+        li.addEventListener('click', () => onChoose(item));
+        li.addEventListener('dblclick', () => onConfirm(item));
         li.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(item); }
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChoose(item); }
             if (e.key === 'ArrowDown') { e.preventDefault(); li.nextElementSibling?.focus(); }
             if (e.key === 'ArrowUp') { e.preventDefault(); (li.previousElementSibling ?? search).focus(); }
         });
@@ -246,6 +210,65 @@ function openDialog(value, set, config, opener) {
         })));
     }
 
+    return {
+        tabs, tabBar, list, status, markSelected,
+        start() {
+            renderTabs();
+            if (tabs.length) load(true);
+        },
+    };
+}
+
+function openDialog(value, set, config, opener) {
+    const link = value && typeof value === 'object' ? value : {};
+    const styles = Object.entries(config.styles ?? {});
+    const form = {
+        url: link.url ?? '',
+        title: link.title ?? '',
+        newTab: link.target === '_blank',
+        style: link.style ?? (styles[0]?.[0] ?? ''),
+    };
+    let picked = link.id ? { kind: link.type, id: link.id, object: link.object, url: link.url } : null;
+    let autoTitle = ''; // the title filled from a result, replaced by the next pick
+
+    // Fields
+    const urlInput = el('input', { type: 'text', class: 'ctrlf-linkdlg__input', id: 'ctrlf-linkdlg-url', value: form.url, placeholder: 'https:// · #anchor', autocomplete: 'off' });
+    const titleInput = el('input', { type: 'text', class: 'ctrlf-linkdlg__input', id: 'ctrlf-linkdlg-title', value: form.title });
+    const newTab = config.showTarget
+        ? el('input', { type: 'checkbox', id: 'ctrlf-linkdlg-newtab', checked: form.newTab })
+        : null;
+    const styleSelect = styles.length
+        ? el('select', { class: 'ctrlf-linkdlg__input', id: 'ctrlf-linkdlg-style' },
+            styles.map(([v, label]) => el('option', { value: v, text: label, selected: v === form.style })))
+        : null;
+
+    urlInput.addEventListener('input', () => {
+        form.url = urlInput.value;
+        browser.markSelected(form.url);
+    });
+    titleInput.addEventListener('input', () => { form.title = titleInput.value; autoTitle = ''; });
+
+    function choose(item) {
+        picked = item.kind === 'anchor' ? null : item;
+        form.url = item.url;
+        urlInput.value = item.url;
+        if (form.title === '' || form.title === autoTitle) {
+            form.title = item.title;
+            titleInput.value = item.title;
+            autoTitle = item.title;
+        }
+        browser.markSelected(form.url);
+    }
+
+    const search = el('input', { type: 'search', class: 'ctrlf-linkdlg__search', placeholder: t('search', 'Search'), 'aria-label': t('search', 'Search') });
+    const browser = linkBrowser(config, {
+        search,
+        onChoose: choose,
+        onConfirm: (item) => { choose(item); submit(); },
+        selectedUrl: () => form.url,
+    });
+    const { tabs, tabBar, list, status } = browser;
+
     // Layout
     const titleId = 'ctrlf-linkdlg-heading';
     const field = (label, id, input) => el('div', { class: 'ctrlf-linkdlg__field' }, [
@@ -301,8 +324,7 @@ function openDialog(value, set, config, opener) {
     backdrop.addEventListener('mousedown', (e) => { if (e.target === backdrop) close(); });
     document.addEventListener('keydown', onKey, true);
     document.body.append(backdrop);
-    renderTabs();
-    if (tabs.length) load(true);
+    browser.start();
     urlInput.focus();
 }
 

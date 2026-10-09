@@ -812,6 +812,22 @@ body.ctrlf-is-sorting * {
     .ctrlf-linkdlg__item-url { display: none; }
 }
 
+/* WordPress link dialog (wpLink) with the Link field's tabs (wplinkTabs.js). */
+#wp-link .ctrlf-wplink-panel .query-results,
+#wp-link .ctrlf-wplink-panel .river-waiting { display: none; }
+
+#wp-link-wrap.search-panel-visible { height: 560px; }
+
+#wp-link .ctrlf-wplink {
+    margin-top: 8px;
+    border: 1px solid #dcdcde;
+    background: #fff;
+
+    .ctrlf-linkdlg__tabs { padding: 0 10px; }
+    .ctrlf-linkdlg__results { max-height: 230px; border-top: 0; }
+    .ctrlf-linkdlg__item { padding: 6px 10px; }
+}
+
 /* ── Gallery: square tiles ───────────────────────────────────────────── */
 
 .ctrlf-gallery__items {
