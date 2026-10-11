@@ -9,7 +9,10 @@ use CtrlField\Core\Pipeline\PipelineContext;
 use CtrlField\Core\Pipeline\PipelineException;
 use CtrlField\Core\Pipeline\Traits\BuildsFieldMap;
 use CtrlField\Fields\Contracts\CollectionConstraintsInterface;
+use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Conditions\ConditionEvaluator;
 use CtrlField\Fields\Contracts\FlexibleContentInterface;
+use CtrlField\Fields\FieldDefinition;
 use CtrlField\Fields\Types\ButtonGroupField;
 use CtrlField\Fields\Types\CheckboxField;
 use CtrlField\Fields\Types\LinkField;
@@ -27,13 +30,24 @@ class RulesVerificationStage implements StageInterface
     {
         $fieldMap = self::buildFieldMap($context->fieldGroups);
 
+        $topScope = [$context->fields];
+
         foreach ($fieldMap as $key => $definition) {
             $value = $context->fields[$key] ?? null;
 
+            // Hidden by its condition: the editor did not see it, nothing is required (C7.1).
+            $condition = $definition->getConditionGroup();
+            $hidden    = $condition !== null && ! ConditionEvaluator::isVisible($condition, $topScope);
+
             // FlexibleContent: min/max layout count and required sub-fields
             if ($definition instanceof FlexibleContentInterface) {
-                self::verifyFlexContent($key, $value, $definition);
+                self::verifyFlexContent($key, $value, $definition, $hidden ? null : $topScope);
                 continue;
+            }
+
+            // Required sub-fields of repeater rows and groups, at any depth (C7.16).
+            if (! $hidden) {
+                self::verifyNested($key, $definition, $value, $topScope);
             }
 
             // Collection fields (PostObject, TaxonomyTerm, Relationship): min/max item count
@@ -47,7 +61,7 @@ class RulesVerificationStage implements StageInterface
                 ? (! is_array($value) || empty($value['url']))
                 : self::isEmpty($value);
 
-            if ($definition->isRequired() && $isEffectivelyEmpty) {
+            if ($definition->isRequired() && $isEffectivelyEmpty && ! $hidden) {
                 throw new PipelineException(
                     errorCode:    'REQUIRED_FIELD',
                     errorMessage: "Field '{$key}' is required.",
@@ -129,7 +143,11 @@ class RulesVerificationStage implements StageInterface
         }
     }
 
-    private static function verifyFlexContent(string $key, mixed $value, FlexibleContentInterface $definition): void
+    /**
+     * @param list<array<string, mixed>>|null $scopes Values around the field (top level);
+     *                                               null = the field is hidden, skip required checks.
+     */
+    private static function verifyFlexContent(string $key, mixed $value, FlexibleContentInterface $definition, ?array $scopes = []): void
     {
         $instances = is_array($value) ? $value : [];
         $count     = count($instances);
@@ -174,25 +192,77 @@ class RulesVerificationStage implements StageInterface
             }
         }
 
-        // Required sub-field checks per layout instance
+        // Required sub-fields per section, with conditions evaluated in the section (C7.1)
+        if ($scopes === null) {
+            return;
+        }
         foreach ($instances as $instance) {
             if (! is_array($instance)) {
                 continue;
             }
 
-            $layoutKey    = is_string($instance['_layout'] ?? null) ? $instance['_layout'] : '';
-            $layoutFields = $definition->getLayoutFields($layoutKey);
+            $layoutKey = is_string($instance['_layout'] ?? null) ? $instance['_layout'] : '';
+            self::verifyRow($key, $definition->getLayoutFields($layoutKey), $instance, $scopes, "layout '{$layoutKey}'");
+        }
+    }
 
-            foreach ($layoutFields as $subField) {
-                if ($subField->isRequired() && self::isEmpty($instance[$subField->getKey()] ?? null)) {
-                    throw new PipelineException(
-                        errorCode:    'REQUIRED_FIELD',
-                        errorMessage: "Sub-field '{$subField->getKey()}' in layout '{$layoutKey}' of field '{$key}' is required.",
-                        fieldKey:     $key,
-                        stageName:    self::NAME,
-                    );
+    /**
+     * Rows of a repeater / the object of a group: required sub-fields, recursively.
+     *
+     * @param list<array<string, mixed>> $scopes innermost first
+     */
+    private static function verifyNested(string $topKey, FieldDefinition $definition, mixed $value, array $scopes, string $where = ''): void
+    {
+        if (! method_exists($definition, 'getFields') || ! is_array($value)) {
+            return;
+        }
+        $type   = $definition->getType();
+        $prefix = ($where !== '' ? $where . ' → ' : '') . "'{$definition->getKey()}'";
+
+        if ($type === FieldType::REPEATER) {
+            foreach (array_values($value) as $i => $row) {
+                if (is_array($row)) {
+                    self::verifyRow($topKey, $definition->getFields(), $row, $scopes, $prefix . ' row ' . ($i + 1));
                 }
             }
+        } elseif ($type === FieldType::GROUP) {
+            self::verifyRow($topKey, $definition->getFields(), $value, $scopes, $prefix);
+        }
+    }
+
+    /**
+     * @param array<int|string, FieldDefinition> $fields
+     * @param array<string, mixed>               $row
+     * @param list<array<string, mixed>>         $outer  scopes around the row, innermost first
+     */
+    private static function verifyRow(string $topKey, array $fields, array $row, array $outer, string $where): void
+    {
+        $scopes = [$row, ...$outer];
+
+        foreach ($fields as $sub) {
+            if ($sub->isUiOnly()) {
+                continue;
+            }
+            $condition = $sub->getConditionGroup();
+            if ($condition !== null && ! ConditionEvaluator::isVisible($condition, $scopes)) {
+                continue; // hidden in this row: keeps its value, not required
+            }
+
+            $value = $row[$sub->getKey()] ?? null;
+            $empty = $sub instanceof LinkField
+                ? (! is_array($value) || empty($value['url']))
+                : self::isEmpty($value);
+
+            if ($sub->isRequired() && $empty) {
+                throw new PipelineException(
+                    errorCode:    'REQUIRED_FIELD',
+                    errorMessage: "Sub-field '{$sub->getKey()}' in {$where} of field '{$topKey}' is required.",
+                    fieldKey:     $topKey,
+                    stageName:    self::NAME,
+                );
+            }
+
+            self::verifyNested($topKey, $sub, $value, $scopes, $where);
         }
     }
 

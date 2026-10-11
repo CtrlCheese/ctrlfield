@@ -9,20 +9,42 @@
  */
 
 export function evaluateCondition(conditionDef, fieldValues) {
-    const { type, conditions } = conditionDef;
+    return evaluateWith(conditionDef, (field) => fieldValues?.[field]);
+}
+
+/**
+ * Same, for a field inside a row (repeater row, flexible section, group): each
+ * condition field is looked up in `scopes` in order — the field's own row first,
+ * then the rows around it, then the top-level values — and the first scope that
+ * has the key wins (C7.1).
+ *
+ * @param {object}   conditionDef
+ * @param {object[]} scopes  innermost first
+ */
+export function evaluateConditionIn(conditionDef, scopes) {
+    const list = (Array.isArray(scopes) ? scopes : [scopes]).filter((s) => s && typeof s === 'object');
+    return evaluateWith(conditionDef, (field) => {
+        const scope = list.find((s) => Object.prototype.hasOwnProperty.call(s, field));
+        return scope ? scope[field] : undefined;
+    });
+}
+
+function evaluateWith(conditionDef, lookup) {
+    const { type, conditions } = conditionDef ?? {};
+    if (!Array.isArray(conditions)) return true;
 
     if (type === 'all') {
-        return conditions.every(c => evaluateSingle(c, fieldValues));
+        return conditions.every(c => evaluateSingle(c, lookup));
     }
     if (type === 'any') {
-        return conditions.some(c => evaluateSingle(c, fieldValues));
+        return conditions.some(c => evaluateSingle(c, lookup));
     }
     // Unknown type — safe default: visible
     return true;
 }
 
-function evaluateSingle({ field, operator, value }, fieldValues) {
-    const a = fieldValues[field] ?? '';
+function evaluateSingle({ field, operator, value }, lookup) {
+    const a = lookup(field) ?? '';
 
     switch (operator) {
         case '==':           return a == value;   // loose: "1" == 1 is intentional

@@ -15,9 +15,10 @@ final class GroupRenderer extends AbstractRenderer
             return '';
         }
 
-        $rows = FieldLayout::render(array_values($field->getFields()), function (FieldDefinition $sub) use ($statePath): string {
-            return self::fieldHtml($sub, "{$statePath}['{$sub->getKey()}']");
-        });
+        $rows = self::withRowScope($statePath, static fn (): string => FieldLayout::render(
+            array_values($field->getFields()),
+            static fn (FieldDefinition $sub): string => self::fieldHtml($sub, "{$statePath}['{$sub->getKey()}']"),
+        ));
 
         return sprintf('<div class="ctrlf-group">%s</div>', $rows);
     }

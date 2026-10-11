@@ -104,6 +104,45 @@ abstract class AbstractRenderer implements RendererInterface
         return function_exists('wp_kses_post') ? wp_kses_post($instructions) : htmlspecialchars($instructions, ENT_QUOTES, 'UTF-8');
     }
 
+    /**
+     * JS expressions of the rows being rendered, innermost last (repeater row,
+     * flexible section, group object). Conditions of nested fields resolve
+     * against them (C7.1).
+     *
+     * @var list<string>
+     */
+    private static array $rowScopes = [];
+
+    /**
+     * Renders the fields of one row: inside $render, nested fields evaluate their
+     * conditions against $rowExpr first, then the rows around it, then the
+     * top-level fields.
+     *
+     * @param callable(): string $render
+     */
+    public static function withRowScope(string $rowExpr, callable $render): string
+    {
+        self::$rowScopes[] = $rowExpr;
+        try {
+            return $render();
+        } finally {
+            array_pop(self::$rowScopes);
+        }
+    }
+
+    /** x-show for a nested field with a condition ('' when it has none). */
+    private static function conditionAttr(\CtrlField\Fields\FieldDefinition $sub): string
+    {
+        $condition = $sub->getConditionGroup();
+        if ($condition === null) {
+            return '';
+        }
+        $json   = (string) json_encode($condition->toArray(), JSON_UNESCAPED_UNICODE);
+        $scopes = implode(', ', array_reverse(self::$rowScopes)); // innermost first
+
+        return ' x-show="ctrlfVisibleIn(' . htmlspecialchars($json . ', [' . $scopes . ']', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . ')"';
+    }
+
     /** A nested field with its label, required mark and instructions (groups, rows, sections). */
     public static function fieldHtml(\CtrlField\Fields\FieldDefinition $sub, string $path): string
     {
@@ -118,7 +157,7 @@ abstract class AbstractRenderer implements RendererInterface
         $width    = $sub->getWidth();
         $input    = RendererRegistry::resolve($sub->getType())->render($sub, $path);
 
-        return '<div class="ctrlf-field' . ($width !== null ? ' ctrlf-col-' . $width : '') . '">'
+        return '<div class="ctrlf-field' . ($width !== null ? ' ctrlf-col-' . $width : '') . '"' . self::conditionAttr($sub) . '>'
             . ($label !== '' || $required !== '' ? '<label class="ctrlf-label">' . $esc($label) . $required . '</label>' : '')
             . $input
             . ($instr !== '' ? '<p class="ctrlf-instructions">' . self::instructionsHtml($instr) . '</p>' : '')

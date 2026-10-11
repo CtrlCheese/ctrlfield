@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace CtrlField\Admin\Taxonomy;
 
+use CtrlField\Admin\EntitySave;
 use CtrlField\Admin\MetaBox\MetaBoxRenderer;
 use CtrlField\Builder\AdminContext;
-use CtrlField\Core\Pipeline\SavePipeline;
 use CtrlField\Registry\ContextRegistry;
+use CtrlField\Registry\FieldRegistry;
 use CtrlField\Storage\TermMetaAdapter;
 
 /**
@@ -28,6 +29,8 @@ class TaxonomyMetaRegistrar
             add_action("created_{$taxonomy}",          [$this, 'save']);
             add_action("edited_{$taxonomy}",           [$this, 'save']);
         }
+
+        add_action('admin_notices', [$this, 'printSaveError']);
     }
 
     public function renderAdd(string $taxonomy): void
@@ -41,7 +44,7 @@ class TaxonomyMetaRegistrar
 
         // Term add form — term ID 0, no saved data yet
         $renderer = new MetaBoxRenderer();
-        $renderer->render(0, array_values($groups));
+        $renderer->render(0, array_values($groups), []);
     }
 
     public function renderEdit(\WP_Term $term): void
@@ -54,15 +57,11 @@ class TaxonomyMetaRegistrar
         }
 
         $renderer = new MetaBoxRenderer();
-        $renderer->render($term->term_id, array_values($groups));
+        $renderer->render($term->term_id, array_values($groups), (new TermMetaAdapter())->load($term->term_id) ?? []);
     }
 
     public function save(int $termId): void
     {
-        if (! isset($_POST['ctrlfield_payload'])) {
-            return;
-        }
-
         $taxonomy = sanitize_key($_POST['taxonomy'] ?? '');
 
         // Verify the user can edit terms in this taxonomy before running the pipeline.
@@ -73,29 +72,49 @@ class TaxonomyMetaRegistrar
             return;
         }
 
-        SavePipeline::run(
-            entityId:        $termId,
-            rawPost:         $_POST,
-            adapterOverride: new TermMetaAdapter(),
-            contextOverride: new AdminContext(taxonomy: $taxonomy),
-            capability:       '',
-            objectCapability: 'edit_term',
-        );
+        EntitySave::run('term', $termId, new TermMetaAdapter(), new AdminContext(taxonomy: $taxonomy), 'edit_term');
     }
 
-    /** @return array<string> */
+    /** Error of the last save, on term.php. */
+    public function printSaveError(): void
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if ($screen === null || $screen->base !== 'term') {
+            return;
+        }
+
+        EntitySave::printError('term', isset($_GET['tag_ID']) ? (int) $_GET['tag_ID'] : 0);
+    }
+
+    /**
+     * Taxonomies named by a `taxonomy` rule of any registered group (AND rules
+     * and every whereAny() alternative; `==` and `IN`).
+     *
+     * @return array<string>
+     */
     private function resolveRegisteredTaxonomies(): array
     {
         $taxonomies = [];
 
-        foreach (ContextRegistry::resolve(new AdminContext()) as $group) {
-            foreach ($group->getAndConditions() as $condition) {
-                if ($condition['key'] === 'taxonomy' && $condition['operator'] === '==') {
+        foreach (FieldRegistry::all() as $group) {
+            $rules = $group->getAndConditions();
+            foreach ($group->getOrGroups() as $alternative) {
+                $rules = array_merge($rules, $alternative);
+            }
+
+            foreach ($rules as $condition) {
+                if ($condition['key'] !== 'taxonomy') {
+                    continue;
+                }
+                $operator = strtolower((string) $condition['operator']);
+                if ($operator === '==' || $operator === '=') {
                     $taxonomies[] = (string) $condition['value'];
+                } elseif ($operator === 'in' && is_array($condition['value'])) {
+                    array_push($taxonomies, ...array_map('strval', $condition['value']));
                 }
             }
         }
 
-        return array_unique($taxonomies);
+        return array_values(array_unique($taxonomies));
     }
 }

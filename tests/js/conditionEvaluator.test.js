@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { evaluateCondition } from '../../assets/admin/src/conditionEvaluator.js';
+import { evaluateCondition, evaluateConditionIn } from '../../assets/admin/src/conditionEvaluator.js';
 
 // Helper to build a condition definition
 const all = (...conditions) => ({ type: 'all', conditions });
@@ -253,5 +253,53 @@ describe('edge cases', () => {
 
     it('empty conditions OR group returns false (Array.some of empty is false)', () => {
         expect(evaluateCondition({ type: 'any', conditions: [] }, {})).toBe(false);
+    });
+});
+
+// ─── Row scope (C7.1) ────────────────────────────────────────────────────────
+
+describe('evaluateConditionIn — row scope', () => {
+    const top = { layout: 'grid', mode: 'top' };
+
+    it('reads the sibling value of the field\'s own row', () => {
+        const row = { layout: 'list' };
+        expect(evaluateConditionIn(all(cond('layout', '==', 'list')), [row, top])).toBe(true);
+        expect(evaluateConditionIn(all(cond('layout', '==', 'grid')), [row, top])).toBe(false);
+    });
+
+    it('each row is evaluated on its own', () => {
+        const c = all(cond('style', '==', 'custom'));
+        expect(evaluateConditionIn(c, [{ style: 'custom' }, top])).toBe(true);
+        expect(evaluateConditionIn(c, [{ style: 'plain' }, top])).toBe(false);
+    });
+
+    it('falls back to the parent row, then to the top level', () => {
+        const section = { variant: 'b' };
+        const item    = { label: 'x' };
+        expect(evaluateConditionIn(all(cond('variant', '==', 'b')), [item, section, top])).toBe(true);
+        expect(evaluateConditionIn(all(cond('mode', '==', 'top')), [item, section, top])).toBe(true);
+    });
+
+    it('the innermost scope wins when a key exists at several levels', () => {
+        expect(evaluateConditionIn(all(cond('layout', '==', 'inner')), [{ layout: 'inner' }, { layout: 'outer' }, top])).toBe(true);
+    });
+
+    it('a key present with an empty value is not looked up further out', () => {
+        expect(evaluateConditionIn(all(cond('layout', 'empty', null)), [{ layout: '' }, top])).toBe(true);
+    });
+
+    it('unknown key behaves like an empty value', () => {
+        expect(evaluateConditionIn(all(cond('missing', 'empty', null)), [{}, top])).toBe(true);
+        expect(evaluateConditionIn(all(cond('missing', '==', 'x')), [{}, top])).toBe(false);
+    });
+
+    it('checkbox-like booleans and any-groups work in rows', () => {
+        const row = { show_cta: true, kind: 'a' };
+        expect(evaluateConditionIn(all(cond('show_cta', '==', 1)), [row])).toBe(true);
+        expect(evaluateConditionIn(any(cond('kind', '==', 'z'), cond('kind', '==', 'a')), [row])).toBe(true);
+    });
+
+    it('ignores null / non-object scopes', () => {
+        expect(evaluateConditionIn(all(cond('a', '==', 1)), [null, undefined, { a: 1 }])).toBe(true);
     });
 });

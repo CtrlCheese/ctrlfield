@@ -79,7 +79,10 @@ class MetaBoxServiceProvider extends ServiceProvider
 
     public function enqueueAssets(string $hook): void
     {
-        if (! in_array($hook, ['post.php', 'post-new.php'], true) && ! self::isOptionsPageScreen()) {
+        if (! in_array($hook, ['post.php', 'post-new.php'], true)
+            && ! self::isOptionsPageScreen()
+            && ! self::isEntityScreenWithFields($hook)
+        ) {
             return;
         }
 
@@ -129,6 +132,26 @@ class MetaBoxServiceProvider extends ServiceProvider
         // CodeMirror — needed for code editor fields
         wp_enqueue_script('wp-codemirror');
         wp_enqueue_style('wp-codemirror');
+    }
+
+    /**
+     * User, term and comment edit screens render the same field UI when a group
+     * targets them. Without the script the payload is posted empty (C7.11).
+     */
+    private static function isEntityScreenWithFields(string $hook): bool
+    {
+        $context = match ($hook) {
+            'profile.php'   => AdminContext::forUser(get_current_user_id()),
+            'user-edit.php' => AdminContext::forUser(isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0),
+            'user-new.php'  => AdminContext::forUser(0),
+            'term.php', 'edit-tags.php' => new AdminContext(
+                taxonomy: isset($_GET['taxonomy']) ? sanitize_key(wp_unslash((string) $_GET['taxonomy'])) : 'post_tag',
+            ),
+            'comment.php'   => new AdminContext(contextType: 'comment'),
+            default         => null,
+        };
+
+        return $context !== null && ContextRegistry::resolve($context) !== [];
     }
 
     /** An options page (OptionsPage / acf_add_options_page) uses the same field UI. */
@@ -270,7 +293,7 @@ class MetaBoxServiceProvider extends ServiceProvider
      * @return list<string>
      */
     /** Message for editors: the field's label instead of its internal key. */
-    private static function friendlyError(PipelineException $e): string
+    public static function friendlyError(PipelineException $e): string
     {
         if ($e->fieldKey === null) {
             return $e->getMessage();
@@ -284,6 +307,12 @@ class MetaBoxServiceProvider extends ServiceProvider
                     break 2;
                 }
             }
+        }
+
+        if ($e->errorCode === 'REQUIRED_FIELD' && str_starts_with($e->getMessage(), 'Sub-field ')) {
+            // Inside a row: name the row and sub-field (e.g. "layout 'cards' → 'title'").
+            /* translators: 1: field label, 2: technical location of the empty sub-field */
+            return sprintf(__('"%1$s": %2$s The other fields were not saved either.', 'ctrlfield'), $label, $e->getMessage());
         }
 
         if ($e->errorCode === 'REQUIRED_FIELD') {

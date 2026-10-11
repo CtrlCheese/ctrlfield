@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace CtrlField\Admin\UserMeta;
 
+use CtrlField\Admin\EntitySave;
 use CtrlField\Admin\MetaBox\MetaBoxRenderer;
 use CtrlField\Builder\AdminContext;
-use CtrlField\Core\Pipeline\SavePipeline;
 use CtrlField\Registry\ContextRegistry;
 use CtrlField\Storage\UserMetaAdapter;
 
@@ -24,6 +24,10 @@ class UserMetaRegistrar
 
         add_action('personal_options_update',  [$this, 'save']);
         add_action('edit_user_profile_update', [$this, 'save']);
+        // Users → Add New (user-new.php) shows the fields too.
+        add_action('user_register',            [$this, 'saveNew']);
+
+        add_action('admin_notices', [$this, 'printSaveError']);
     }
 
     /** @param \WP_User|string $user user_new_form passes a string ('add-new-user'), not a user. */
@@ -37,27 +41,40 @@ class UserMetaRegistrar
             return;
         }
 
+        $stored = $userId > 0 ? ((new UserMetaAdapter())->load($userId) ?? []) : [];
+
         $renderer = new MetaBoxRenderer();
-        $renderer->render($userId, array_values($groups));
+        $renderer->render($userId, array_values($groups), $stored);
     }
 
     public function save(int $userId): void
     {
-        if (! isset($_POST['ctrlfield_payload'])) {
-            return;
-        }
-
         if (! current_user_can('edit_user', $userId)) {
             return;
         }
 
-        SavePipeline::run(
-            entityId:        $userId,
-            rawPost:         $_POST,
-            adapterOverride: new UserMetaAdapter(),
-            contextOverride: AdminContext::forUser($userId),
-            capability:       '',
-            objectCapability: 'edit_user',
-        );
+        EntitySave::run('user', $userId, new UserMetaAdapter(), AdminContext::forUser($userId), 'edit_user');
+    }
+
+    /** user_register also fires for front-end sign-ups: only the admin form posts a payload. */
+    public function saveNew(int $userId): void
+    {
+        if (! is_admin() || ! isset($_POST['ctrlfield_payload'])) {
+            return;
+        }
+
+        $this->save($userId);
+    }
+
+    /** Error of the last save, on profile.php / user-edit.php. */
+    public function printSaveError(): void
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if ($screen === null || ! in_array($screen->base, ['profile', 'user-edit'], true)) {
+            return;
+        }
+        $userId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : get_current_user_id();
+
+        EntitySave::printError('user', $userId);
     }
 }

@@ -16,8 +16,11 @@ class TaxonomyMetaServiceProvider extends ServiceProvider
             return;
         }
 
-        add_action('init', function () {
+        // wp_loaded: after every init callback, so groups registered on init
+        // (any priority, e.g. a theme on init 20) are known. The term form and
+        // save hooks fire later in the request.
+        add_action('wp_loaded', function () {
             (new TaxonomyMetaRegistrar())->register();
-        }, 20); // after CPT/taxonomy registration (default priority 10)
+        });
     }
 }

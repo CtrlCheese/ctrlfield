@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace CtrlField\Admin\Comment;
 
+use CtrlField\Admin\EntitySave;
 use CtrlField\Admin\MetaBox\MetaBoxRenderer;
 use CtrlField\Builder\AdminContext;
-use CtrlField\Core\Pipeline\SavePipeline;
 use CtrlField\Registry\ContextRegistry;
 use CtrlField\Storage\CommentMetaAdapter;
 
@@ -20,6 +20,7 @@ class CommentMetaRegistrar
     {
         add_action('add_meta_boxes_comment', [$this, 'addMetaBox']);
         add_action('edit_comment',           [$this, 'save']);
+        add_action('admin_notices',          [$this, 'printSaveError']);
     }
 
     public function addMetaBox(\WP_Comment $comment): void
@@ -50,7 +51,8 @@ class CommentMetaRegistrar
         }
 
         $renderer = new MetaBoxRenderer();
-        $renderer->render((int) $comment->comment_ID, array_values($groups));
+        $commentId = (int) $comment->comment_ID;
+        $renderer->render($commentId, array_values($groups), (new CommentMetaAdapter())->load($commentId) ?? []);
     }
 
     public function save(int $commentId): void
@@ -70,13 +72,17 @@ class CommentMetaRegistrar
             return;
         }
 
-        SavePipeline::run(
-            entityId:        $commentId,
-            rawPost:         $_POST,
-            adapterOverride: new CommentMetaAdapter(),
-            contextOverride: new AdminContext(contextType: 'comment'),
-            capability:       '',
-            objectCapability: 'edit_comment',
-        );
+        EntitySave::run('comment', $commentId, new CommentMetaAdapter(), new AdminContext(contextType: 'comment'), 'edit_comment');
+    }
+
+    /** Error of the last save, on comment.php. */
+    public function printSaveError(): void
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if ($screen === null || $screen->base !== 'comment') {
+            return;
+        }
+
+        EntitySave::printError('comment', isset($_GET['c']) ? (int) $_GET['c'] : 0);
     }
 }

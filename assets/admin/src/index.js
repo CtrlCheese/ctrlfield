@@ -1,7 +1,7 @@
 // CSS is compiled separately by @tailwindcss/cli → assets/admin/ctrlfield.css
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
-import { evaluateCondition } from './conditionEvaluator.js';
+import { evaluateCondition, evaluateConditionIn } from './conditionEvaluator.js';
 import { pickValue, mergeGallery, mapWith, hasCoords, osmEmbedUrl } from './pickers.js';
 import { fieldGroupEditor } from './groupEditor.js';
 import { registerSortable, itemKey } from './sortable.js';
@@ -152,6 +152,15 @@ document.addEventListener('alpine:init', () => {
             const cond = conditions[fieldKey];
             if (!cond) return true;
             return evaluateCondition(cond, this.adminState);
+        },
+
+        /**
+         * Visibility of a field inside a row: `scopes` are the row objects around
+         * it, innermost first (printed by AbstractRenderer::fieldHtml); the
+         * top-level values come last. Hidden fields keep their values.
+         */
+        ctrlfVisibleIn(cond, scopes = []) {
+            return evaluateConditionIn(cond, [...scopes, this.adminState]);
         },
 
         // -------------------------------------------------------------------

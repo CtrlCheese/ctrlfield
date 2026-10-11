@@ -82,12 +82,19 @@ class MetaBoxRenderer
      * Legacy render for callers that still pass an array of groups
      * (e.g. UserMeta, Comment, Taxonomy renderers).
      *
-     * @param FieldGroup[] $groups
+     * @param FieldGroup[]              $groups
+     * @param array<string, mixed>|null $stored  Values of a user / term / comment, loaded with
+     *                                           its own adapter. Null = post meta of $postId.
      */
-    public function render(int $postId, array $groups): void
+    public function render(int $postId, array $groups, ?array $stored = null): void
     {
-        $adapter    = new PostMetaAdapter(new WpPostMetaDriver());
-        $stored     = $adapter->load($postId) ?? [];
+        if ($stored === null) {
+            $adapter = new PostMetaAdapter(new WpPostMetaDriver());
+            $stored  = $adapter->load($postId) ?? [];
+        } else {
+            // Not a post: relationship pivots are keyed by post ID, do not load them.
+            $postId = 0;
+        }
         $values     = $this->buildValues($groups, $stored, $postId);
         $conditions = $this->buildConditions($groups);
         $initJs     = $this->alpineInit($values, $conditions, $groups);
