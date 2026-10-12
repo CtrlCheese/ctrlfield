@@ -303,3 +303,23 @@ describe('evaluateConditionIn — row scope', () => {
         expect(evaluateConditionIn(all(cond('a', '==', 1)), [null, undefined, { a: 1 }])).toBe(true);
     });
 });
+
+describe('evaluateConditionIn — reactivity', () => {
+    it('looks keys up with `in`, which a reactive proxy tracks', () => {
+        const seen = [];
+        const row = new Proxy({}, {
+            has(target, key) { seen.push(key); return key in target; },
+        });
+        evaluateConditionIn(all(cond('autoplay', '==', '1')), [row, { autoplay: 0 }]);
+        expect(seen).toContain('autoplay');
+    });
+
+    it('a key added to the row later wins over the outer scope', () => {
+        const row = {};
+        const outer = { autoplay: 0 };
+        const c = all(cond('autoplay', '==', '1'));
+        expect(evaluateConditionIn(c, [row, outer])).toBe(false);
+        row.autoplay = 1;
+        expect(evaluateConditionIn(c, [row, outer])).toBe(true);
+    });
+});

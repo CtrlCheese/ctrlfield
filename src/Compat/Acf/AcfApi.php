@@ -520,6 +520,41 @@ final class AcfApi
             $field['choices'] = $def->getOptions();
         }
 
+        // Keys ACF always puts on these field types: themes read them without
+        // checking (Flynt: $field['multiple'] on post objects).
+        $multiple = method_exists($def, 'isMultiple') && $def->isMultiple() ? 1 : 0;
+        $minMax   = [
+            'min' => method_exists($def, 'getMinItems') ? (int) $def->getMinItems() : 0,
+            'max' => method_exists($def, 'getMaxItems') ? (int) $def->getMaxItems() : 0,
+        ];
+        $field += match ($type) {
+            'post_object', 'page_link' => [
+                'multiple'   => $multiple,
+                'allow_null' => 0,
+                'ui'         => 1,
+                'post_type'  => method_exists($def, 'getPostTypes') ? $def->getPostTypes() : [],
+                'taxonomy'   => [],
+            ],
+            'relationship' => ['post_type' => [], 'taxonomy' => [], 'filters' => ['search', 'post_type', 'taxonomy']] + $minMax,
+            'user'         => ['multiple' => $multiple, 'allow_null' => 0, 'role' => []],
+            'taxonomy'     => [
+                'taxonomy'      => method_exists($def, 'getTaxonomy') ? $def->getTaxonomy() : 'category',
+                'field_type'    => method_exists($def, 'getAppearance') ? $def->getAppearance() : 'select',
+                'multiple'      => $multiple,
+                'allow_null'    => 0,
+                'add_term'      => 0,
+                'save_terms'    => 0,
+                'load_terms'    => 0,
+            ],
+            'select'       => ['multiple' => $multiple, 'allow_null' => 0, 'ui' => 0, 'ajax' => 0],
+            'button_group' => ['allow_null' => method_exists($def, 'isAllowNull') && $def->isAllowNull() ? 1 : 0, 'layout' => 'horizontal'],
+            'gallery'      => ['preview_size' => 'medium', 'library' => 'all', 'insert' => 'append'] + $minMax,
+            'image'        => ['preview_size' => 'medium', 'library' => 'all'],
+            'file'         => ['library' => 'all'],
+            'repeater'     => ['layout' => 'block', 'button_label' => ''] + $minMax,
+            default        => [],
+        };
+
         return $field;
     }
 

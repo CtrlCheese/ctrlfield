@@ -142,10 +142,10 @@ class MetaBoxServiceProvider extends ServiceProvider
     {
         $context = match ($hook) {
             'profile.php'   => AdminContext::forUser(get_current_user_id()),
-            'user-edit.php' => AdminContext::forUser(isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0),
+            'user-edit.php' => AdminContext::forUser(isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0), // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only: which assets to load
             'user-new.php'  => AdminContext::forUser(0),
             'term.php', 'edit-tags.php' => new AdminContext(
-                taxonomy: isset($_GET['taxonomy']) ? sanitize_key(wp_unslash((string) $_GET['taxonomy'])) : 'post_tag',
+                taxonomy: isset($_GET['taxonomy']) ? sanitize_key(wp_unslash((string) $_GET['taxonomy'])) : 'post_tag', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only: which assets to load
             ),
             'comment.php'   => new AdminContext(contextType: 'comment'),
             default         => null,

@@ -24,7 +24,10 @@ export function evaluateCondition(conditionDef, fieldValues) {
 export function evaluateConditionIn(conditionDef, scopes) {
     const list = (Array.isArray(scopes) ? scopes : [scopes]).filter((s) => s && typeof s === 'object');
     return evaluateWith(conditionDef, (field) => {
-        const scope = list.find((s) => Object.prototype.hasOwnProperty.call(s, field));
+        // `in`, not hasOwnProperty: Alpine's reactive proxy tracks `in` (its has
+        // trap), so the condition re-runs when the key appears in the row later
+        // (a row saved before the field existed, a group that was empty).
+        const scope = list.find((s) => field in s);
         return scope ? scope[field] : undefined;
     });
 }

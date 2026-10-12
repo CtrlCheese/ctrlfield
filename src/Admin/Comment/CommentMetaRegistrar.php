@@ -83,6 +83,6 @@ class CommentMetaRegistrar
             return;
         }
 
-        EntitySave::printError('comment', isset($_GET['c']) ? (int) $_GET['c'] : 0);
+        EntitySave::printError('comment', isset($_GET['c']) ? (int) $_GET['c'] : 0); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only: which notice to show
     }
 }

@@ -59,7 +59,7 @@ class UserMetaRegistrar
     /** user_register also fires for front-end sign-ups: only the admin form posts a payload. */
     public function saveNew(int $userId): void
     {
-        if (! is_admin() || ! isset($_POST['ctrlfield_payload'])) {
+        if (! is_admin() || ! isset($_POST['ctrlfield_payload'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- presence check only; save() → pipeline verifies the nonce
             return;
         }
 
@@ -73,7 +73,7 @@ class UserMetaRegistrar
         if ($screen === null || ! in_array($screen->base, ['profile', 'user-edit'], true)) {
             return;
         }
-        $userId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : get_current_user_id();
+        $userId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : get_current_user_id(); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only: which notice to show
 
         EntitySave::printError('user', $userId);
     }

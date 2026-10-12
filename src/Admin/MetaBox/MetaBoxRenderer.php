@@ -228,6 +228,63 @@ class MetaBoxRenderer
     }
 
     /**
+     * Group values go to the browser as objects, also when empty: PHP stores an
+     * empty group as [] and the JS state would then hold an array, where values
+     * typed in are lost when the form is serialized (JSON drops non-index keys).
+     * Applied inside repeater rows and flexible sections too.
+     */
+    public static function shapeForAdmin(mixed $value, FieldDefinition $field): mixed
+    {
+        $type = $field->getType();
+
+        if ($type === FieldType::GROUP) {
+            $object = is_array($value) ? $value : [];
+            if ($field instanceof NestedFieldInterface) {
+                foreach ($field->getFields() as $sub) {
+                    if (array_key_exists($sub->getKey(), $object)) {
+                        $object[$sub->getKey()] = self::shapeForAdmin($object[$sub->getKey()], $sub);
+                    }
+                }
+            } else {
+                // A group without declared fields (e.g. global block overrides): its entries are objects too.
+                $object = array_map(static fn ($v) => is_array($v) ? (object) $v : $v, $object);
+            }
+            return (object) $object;
+        }
+
+        if ($type === FieldType::REPEATER && is_array($value) && $field instanceof NestedFieldInterface) {
+            return array_map(static function ($row) use ($field) {
+                if (! is_array($row)) {
+                    return $row;
+                }
+                foreach ($field->getFields() as $sub) {
+                    if (array_key_exists($sub->getKey(), $row)) {
+                        $row[$sub->getKey()] = self::shapeForAdmin($row[$sub->getKey()], $sub);
+                    }
+                }
+                return (object) $row;
+            }, array_values($value));
+        }
+
+        if ($type === FieldType::FLEXIBLE_CONTENT && is_array($value) && $field instanceof FlexibleContentInterface) {
+            return array_map(static function ($row) use ($field) {
+                if (! is_array($row)) {
+                    return $row;
+                }
+                $layout = is_string($row['_layout'] ?? null) ? $row['_layout'] : '';
+                foreach ($field->getLayoutFields($layout) as $sub) {
+                    if (array_key_exists($sub->getKey(), $row)) {
+                        $row[$sub->getKey()] = self::shapeForAdmin($row[$sub->getKey()], $sub);
+                    }
+                }
+                return (object) $row;
+            }, array_values($value));
+        }
+
+        return $value;
+    }
+
+    /**
      * x-data expression for the ctrlFieldAdmin component: values, conditions and
      * the names / thumbnails of items already picked (so pickers show titles).
      *
@@ -238,6 +295,15 @@ class MetaBoxRenderer
     private function alpineInit(array $values, array $conditions, array $groups): string
     {
         [$labels, $attachments] = $this->collectPickerLabels($groups, $values);
+
+        // Only the browser copy is reshaped (PHP code above walks plain arrays).
+        foreach ($groups as $group) {
+            foreach ($group->getFields() as $field) {
+                if (array_key_exists($field->getKey(), $values)) {
+                    $values[$field->getKey()] = self::shapeForAdmin($values[$field->getKey()], $field);
+                }
+            }
+        }
 
         $json = static fn (mixed $v): string => (string) (wp_json_encode($v, JSON_UNESCAPED_UNICODE) ?: '{}');
 

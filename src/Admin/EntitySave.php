@@ -34,7 +34,8 @@ final class EntitySave
         AdminContext $context,
         string $objectCapability,
     ): void {
-        $fields = self::mergedPayload($_POST);
+        // The CtrlField nonce is checked by the pipeline (NonceValidationStage), before anything is stored.
+        $fields = self::mergedPayload($_POST); // phpcs:ignore WordPress.Security.NonceVerification.Missing
         if ($fields === null) {
             return;
         }
@@ -42,7 +43,7 @@ final class EntitySave
         try {
             SavePipeline::run(
                 entityId:         $entityId,
-                rawPost:          array_merge($_POST, [
+                rawPost:          array_merge($_POST, [ // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified by NonceValidationStage
                     'ctrlfield_payload' => wp_slash((string) wp_json_encode($fields)),
                 ]),
                 adapterOverride:  $adapter,

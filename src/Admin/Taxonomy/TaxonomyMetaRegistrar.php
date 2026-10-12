@@ -62,7 +62,7 @@ class TaxonomyMetaRegistrar
 
     public function save(int $termId): void
     {
-        $taxonomy = sanitize_key($_POST['taxonomy'] ?? '');
+        $taxonomy = sanitize_key($_POST['taxonomy'] ?? ''); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress checked the term form nonce; the pipeline checks the CtrlField nonce
 
         // Verify the user can edit terms in this taxonomy before running the pipeline.
         $taxonomyObj = $taxonomy !== '' ? get_taxonomy($taxonomy) : false;
@@ -83,7 +83,7 @@ class TaxonomyMetaRegistrar
             return;
         }
 
-        EntitySave::printError('term', isset($_GET['tag_ID']) ? (int) $_GET['tag_ID'] : 0);
+        EntitySave::printError('term', isset($_GET['tag_ID']) ? (int) $_GET['tag_ID'] : 0); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only: which notice to show
     }
 
     /**
