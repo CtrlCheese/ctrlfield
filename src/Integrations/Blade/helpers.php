@@ -42,6 +42,34 @@ if (! function_exists('ctrlfield_link_attrs')) {
     }
 }
 
+if (! function_exists('ctrlfield_button')) {
+    /**
+     * A link (or a multiple link field's list) as buttons, escaped: <a> with
+     * class "btn btn--{style}", the icon on its side and the text.
+     *
+     * @param array{class?: string, prefix?: string, icon?: array<string, scalar>} $options
+     */
+    function ctrlfield_button(mixed $link, array $options = []): string
+    {
+        return \CtrlField\Data\LinkResolver::button($link, $options);
+    }
+}
+
+if (! function_exists('ctrlfield_icon')) {
+    /**
+     * An Icon field value as HTML, already escaped: Lucide as inline SVG,
+     * Dashicons as a span. Empty string when there is no icon.
+     *
+     *   <?= ctrlfield_icon($icon, ['class' => 'size-5', 'aria-label' => 'Phone']) ?>
+     *
+     * @param array<string, scalar> $attrs
+     */
+    function ctrlfield_icon(mixed $value, array $attrs = []): string
+    {
+        return \CtrlField\Data\IconLibrary::html($value, $attrs);
+    }
+}
+
 if (! function_exists('ctrlfield_get_all')) {
     /**
      * Returns all stored field values for a post.

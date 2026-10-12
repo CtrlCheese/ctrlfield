@@ -176,21 +176,24 @@ class Cycles4FieldTypesTest extends TestCase
         $this->assertSame(FieldType::ICON, Field::icon('social_icon')->getType());
     }
 
-    public function test_icon_default_library_is_dashicons(): void
+    public function test_icon_offers_every_library_by_default(): void
     {
-        $this->assertSame('dashicons', Field::icon('ico')->getLibrary());
+        $this->assertSame('all', Field::icon('ico')->getLibrary());
+        $this->assertSame(['lucide', 'dashicons'], Field::icon('ico')->getLibraries());
     }
 
     public function test_icon_library_fluent(): void
     {
-        $field = Field::icon('ico')->library('fontawesome');
-        $this->assertSame('fontawesome', $field->getLibrary());
+        $this->assertSame('lucide', Field::icon('ico')->library('lucide')->getLibrary());
+        $this->assertSame(['lucide', 'dashicons'], Field::icon('ico')->library(['dashicons', 'lucide'])->getLibraries());
+        // Unknown libraries are ignored.
+        $this->assertSame('all', Field::icon('ico')->library('fontawesome')->getLibrary());
     }
 
     public function test_icon_definition(): void
     {
-        $def = Field::icon('ico')->library('fontawesome')->getDefinition();
-        $this->assertSame('fontawesome', $def['library']);
+        $def = Field::icon('ico')->library('dashicons')->getDefinition();
+        $this->assertSame('dashicons', $def['library']);
         $this->assertSame('icon', $def['type']);
     }
 

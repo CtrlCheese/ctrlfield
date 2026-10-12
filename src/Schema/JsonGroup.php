@@ -50,9 +50,9 @@ final class JsonGroup
         'datetime'      => ['datetime', ['format', 'returnFormat'], false],
         'time'          => ['time', ['returnFormat'], false],
         'color'         => ['color', ['default'], false],
-        'image'         => ['image', ['returnFormat'], false],
+        'image'         => ['image', ['previewSize', 'returnFormat'], false],
         'file'          => ['file', ['returnFormat'], false],
-        'link'          => ['link', ['postType', 'taxonomies', 'noAnchors', 'styles', 'returnFormat'], false],
+        'link'          => ['link', ['postType', 'taxonomies', 'noAnchors', 'styles', 'defaultStyles', 'icons', 'multiple', 'maxItems', 'returnFormat'], false],
         'oembed'        => ['oembed', [], false],
         'page_link'     => ['pageLink', ['postType', 'multiple'], false],
         'post_object'   => ['postObject', ['postType', 'multiple', 'returnFormat'], false],
@@ -60,15 +60,15 @@ final class JsonGroup
         'taxonomy_term' => ['taxonomyTerm', ['taxonomy', 'multiple', 'appearance', 'returnFormat'], false],
         'user'          => ['user', ['roles', 'multiple', 'returnFormat'], false],
         'map'           => ['map', [], false],
-        'icon'          => ['icon', [], false],
+        'icon'          => ['icon', ['library'], false],
         'code'          => ['code', ['language'], false],
-        'group'         => ['object', ['fields'], false],
-        'tab'           => ['tab', [], false],
-        'accordion'     => ['accordion', ['closed'], false],
+        'group'         => ['object', ['layout', 'fields'], false],
+        'tab'           => ['tab', ['placement'], false],
+        'accordion'     => ['accordion', ['closed', 'accordionStyle'], false],
         'accordion_end' => ['accordionEnd', [], false],
         'message'       => ['message', ['content'], false],
         'separator'     => ['separator', [], false],
-        'repeater'      => ['repeater', ['fields', 'minItems', 'maxItems', 'buttonLabel'], true],
+        'repeater'      => ['repeater', ['layout', 'fields', 'minItems', 'maxItems', 'buttonLabel'], true],
         'clone'         => ['clone', ['cloneFrom', 'clonePrefix', 'cloneDisplay'], true],
         'gallery'       => ['gallery', ['minItems', 'maxItems', 'returnFormat'], true],
         // Layouts are kept and registered, but edited in PHP (no editor UI yet).
@@ -121,6 +121,13 @@ final class JsonGroup
         'cloneDisplay'    => ['seamless', 'group'],
         'styles'          => 'options',
         'language'        => 'slug',
+        'previewSize'     => 'slug',
+        'library'         => 'slug', // lucide, dashicons or a set a theme added
+        'layout'          => ['row', 'table'],
+        'placement'       => ['left'],
+        'accordionStyle'  => ['horizontal', 'side'],
+        'defaultStyles'   => 'slugs',
+        'icons'           => 'bool',
         'fields'          => 'fields',
         'layouts'         => 'layouts',
     ];
@@ -356,7 +363,9 @@ final class JsonGroup
             'scalar' => is_scalar($v) && ($s = self::text((string) $v, 500)) !== '' ? $s : null,
             'number' => is_numeric($v) ? 0 + $v : null,
             'count'  => is_numeric($v) && (int) $v >= 0 ? (int) $v : null,
-            'width'  => in_array((int) $v, [25, 50, 75], true) ? (int) $v : null,
+            // 10–100 %, two decimals (33.33); 100 is the default, so it is not stored.
+            'width'  => is_numeric($v) && (float) $v >= 10 && (float) $v < 100
+                ? (fmod($w = round((float) $v, 2), 1.0) === 0.0 ? (int) $w : $w) : null,
             'slug'   => is_string($v) && ($s = sanitize_key($v)) !== '' ? $s : null,
             // Field group keys keep their case (ACF themes: group_GlobalOptions_Default).
             'groupkey' => is_string($v) && preg_match(self::KEY_PATTERN, $v) ? $v : null,
@@ -372,7 +381,8 @@ final class JsonGroup
     /** @return list<string> */
     private static function slugs(mixed $v): array
     {
-        $list = is_string($v) ? [$v] : (is_array($v) ? $v : []);
+        // "primary, outline" from a text input is a list too.
+        $list = is_string($v) ? explode(',', $v) : (is_array($v) ? $v : []);
 
         return array_values(array_unique(array_filter(array_map(
             static fn ($s) => is_string($s) ? sanitize_key($s) : '',
@@ -579,6 +589,7 @@ final class JsonGroup
             $v = $f[$setting];
 
             switch ($setting) {
+                case 'icons':
                 case 'required':
                 case 'globalBlocks':
                 case 'showInRest':
@@ -589,6 +600,9 @@ final class JsonGroup
                     break;
                 case 'closed':
                     $calls[] = ['open', [false]];
+                    break;
+                case 'accordionStyle':
+                    $calls[] = ['style', [$v]];
                     break;
                 case 'noAnchors':
                     $calls[] = ['anchors', [false]];

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CtrlField\Storage;
 
+use CtrlField\Core\Migration\MigrationEngine;
 use CtrlField\Core\Cache\CacheAdapter;
 use CtrlField\Core\Migration\SchemaVersion;
 use CtrlField\Storage\Contracts\StorageAdapterInterface;
@@ -81,7 +82,16 @@ class OptionsAdapter implements StorageAdapterInterface
                     SchemaVersion::CURRENT,
                 ));
             }
-            return null;
+            // Read through the registered migrations (in memory); `wp ctrlfield migrate` stores it.
+            $upgraded = MigrationEngine::upgradeOnRead(
+                isset($decoded['fields']) && is_array($decoded['fields']) ? $decoded['fields'] : [],
+                $storedVersion,
+                SchemaVersion::CURRENT,
+            );
+            if ($upgraded === null) {
+                return null;
+            }
+            $decoded['fields'] = $upgraded;
         }
 
         $fields = isset($decoded['fields']) && is_array($decoded['fields'])

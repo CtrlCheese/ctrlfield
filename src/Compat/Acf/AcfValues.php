@@ -280,10 +280,19 @@ final class AcfValues
 
             case FieldType::LINK:
                 $value = \CtrlField\Data\LinkResolver::resolve($value);
-                if ($rf === 'url') {
-                    return is_array($value) ? (string) ($value['url'] ?? '') : (string) $value;
-                }
-                return is_array($value) ? ['title' => (string) ($value['title'] ?? ''), 'url' => (string) ($value['url'] ?? ''), 'target' => (string) ($value['target'] ?? '') === '_self' ? '' : (string) ($value['target'] ?? '')] : $value;
+                $acf   = static function (mixed $link) use ($rf): mixed {
+                    if ($rf === 'url') {
+                        return is_array($link) ? (string) ($link['url'] ?? '') : (string) $link;
+                    }
+                    if (! is_array($link)) {
+                        return $link;
+                    }
+                    // ACF's keys first; style / icon ride along for themes that use them.
+                    return ['title' => (string) ($link['title'] ?? ''), 'url' => (string) ($link['url'] ?? ''), 'target' => (string) ($link['target'] ?? '') === '_self' ? '' : (string) ($link['target'] ?? '')]
+                        + array_intersect_key($link, array_flip(['style', 'icon', 'icon_position']));
+                };
+                // A multiple link field: a list of links.
+                return is_array($value) && $value !== [] && array_is_list($value) ? array_map($acf, $value) : $acf($value);
 
             case FieldType::DATE:
             case FieldType::DATETIME:

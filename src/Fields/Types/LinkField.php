@@ -13,10 +13,12 @@ use CtrlField\Fields\FieldDefinition;
  * page.
  *
  * Stored as { url, title, target } plus, when they apply:
- *  - type: 'post' | 'term' | 'anchor' | 'external', id and object (post type
- *    or taxonomy) — the URL is re-resolved from the id on read, so links follow
- *    permalink changes;
- *  - style: one of ->styles() (buttons).
+ *  - type: 'post' | 'term' | 'anchor' | 'internal' | 'external', id and object
+ *    (post type or taxonomy) — the URL is re-resolved from the id on read, so
+ *    links follow permalink changes;
+ *  - style: one of ->styles() (buttons);
+ *  - icon, icon_position: with ->icons() ("lucide:arrow-right", 'left'|'right').
+ * With ->multiple() the value is a list of those links (buttons: max 2 by default).
  * NOT a GroupField — the sub-values are fixed, not user-defined.
  */
 final class LinkField extends FieldDefinition
@@ -33,6 +35,19 @@ final class LinkField extends FieldDefinition
 
     /** @var array<string, string> value => label */
     private array $styles = [];
+
+    /** @var list<string> Style of a new link by position: [first, second, …]. */
+    private array $defaultStyles = [];
+
+    private bool $multiple = false;
+
+    private int $max = 2;
+
+    /** null = the site default (filter ctrlfield/link/icons, off unless a theme turns it on). */
+    private ?bool $icons = null;
+
+    /** null = the site default (filter ctrlfield/link/icon_position, 'left'). */
+    private ?string $iconPosition = null;
 
     public function getType(): FieldType
     {
@@ -114,10 +129,108 @@ final class LinkField extends FieldDefinition
         return $this->styles;
     }
 
+    /**
+     * Style a new link gets by its position — ['primary', 'outline']: the
+     * first button primary, the second outline. Without it: the first style.
+     *
+     * @param list<string> $styles
+     */
+    public function defaultStyles(array $styles): static
+    {
+        $this->defaultStyles = array_values(array_filter(
+            array_map(static fn ($s) => strtolower(trim((string) $s)), $styles),
+            static fn (string $s) => preg_match('/^[a-z0-9_-]{1,32}$/', $s) === 1
+        ));
+        return $this;
+    }
+
+    /** @return list<string> Only styles that ->styles() offers. */
+    public function getDefaultStyles(): array
+    {
+        return array_values(array_filter($this->defaultStyles, fn (string $s) => isset($this->styles[$s])));
+    }
+
+    /** Several links in one field (a row of buttons), reordered by dragging. */
+    public function multiple(bool $multiple = true): static
+    {
+        $this->multiple = $multiple;
+        return $this;
+    }
+
+    public function isMultiple(): bool
+    {
+        return $this->multiple;
+    }
+
+    /** Most links a multiple field takes (default 2). */
+    public function max(int $max): static
+    {
+        $this->max = max(1, $max);
+        return $this;
+    }
+
+    /** Same as ->max() (the name JSON groups and repeaters use). */
+    public function maxItems(int $max): static
+    {
+        return $this->max($max);
+    }
+
+    public function getMax(): int
+    {
+        return $this->max;
+    }
+
+    /** An icon (and its side) per link, picked in the icon dialog. */
+    public function icons(bool $icons = true): static
+    {
+        $this->icons = $icons;
+        return $this;
+    }
+
+    /**
+     * Whether the dialog offers an icon. Off unless the field turns it on, or
+     * a theme turns it on for every link field:
+     *   add_filter('ctrlfield/link/icons', fn () => (bool) get_field('buttonIcons', 'option'));
+     */
+    public function hasIcons(): bool
+    {
+        if ($this->icons !== null) {
+            return $this->icons;
+        }
+
+        return function_exists('apply_filters') ? (bool) apply_filters('ctrlfield/link/icons', false, $this) : false;
+    }
+
+    /** Side a new icon goes to: 'left' or 'right' of the text. */
+    public function defaultIconPosition(string $position): static
+    {
+        $this->iconPosition = $position === 'right' ? 'right' : 'left';
+        return $this;
+    }
+
+    /**
+     * 'left' unless the field or the theme says otherwise:
+     *   add_filter('ctrlfield/link/icon_position', fn () => 'right');
+     */
+    public function getDefaultIconPosition(): string
+    {
+        if ($this->iconPosition !== null) {
+            return $this->iconPosition;
+        }
+        $position = function_exists('apply_filters') ? apply_filters('ctrlfield/link/icon_position', 'left', $this) : 'left';
+
+        return $position === 'right' ? 'right' : 'left';
+    }
+
     /** @return array<string, mixed> */
     public function getDefinition(): array
     {
         return array_merge(parent::getDefinition(), [
+            'multiple'       => $this->multiple,
+            'max'            => $this->multiple ? $this->max : 1,
+            'default_styles' => $this->getDefaultStyles(),
+            'icons'          => $this->icons,
+            'icon_position'  => $this->iconPosition,
             'show_target' => $this->showTarget,
             'post_types'  => $this->postTypes,
             'taxonomies'  => $this->taxonomies,

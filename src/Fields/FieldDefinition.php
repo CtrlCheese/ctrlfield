@@ -27,7 +27,7 @@ abstract class FieldDefinition implements FieldInterface
     protected string $instructions = '';
     protected mixed  $default      = null;
     protected bool   $hasDefault   = false;
-    protected ?int   $width        = null;
+    protected int|float|null $width = null;
 
     protected ?ConditionGroup $conditionGroup = null;
 
@@ -58,7 +58,8 @@ abstract class FieldDefinition implements FieldInterface
     /** @var array<string, string> */
     protected array $permissions = [];
 
-    private const VALID_WIDTHS = [25, 50, 75, 100];
+    /** Narrowest column a field may take, in percent. */
+    public const MIN_WIDTH = 10;
 
     public function __construct(protected string $key) {}
 
@@ -188,14 +189,19 @@ abstract class FieldDefinition implements FieldInterface
         return $this;
     }
 
-    public function width(int $percent): static
+    /**
+     * Share of the row the field takes, in percent (10–100, e.g. 33.33):
+     * fields whose widths add up to 100 sit side by side, at any level.
+     */
+    public function width(int|float $percent): static
     {
-        if (! in_array($percent, self::VALID_WIDTHS, true)) {
+        if (! is_finite((float) $percent) || $percent < self::MIN_WIDTH || $percent > 100) {
             throw new InvalidWidthException(
-                "Invalid field width '{$percent}'. Accepted values: " . implode(', ', self::VALID_WIDTHS) . '.'
+                "Invalid field width '{$percent}'. Accepted values: " . self::MIN_WIDTH . ' to 100 (percent).'
             );
         }
-        $this->width = $percent;
+        $rounded     = round((float) $percent, 2);
+        $this->width = $rounded === floor($rounded) ? (int) $rounded : $rounded;
         return $this;
     }
 
@@ -234,7 +240,7 @@ abstract class FieldDefinition implements FieldInterface
         return $this->instructions;
     }
 
-    public function getWidth(): ?int
+    public function getWidth(): int|float|null
     {
         return $this->width;
     }
@@ -503,6 +509,22 @@ abstract class FieldDefinition implements FieldInterface
     {
         $clone      = clone $this;
         $clone->key = $newKey;
+        return $clone;
+    }
+
+    /**
+     * A copy whose condition points at renamed sibling fields ($map: old key
+     * => new key) — needed when a layout's field keys get a prefix.
+     *
+     * @param array<string, string> $map
+     */
+    public function withConditionFieldsRenamed(array $map): static
+    {
+        if ($this->conditionGroup === null || $map === []) {
+            return $this;
+        }
+        $clone                 = clone $this;
+        $clone->conditionGroup = $this->conditionGroup->withFieldKeys($map);
         return $clone;
     }
 

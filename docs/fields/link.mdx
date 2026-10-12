@@ -30,18 +30,40 @@ Taxonomies whose terms can be linked (one tab each). Default: none.
 ```php
 ->anchors(bool $anchors = true): static
 ```
-Show the "Anchors" tab: the `#ids` found on the page being edited (in its content, and in fields whose name contains "anchor"). Default: `true`.
+Show the "Anchors" tab: the `#ids` of the page being edited, then those of the rest of the site with their page (`/services/#price`) — in content, and in fields whose name contains "anchor". Default: `true`.
 
 ```php
 ->styles(array $styles): static
 ```
 Button styles the editor picks from, `['value' => 'Label']`. The first one is the default. Default: none (no style choice).
 
+```php
+->defaultStyles(array $styles): static
+```
+Style a new link gets by its position: `['primary', 'outline']` — the first button primary, the second outline. Only styles offered by `->styles()` count.
+
+```php
+->multiple(bool $multiple = true): static
+->max(int $max): static
+```
+Several links in one field (a row of buttons): one line each, dragged to reorder, "Add link" until `->max()` (default **2**). The value is a list of links.
+
+```php
+->icons(bool $icons = true): static
+->defaultIconPosition('left'|'right'): static
+```
+An icon per link (picked in the [icon dialog](./icon.mdx)) and its side of the text. Off by default; a theme turns both on for every link field:
+
+```php
+add_filter('ctrlfield/link/icons', fn () => (bool) get_option('theme_button_icons'));
+add_filter('ctrlfield/link/icon_position', fn () => 'right');
+```
+
 ---
 
 ## The dialog
 
-- **URL** accepts any address or `#anchor`; **Link text** is filled from the picked result unless you typed one.
+- **URL** accepts any address, `/path/` or `#anchor`; **Link text** is filled from the picked result unless you typed one. A typed address of this site (`/services/#price`) is saved as a link to that post, so it follows slug changes too.
 - **Tabs**: All, each post type, each taxonomy, Anchors. Results show type, status, date and thumbnail; scroll to load more.
 - Keyboard: arrows to move, Enter to pick, double click to pick and close, Esc to cancel.
 - In the field, a set link shows as one line: text · kind · URL · style · new tab, with **Edit** and **Remove**. A link to content that was deleted or unpublished is marked in red.
@@ -61,18 +83,23 @@ The same tabs also appear in the link dialog of [WYSIWYG](./wysiwyg.mdx) editors
     "type":   "post",
     "id":     12,
     "object": "page",
-    "style":  "primary"
+    "style":  "primary",
+    "icon":   "lucide:arrow-right",
+    "icon_position": "right"
   }
 }
 ```
+
+With `->multiple()` the value is a list of those objects.
 
 | Key | Value |
 |---|---|
 | `url`, `title` | The address and link text |
 | `target` | `'_blank'` or `'_self'` |
-| `type` | `post`, `term`, `anchor` or `external` (links saved before this existed have none) |
+| `type` | `post`, `term`, `anchor`, `internal` (a path of this site that is no post) or `external` (links saved before this existed have none) |
 | `id`, `object` | For posts and terms: the ID and the post type / taxonomy |
 | `style` | One of `->styles()`, when set |
+| `icon`, `icon_position` | With `->icons()`: the icon value and `left` / `right` |
 
 **Links follow permalink changes.** For posts and terms the URL is rebuilt from `id` when the value is read, so a renamed page keeps working. If the content was deleted or is not published, the stored URL is returned. A `#fragment` after the address is kept.
 
@@ -118,7 +145,14 @@ foreach (ctrlfield_get('buttons') ?: [] as $row) {
 }
 ```
 
-Themes built for ACF (`get_field()`) receive the usual `['url', 'title', 'target']` array, with the current URL.
+`ctrlfield_button()` prints a link — or a multiple field's list — as buttons: `<a class="btn btn--{style}">` with the icon on its side. The classes are yours to choose:
+
+```php
+<?= ctrlfield_button(ctrlfield_get('buttons')) ?>
+<?= ctrlfield_button($links, ['class' => 'button', 'prefix' => 'button--', 'icon' => ['class' => 'size-4']]) ?>
+```
+
+Themes built for ACF (`get_field()`) receive the usual `['url', 'title', 'target']` array (a list of them for a multiple field), with the current URL, plus `style` / `icon` / `icon_position` when set.
 
 ### Filters
 
@@ -128,4 +162,8 @@ add_filter('ctrlfield/link/anchors', function (array $anchors, int $postId) {
     $anchors[] = ['anchor' => 'contact', 'label' => 'Contact form'];
     return $anchors;
 }, 10, 2);
+
+// The site-wide anchor list (cached until a post is saved or deleted).
+add_filter('ctrlfield/link/site_anchors_limit', fn () => 500);   // posts looked at, default 300
+add_filter('ctrlfield/link/site_anchors', fn (array $anchors) => $anchors);
 ```

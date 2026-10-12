@@ -17,6 +17,72 @@ add_action('init', function () {
 
 ---
 
+## Discovery options
+
+A theme whose components already follow their own conventions passes them as
+the third argument, instead of writing its own registry:
+
+```php
+use CtrlField\Components\ComponentDefinition;
+use CtrlField\Components\ComponentRegistry;
+
+ComponentRegistry::discover(get_template_directory() . '/components', 'fields.php', [
+    // Layout key from the folder name: 'lower' (default, ModuleTabs → moduletabs),
+    // 'snake' (module_tabs), 'kebab' (module-tabs) or fn (string $folder): string.
+    'key'          => 'snake',
+
+    // Template names, in order. {folder} and {key} are replaced.
+    // Default: index.blade.php → index.twig → index.php
+    'templates'    => ['{folder}.blade.php', 'index.blade.php'],
+
+    // Top-level field keys get "{key}_" (title → module_tabs_title), so data
+    // saved with prefixed keys (e.g. migrated from Carbon Fields) stays readable.
+    // Conditions on sibling fields (visibleWhen('layout', …)) follow the new keys.
+    'prefixFields' => true,
+
+    // Folders that are no page component.
+    'skip'         => ['ModuleNavigation', 'ModuleFooter'],
+
+    // Loads fields.php in the theme's context (helpers that build prefixed keys
+    // for conditions, shared fields…). Each file is loaded once per request;
+    // ->autoDiscover() reuses the result. A file that throws is skipped and
+    // shown to admins in a notice.
+    'load'         => fn (string $file, string $key, string $folder) => ComponentFields::forComponent($key, fn () => require $file),
+
+    // The theme loads each component's script.js itself: the plugin's
+    // component loader stays off (also: add_filter('ctrlfield/component_scripts', '__return_empty_array')).
+    'scripts'      => false,
+
+    // What fields.php returned → the layout's fields (add shared fields, …).
+    'fields'       => fn (array $fields, ComponentDefinition $c): array => [...$fields, ...sharedFields($c->key)],
+
+    // Label / category / description / icon from the theme's own metadata
+    // (e.g. static properties of the component class). Wins over fields.php.
+    'meta'         => function (string $folder, string $path): array {
+        $class = "\\Components\\{$folder}";
+        return class_exists($class)
+            ? ['label' => $class::$label ?? '', 'category' => $class::$category ?? '']
+            : [];
+    },
+
+    // Prepares a section before its template renders (the theme's getData()).
+    // Runs before the ctrlfield/component_data filters.
+    'data'         => function (array $section, ComponentDefinition $c): array {
+        $class = "\\Components\\{$c->folder}";
+        return $class::getData($section);
+    },
+]);
+```
+
+`->autoDiscover()` on a flexible content field builds its layouts with the same
+options, so the page builder, the saved data and the renderer all use one key.
+
+The list of component folders is cached (until the folder or one of the
+components changes; not while `WP_DEBUG` is on). The fields files themselves
+are loaded on each request, like any schema.
+
+---
+
 ## Component directory structure
 
 A component is any subdirectory that contains a `fields.php` file:

@@ -116,16 +116,16 @@ class TypeCoercionNewTypesTest extends TestCase
     // ColorField
     // -------------------------------------------------------------------------
 
-    public function test_color_lowercased_hex_normalized(): void
+    public function test_color_keeps_its_case(): void
     {
-        $result = $this->coerce([Field::color('c')], ['c' => '#ff5733']);
-        $this->assertSame('#FF5733', $result['c']);
+        $this->assertSame('#ff5733', $this->coerce([Field::color('c')], ['c' => '#ff5733'])['c']);
+        $this->assertSame('#FF5733', $this->coerce([Field::color('c')], ['c' => '#FF5733'])['c']);
     }
 
     public function test_color_without_hash_prefix(): void
     {
         $result = $this->coerce([Field::color('c')], ['c' => 'ff5733']);
-        $this->assertSame('#FF5733', $result['c']);
+        $this->assertSame('#ff5733', $result['c']);
     }
 
     public function test_color_empty_passes_through(): void

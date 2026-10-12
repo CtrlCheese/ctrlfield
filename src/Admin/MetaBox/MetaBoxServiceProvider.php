@@ -15,6 +15,7 @@ use CtrlField\Data\FieldDataService;
 use CtrlField\Registry\ContextRegistry;
 use CtrlField\Storage\Drivers\WpPostMetaDriver;
 use CtrlField\Storage\PostMetaAdapter;
+use CtrlField\Storage\RevisionSnapshots;
 
 /**
  * Boots the meta box UI and the save_post pipeline hook.
@@ -86,21 +87,20 @@ class MetaBoxServiceProvider extends ServiceProvider
             return;
         }
 
-        $base    = CTRLFIELD_URL . 'assets/admin/';
-        $version = CTRLFIELD_VERSION;
+        $base = CTRLFIELD_URL . 'assets/admin/';
 
         wp_enqueue_style(
             'ctrlfield-admin',
             $base . 'ctrlfield.css',
             [],
-            $version,
+            self::assetVersion('ctrlfield.css'),
         );
 
         wp_enqueue_script(
             'ctrlfield-admin',
             $base . 'ctrlfield.js',
             [],
-            $version,
+            self::assetVersion('ctrlfield.js'),
             true, // load in footer
         );
 
@@ -112,7 +112,8 @@ class MetaBoxServiceProvider extends ServiceProvider
             'restUrl'     => rest_url(),
             'restNonce'   => wp_create_nonce('wp_rest'),
             'saveError'   => $this->takeSaveError(),
-            'i18n'        => ['link' => self::linkStrings()],
+            'i18n'        => ['link' => self::linkStrings(), 'icon' => self::iconStrings()],
+            'icons'       => \CtrlField\Data\IconLibrary::clientConfig(),
             'wysiwyg'     => [
                 'template' => WysiwygEditorSettings::TEMPLATE_ID,
                 'toolbars' => WysiwygEditorSettings::toolbars(),
@@ -203,6 +204,8 @@ class MetaBoxServiceProvider extends ServiceProvider
             SavePipeline::run($postId, array_merge($_POST, [
                 'ctrlfield_payload' => wp_slash((string) wp_json_encode($merged)),
             ]));
+            // The revision WordPress made for this save was given the old values.
+            RevisionSnapshots::make()->onFieldsSaved($postId);
         } catch (PipelineException $e) {
             // A validation error must not turn the save into a 500: keep the
             // message and show it on the next load of the edit screen.
@@ -224,35 +227,15 @@ class MetaBoxServiceProvider extends ServiceProvider
         (new NotificationDispatcher())->dispatch($postId, $oldFields, $newFields, $groups);
     }
 
+    /** A new revision gets the post's fields (see RevisionSnapshots). */
     public function onPutRevision(int $revisionId): void
     {
-        $parentId = (int) wp_get_post_parent_id($revisionId);
-        if ($parentId <= 0) {
-            return;
-        }
-
-        // Use loadRaw() to read fields even if the schema_version is stale.
-        // getAll() returns [] for unmigrated posts, which would create an empty snapshot
-        // and permanently lose the field history for that revision.
-        $adapter = new PostMetaAdapter(new WpPostMetaDriver());
-        $raw     = $adapter->loadRaw($parentId);
-        $data    = $raw['fields'] ?? [];
-
-        if (empty($data)) {
-            return;
-        }
-
-        $adapter->save($revisionId, $data, SchemaVersion::CURRENT);
+        RevisionSnapshots::make()->onRevisionCreated($revisionId);
     }
 
     public function onRestoreRevision(int $postId, int $revisionId): void
     {
-        $data = FieldDataService::getInstance()->getAll($revisionId, 'post');
-        if (empty($data)) {
-            return;
-        }
-
-        (new PostMetaAdapter(new WpPostMetaDriver()))->save($postId, $data, SchemaVersion::CURRENT);
+        RevisionSnapshots::make()->onRevisionRestored($postId, $revisionId);
     }
 
     public function onOembedPreview(): void
@@ -373,6 +356,35 @@ class MetaBoxServiceProvider extends ServiceProvider
         return [];
     }
 
+    /**
+     * The plugin version plus the file's modification time, so a rebuilt
+     * admin script or stylesheet is never served from the browser cache.
+     */
+    public static function assetVersion(string $file): string
+    {
+        $mtime = @filemtime(CTRLFIELD_PATH . 'assets/admin/' . $file);
+        return CTRLFIELD_VERSION . ($mtime ? '.' . $mtime : '');
+    }
+
+    /** @return array<string, string> Texts of the Icon field dialog (assets/admin/src/icons.js). */
+    private static function iconStrings(): array
+    {
+        return [
+            'title'     => __('Select icon', 'ctrlfield'),
+            'all'       => __('All', 'ctrlfield'),
+            'wordpress' => __('WordPress', 'ctrlfield'),
+            'search'    => __('Search icons', 'ctrlfield'),
+            'results'   => __('Icons', 'ctrlfield'),
+            'loading'   => __('Loading…', 'ctrlfield'),
+            /* translators: %d: number of icons */
+            'count'     => __('%d icons', 'ctrlfield'),
+            'noResults' => __('No icons found.', 'ctrlfield'),
+            'remove'    => __('Remove icon', 'ctrlfield'),
+            'cancel'    => __('Cancel', 'ctrlfield'),
+            'close'     => __('Close', 'ctrlfield'),
+        ];
+    }
+
     /** @return array<string, string> Texts of the Link field dialog (assets/admin/src/link.js). */
     private static function linkStrings(): array
     {
@@ -391,11 +403,19 @@ class MetaBoxServiceProvider extends ServiceProvider
             'results'   => __('Results', 'ctrlfield'),
             'loading'   => __('Loading…', 'ctrlfield'),
             'noResults' => __('Nothing found.', 'ctrlfield'),
-            'noAnchors' => __('No anchors on this page yet. Type #name in the URL.', 'ctrlfield'),
+            'noAnchors' => __('No anchors yet. Type #name in the URL, or /page/#name for another page.', 'ctrlfield'),
             'cancel'    => __('Cancel', 'ctrlfield'),
             'add'       => __('Add link', 'ctrlfield'),
             'update'    => __('Update', 'ctrlfield'),
             'close'     => __('Close', 'ctrlfield'),
+            'internal'     => __('This site', 'ctrlfield'),
+            'thisPage'     => __('This page', 'ctrlfield'),
+            'icon'         => __('Icon', 'ctrlfield'),
+            'chooseIcon'   => __('Select icon', 'ctrlfield'),
+            'removeIcon'   => __('Remove icon', 'ctrlfield'),
+            'iconPosition' => __('Icon position', 'ctrlfield'),
+            'iconLeft'     => __('Left of the text', 'ctrlfield'),
+            'iconRight'    => __('Right of the text', 'ctrlfield'),
         ];
     }
 

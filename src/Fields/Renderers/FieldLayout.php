@@ -7,6 +7,7 @@ namespace CtrlField\Fields\Renderers;
 use CtrlField\Enums\FieldType;
 use CtrlField\Fields\FieldDefinition;
 use CtrlField\Fields\Types\AccordionField;
+use CtrlField\Fields\Types\TabField;
 
 /**
  * Lays out a flat field list the way ACF does, at any level (field group,
@@ -57,12 +58,73 @@ final class FieldLayout
     public static function render(array $fields, callable $renderOne): string
     {
         $html = '';
+        $set  = []; // consecutive horizontal / side accordions: list<array{0: FieldDefinition, 1: string}>
         foreach (self::sections($fields) as $section) {
+            $acc   = $section['accordion'];
             $inner = self::renderTabs($section, $renderOne);
-            $html .= $section['accordion'] !== null ? self::accordion($section['accordion'], $inner) : $inner;
+            // The first accordion of a run decides its style; the run ends at
+            // fields outside any accordion (after an accordion end).
+            if ($acc !== null && ($set !== [] || self::styleOf($acc) !== 'stacked')) {
+                $set[] = [$acc, $inner];
+                continue;
+            }
+            $html .= self::accordionSet($set);
+            $set   = [];
+            $html .= $acc !== null ? self::accordion($acc, $inner) : $inner;
         }
 
-        return $html;
+        return $html . self::accordionSet($set);
+    }
+
+    private static function styleOf(FieldDefinition $accordion): string
+    {
+        return $accordion instanceof AccordionField ? $accordion->getStyle() : 'stacked';
+    }
+
+    /**
+     * Accordions shown together, one open at a time: side by side
+     * ('horizontal') or as a list of titles beside the open section ('side').
+     *
+     * @param list<array{0: FieldDefinition, 1: string}> $set
+     */
+    private static function accordionSet(array $set): string
+    {
+        if ($set === []) {
+            return '';
+        }
+        $style   = self::styleOf($set[0][0]);
+        $default = 0;
+        foreach ($set as $i => [$acc]) {
+            if ($acc instanceof AccordionField && $acc->isOpen()) {
+                $default = $i;
+                break;
+            }
+        }
+        $name    = 'accset:' . self::js($set[0][0]->getKey());
+        $chevron = '<svg class="ctrlf-accset__icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+
+        $toggles = '';
+        $panels  = '';
+        foreach ($set as $i => [$acc, $inner]) {
+            $label   = self::esc(self::label($acc));
+            $toggle  = '<button type="button" class="ctrlf-accset__toggle" @click="acc = ' . $i . '" :class="{ \'is-open\': acc === ' . $i . ' }"'
+                . ' :aria-expanded="acc === ' . $i . '"><span class="ctrlf-accset__title">' . $label . '</span>' . $chevron . '</button>';
+            $content = '<div class="ctrlf-accset__content" x-show="acc === ' . $i . '">' . $inner . '</div>';
+
+            if ($style === 'side') {
+                $toggles .= $toggle;
+                $panels  .= $content;
+            } else {
+                $panels .= '<div class="ctrlf-accset__item" :class="{ \'is-open\': acc === ' . $i . ' }">' . $toggle . $content . '</div>';
+            }
+        }
+
+        $body = $style === 'side'
+            ? '<div class="ctrlf-accset__list">' . $toggles . '</div><div class="ctrlf-accset__panels">' . $panels . '</div>'
+            : $panels;
+
+        return '<div class="ctrlf-accset ctrlf-accset--' . $style . '" x-data="{ acc: $ctrlfUi(\'' . $name . '\', ' . $default . ') }"'
+            . ' x-effect="$ctrlfUiSet(\'' . $name . '\', acc)">' . $body . '</div>';
     }
 
     /**
@@ -122,11 +184,17 @@ final class FieldLayout
             $panes .= '<div class="ctrlf-tab-panel" role="tabpanel" x-show="ctrlfTab === \'' . $k . '\'">' . $body . '</div>';
         }
 
+        // The first tab decides the bar's placement (as in ACF).
+        $head  = $section['tabs'][0]['tab'];
+        $left  = $head instanceof TabField && $head->getPlacement() === 'left';
+        $class = $left ? 'ctrlf-tabs ctrlf-tabs--left' : 'ctrlf-tabs';
+
         // The active tab is remembered across reloads (uiState.js).
         $name = 'tab:' . $first;
-        return $html . '<div class="ctrlf-tabs" x-data="{ ctrlfTab: $ctrlfUi(\'' . $name . '\', \'' . $first . '_0\') }"'
+        return $html . '<div class="' . $class . '" x-data="{ ctrlfTab: $ctrlfUi(\'' . $name . '\', \'' . $first . '_0\') }"'
             . ' x-effect="$ctrlfUiSet(\'' . $name . '\', ctrlfTab)">'
-            . '<div class="ctrlf-tabs-nav" role="tablist">' . $nav . '</div>' . $panes . '</div>';
+            . '<div class="ctrlf-tabs-nav" role="tablist"' . ($left ? ' aria-orientation="vertical"' : '') . '>' . $nav . '</div>'
+            . '<div class="ctrlf-tabs-panels">' . $panes . '</div></div>';
     }
 
     private static function accordion(FieldDefinition $field, string $inner): string

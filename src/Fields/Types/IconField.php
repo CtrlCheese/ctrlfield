@@ -4,32 +4,57 @@ declare(strict_types=1);
 
 namespace CtrlField\Fields\Types;
 
+use CtrlField\Data\IconLibrary;
 use CtrlField\Enums\FieldType;
 use CtrlField\Fields\FieldDefinition;
 
+/**
+ * An icon picked in a dialog with one tab per library (and "All").
+ * Stored as "dashicons-admin-site", "lucide:arrow-right" or "{set}:{name}";
+ * print it with ctrlfield_icon($value).
+ */
 final class IconField extends FieldDefinition
 {
-    private string $library = 'dashicons';
+    /** @var list<string> Libraries offered; empty = all of them. */
+    private array $libraries = [];
 
     public function getType(): FieldType
     {
         return FieldType::ICON;
     }
 
-    public function library(string $lib): static
+    /**
+     * Which libraries the dialog offers: 'lucide', 'dashicons', a set added
+     * with the ctrlfield/icon_sets filter ('brand'), a list of them, or 'all'
+     * (the default).
+     *
+     * @param string|list<string> $lib
+     */
+    public function library(string|array $lib): static
     {
-        $this->library = $lib;
+        $this->libraries = array_values(array_filter((array) $lib, 'is_string'));
         return $this;
     }
 
+    /** @return list<string> The chosen libraries that exist, in tab order; all of them by default. */
+    public function getLibraries(): array
+    {
+        $all    = IconLibrary::libraries();
+        $chosen = array_values(array_intersect($all, $this->libraries));
+
+        return $chosen !== [] ? $chosen : $all;
+    }
+
+    /** 'lucide', 'dashicons' or 'all'. */
     public function getLibrary(): string
     {
-        return $this->library;
+        $libs = $this->getLibraries();
+        return count($libs) === 1 ? $libs[0] : 'all';
     }
 
     /** @return array<string, mixed> */
     public function getDefinition(): array
     {
-        return array_merge(parent::getDefinition(), ['library' => $this->library]);
+        return array_merge(parent::getDefinition(), ['library' => $this->getLibrary()]);
     }
 }

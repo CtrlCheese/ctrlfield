@@ -19,6 +19,14 @@ Field::object(string $key): GroupField
 ```
 Sub-fields for this group.
 
+```php
+->layout('block'|'row'|'table'): static
+```
+How the sub-fields are laid out:
+- `block` (default): label above each field; `->width()` puts fields side by side.
+- `row`: label and instructions on the left, the field on the right.
+- `table`: one column per sub-field, the labels once as the header; a sub-field's `->width()` is its column's share. Tabs and accordions are left out of a table.
+
 ---
 
 ## Storage

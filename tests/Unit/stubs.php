@@ -25,7 +25,9 @@ if (! function_exists('add_filter')) {
 if (! function_exists('apply_filters')) {
     function apply_filters(string $hook, mixed $value, mixed ...$args): mixed
     {
-        return $value;
+        // A test sets $GLOBALS['_wp_test_filters'][$hook] = fn ($value, ...$args) => …
+        $callback = $GLOBALS['_wp_test_filters'][$hook] ?? null;
+        return is_callable($callback) ? $callback($value, ...$args) : $value;
     }
 }
 
@@ -118,6 +120,27 @@ if (! function_exists('get_post_meta')) {
 
 if (! function_exists('update_post_meta')) {
     function update_post_meta(int $post_id, string $meta_key, mixed $meta_value): int|bool
+    {
+        return true;
+    }
+}
+
+if (! function_exists('get_metadata')) {
+    function get_metadata(string $type, int $object_id, string $key = '', bool $single = false): mixed
+    {
+        return $type === 'post' ? get_post_meta($object_id, $key, $single) : ($single ? '' : []);
+    }
+}
+
+if (! function_exists('update_metadata')) {
+    function update_metadata(string $type, int $object_id, string $meta_key, mixed $meta_value): int|bool
+    {
+        return true;
+    }
+}
+
+if (! function_exists('delete_metadata')) {
+    function delete_metadata(string $type, int $object_id, string $meta_key): bool
     {
         return true;
     }
@@ -266,6 +289,7 @@ if (! class_exists('WP_Post')) {
         public string $post_status = 'publish';
         public string $post_type   = 'post';
         public int    $post_parent = 0;
+        public string $post_date_gmt = '';
     }
 }
 
@@ -436,5 +460,45 @@ if (! function_exists('wp_delete_file')) {
     function wp_delete_file(string $file): void
     {
         @unlink($file);
+    }
+}
+
+if (! function_exists('home_url')) {
+    function home_url(string $path = ''): string
+    {
+        return 'https://example.test/' . ltrim($path, '/');
+    }
+}
+
+if (! function_exists('url_to_postid')) {
+    // Known URLs in $GLOBALS['_wp_url_to_postid'] (url without fragment => id).
+    function url_to_postid(string $url): int
+    {
+        return (int) ($GLOBALS['_wp_url_to_postid'][strtok($url, '#')] ?? 0);
+    }
+}
+
+if (! function_exists('wp_get_post_parent_id')) {
+    function wp_get_post_parent_id(mixed $post = null): int|false
+    {
+        $obj = get_post(is_object($post) ? $post->ID : (int) $post);
+        return is_object($obj) ? (int) $obj->post_parent : false;
+    }
+}
+
+if (! function_exists('wp_get_post_revisions')) {
+    // Revisions of a post in $GLOBALS['_wp_revisions'][$postId], newest first.
+    function wp_get_post_revisions(mixed $post = 0, array $args = []): array
+    {
+        $id   = is_object($post) ? (int) $post->ID : (int) $post;
+        $list = $GLOBALS['_wp_revisions'][$id] ?? [];
+        return isset($args['numberposts']) ? array_slice($list, 0, (int) $args['numberposts'], true) : $list;
+    }
+}
+
+if (! function_exists('_n')) {
+    function _n(string $single, string $plural, int $number, string $domain = 'default'): string
+    {
+        return $number === 1 ? $single : $plural;
     }
 }

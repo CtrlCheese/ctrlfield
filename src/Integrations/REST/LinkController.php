@@ -11,12 +11,14 @@ use CtrlField\Data\FieldDataService;
  *
  *   GET /ctrlfield/v1/link/search?source=post:page&search=about&page=1
  *       source = "post:<type>[,<type>…]" or "term:<taxonomy>"
- *   GET /ctrlfield/v1/link/anchors?post_id=12
+ *   GET /ctrlfield/v1/link/anchors?post_id=12   anchors of post 12 + of the rest of the site
  *   GET /ctrlfield/v1/link/status?links=post:12,term:5
  */
 final class LinkController
 {
     private const PER_PAGE = 20;
+
+    private const SITE_ANCHORS = 'ctrlfield_link_site_anchors';
 
     /** Statuses a link may point to; anything else is not offered. */
     private const STATUSES = ['publish', 'future', 'draft', 'pending', 'private'];
@@ -39,7 +41,8 @@ final class LinkController
             'callback'            => [$this, 'anchors'],
             'permission_callback' => [$this, 'canEditPost'],
             'args'                => [
-                'post_id' => ['required' => true, 'type' => 'integer', 'minimum' => 1],
+                // 0: a post not saved yet — only the rest of the site.
+                'post_id' => ['required' => false, 'type' => 'integer', 'minimum' => 0, 'default' => 0],
             ],
         ]);
 
@@ -60,7 +63,9 @@ final class LinkController
 
     public function canEditPost(\WP_REST_Request $request): bool
     {
-        return current_user_can('edit_post', (int) $request->get_param('post_id'));
+        $postId = (int) $request->get_param('post_id');
+
+        return $postId > 0 ? current_user_can('edit_post', $postId) : current_user_can('edit_posts');
     }
 
     public function search(\WP_REST_Request $request): \WP_REST_Response
@@ -108,19 +113,19 @@ final class LinkController
         ], 200);
     }
 
-    /** Anchors (#id) found in the saved content and fields of a post. */
+    /**
+     * Anchors (#id) found in the saved content and fields of a post
+     * ('results'), and those of the other published pages ('site'), each with
+     * its page, so a link can point to "/services/#price".
+     */
     public function anchors(\WP_REST_Request $request): \WP_REST_Response
     {
         $postId  = (int) $request->get_param('post_id');
-        $found   = [];
-        $content = (string) get_post_field('post_content', $postId);
-
-        self::collectAnchors($content, $found);
-        self::collectAnchors(FieldDataService::getInstance()->getAll($postId, 'post'), $found);
-
         $anchors = [];
-        foreach (array_keys($found) as $anchor) {
-            $anchors[] = ['anchor' => (string) $anchor, 'label' => '#' . $anchor];
+        if ($postId > 0) {
+            foreach (array_keys(self::anchorsOf($postId)) as $anchor) {
+                $anchors[] = ['anchor' => (string) $anchor, 'label' => '#' . $anchor];
+            }
         }
 
         /**
@@ -131,7 +136,116 @@ final class LinkController
          */
         $anchors = apply_filters('ctrlfield/link/anchors', $anchors, $postId);
 
-        return new \WP_REST_Response(['results' => self::cleanAnchors($anchors)], 200);
+        $site = array_values(array_filter(
+            self::siteAnchors(),
+            static fn (array $a): bool => $a['id'] !== $postId && current_user_can('read_post', $a['id'])
+        ));
+
+        return new \WP_REST_Response(['results' => self::cleanAnchors($anchors), 'site' => $site], 200);
+    }
+
+    /** Drops the cached site-wide anchor list (a post was saved or deleted). */
+    public static function forgetSiteAnchors(): void
+    {
+        delete_transient(self::SITE_ANCHORS);
+    }
+
+    /** @return array<string, true> anchor => true */
+    private static function anchorsOf(int $postId): array
+    {
+        $found = [];
+        self::collectAnchors((string) get_post_field('post_content', $postId), $found);
+        self::collectAnchors(FieldDataService::getInstance()->getAll($postId, 'post'), $found);
+
+        return $found;
+    }
+
+    /**
+     * Anchors of the published posts of public post types, newest edits
+     * first, cached until a post changes.
+     *
+     * @return list<array{anchor: string, label: string, id: int, object: string, title: string, url: string}>
+     */
+    private static function siteAnchors(): array
+    {
+        $cached = get_transient(self::SITE_ANCHORS);
+        if (is_array($cached)) {
+            return self::cleanSiteAnchors($cached);
+        }
+
+        $types = array_values(array_diff(get_post_types(['public' => true]), ['attachment']));
+        /**
+         * How many posts the site-wide anchor list looks at (most recently edited first).
+         *
+         * @param int $limit
+         */
+        $limit = (int) apply_filters('ctrlfield/link/site_anchors_limit', 300);
+        $ids   = $types === [] ? [] : get_posts([
+            'post_type'        => $types,
+            'post_status'      => 'publish',
+            'posts_per_page'   => max(1, $limit),
+            'orderby'          => 'modified',
+            'order'            => 'DESC',
+            'fields'           => 'ids',
+            'suppress_filters' => false,
+        ]);
+
+        $out = [];
+        foreach ($ids as $id) {
+            $id    = (int) $id;
+            $found = self::anchorsOf($id);
+            if ($found === []) {
+                continue;
+            }
+            $url   = (string) get_permalink($id);
+            $title = (string) get_the_title($id);
+            foreach (array_keys($found) as $anchor) {
+                $out[] = [
+                    'anchor' => (string) $anchor,
+                    'label'  => '#' . $anchor,
+                    'id'     => $id,
+                    'object' => (string) get_post_type($id),
+                    'title'  => $title !== '' ? $title : '#' . $id,
+                    'url'    => $url . '#' . $anchor,
+                ];
+            }
+        }
+
+        /**
+         * Anchors of the whole site offered in the Link dialog.
+         *
+         * @param list<array{anchor: string, label: string, id: int, object: string, title: string, url: string}> $out
+         */
+        $out = self::cleanSiteAnchors(apply_filters('ctrlfield/link/site_anchors', $out));
+        set_transient(self::SITE_ANCHORS, $out, 12 * HOUR_IN_SECONDS);
+
+        return $out;
+    }
+
+    /**
+     * Whatever a filter (or the cache) holds, as a clean site anchor list.
+     *
+     * @return list<array{anchor: string, label: string, id: int, object: string, title: string, url: string}>
+     */
+    private static function cleanSiteAnchors(mixed $anchors): array
+    {
+        $out = [];
+        foreach (is_array($anchors) ? $anchors : [] as $a) {
+            if (! is_array($a) || ! is_string($a['anchor'] ?? null) || (int) ($a['id'] ?? 0) <= 0 || ! is_string($a['url'] ?? null)) {
+                continue;
+            }
+            $anchor = ltrim($a['anchor'], '#');
+            $out[]  = [
+                'anchor' => $anchor,
+                'label'  => '#' . $anchor,
+                'id'     => (int) $a['id'],
+                'object' => is_string($a['object'] ?? null) ? $a['object'] : '',
+                'title'  => is_string($a['title'] ?? null) ? $a['title'] : '',
+                'url'    => $a['url'],
+            ];
+        }
+
+        return $out;
     }
 
     /** Current URL / title of links saved earlier, and whether their target still exists. */

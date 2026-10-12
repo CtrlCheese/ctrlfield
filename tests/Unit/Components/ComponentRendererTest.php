@@ -101,11 +101,35 @@ class ComponentRendererTest extends TestCase
         $this->assertSame('', $result);
     }
 
+    public function test_data_callback_prepares_the_section_before_rendering(): void
+    {
+        $template = $this->tmpBase . '/tabs.php';
+        file_put_contents($template, '<?php echo $title . "|" . $_layout; ?>');
+
+        $this->registerBare('module_tabs', $template, static fn (array $section): array => [
+            'title' => strtoupper((string) ($section['module_tabs_title'] ?? '')),
+        ]);
+
+        $this->assertSame('TABS|module_tabs', ComponentRenderer::render(['_layout' => 'module_tabs', 'module_tabs_title' => 'tabs']));
+    }
+
+    public function test_a_failing_data_callback_renders_nothing(): void
+    {
+        $template = $this->tmpBase . '/x.php';
+        file_put_contents($template, 'never');
+
+        $this->registerBare('x', $template, static function (): array {
+            throw new \RuntimeException('bad data');
+        });
+
+        $this->assertSame('', ComponentRenderer::render(['_layout' => 'x']));
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
 
-    private function registerBare(string $key, ?string $templatePath): void
+    private function registerBare(string $key, ?string $templatePath, ?\Closure $data = null): void
     {
         // Directly inject into ComponentRegistry via the discover path is not
         // available publicly, so we use reflection to set internal state.
@@ -118,6 +142,7 @@ class ComponentRendererTest extends TestCase
             templatePath: $templatePath,
             hasScript:    false,
             hasFunctions: false,
+            data:         $data,
         );
 
         $ref = new \ReflectionProperty(ComponentRegistry::class, 'components');

@@ -20,6 +20,15 @@ Field::repeater(string $key): RepeaterField  // Pro
 The sub-fields for each row. Accepts any `FieldDefinition` instances.
 
 ```php
+->layout('block'|'row'|'table'): static
+```
+How the sub-fields are laid out:
+- `block` (default): label above each field; `->width()` puts fields side by side.
+- `row`: label and instructions on the left, the field on the right.
+- `table`: one column per sub-field, the labels once as the header; a sub-field's `->width()` is its column's share. Tabs and accordions are left out of a table.
+In a table, each row keeps its drag handle, number, Duplicate and Remove.
+
+```php
 ->minItems(int $min): static
 ->maxItems(int $max): static
 ```

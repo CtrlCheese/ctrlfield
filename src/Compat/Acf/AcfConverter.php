@@ -166,9 +166,10 @@ final class AcfConverter
         if (isset($f['default_value']) && is_scalar($f['default_value']) && (string) $f['default_value'] !== '') {
             $out['default'] = (string) $f['default_value'];
         }
-        $width = (int) ($f['wrapper']['width'] ?? 0);
+        $width = is_numeric($f['wrapper']['width'] ?? null) ? round((float) $f['wrapper']['width'], 2) : 0.0;
         if ($width > 0 && $width < 100) {
-            $out['width'] = $width <= 37 ? 25 : ($width <= 62 ? 50 : 75);
+            $width        = max(10.0, $width); // narrower than 10 % is unusable in the editor
+            $out['width'] = fmod($width, 1.0) === 0.0 ? (int) $width : $width;
         }
         if (! empty($f['conditional_logic']) && is_array($f['conditional_logic'])) {
             $out['_acfCondition'] = $f['conditional_logic'];
@@ -223,6 +224,9 @@ final class AcfConverter
             case 'file':
             case 'gallery':
                 $out['returnFormat'] = in_array($rf, ['id', 'url', 'array'], true) ? $rf : 'array';
+                if ($acfType === 'image' && is_string($f['preview_size'] ?? null) && ! in_array($f['preview_size'], ['', 'medium'], true)) {
+                    $out['previewSize'] = sanitize_key($f['preview_size']);
+                }
                 if ($acfType === 'gallery') {
                     self::copyCount($f, $out, 'min', 'minItems');
                     self::copyCount($f, $out, 'max', 'maxItems');
@@ -300,9 +304,19 @@ final class AcfConverter
                     $out['closed'] = true; // ACF accordions start closed unless "open" is set
                 }
                 break;
+            case 'tab':
+                if (($f['placement'] ?? '') === 'left') {
+                    $out['placement'] = 'left';
+                }
+                break;
             case 'group':
             case 'repeater':
                 $out['fields'] = $this->convertFields(is_array($f['sub_fields'] ?? null) ? $f['sub_fields'] : [], $names);
+                // ACF's default is block for groups and table for repeaters; ours is block for both.
+                $layout = (string) ($f['layout'] ?? ($acfType === 'repeater' ? 'table' : 'block'));
+                if (in_array($layout, ['row', 'table'], true)) {
+                    $out['layout'] = $layout;
+                }
                 if ($acfType === 'repeater') {
                     self::copyCount($f, $out, 'min', 'minItems');
                     self::copyCount($f, $out, 'max', 'maxItems');

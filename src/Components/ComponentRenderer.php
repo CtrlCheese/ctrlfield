@@ -12,6 +12,9 @@ namespace CtrlField\Components;
  *   2. Twig   (.twig)      — via Timber\Timber::compile(), falls back to PHP
  *   3. PHP    (.php)       — plain include with extract()
  *
+ * Before the filters, the component's 'data' callback (ComponentRegistry::discover
+ * option — the theme's getData()) prepares the section.
+ *
  * WordPress filter hooks applied before rendering:
  *   'ctrlfield/component_data/{layout_key}'  — per-component data transform
  *   'ctrlfield/component_data'               — global data transform (args: $data, $key)
@@ -39,6 +42,18 @@ final class ComponentRenderer
             return '';
         }
 
+        $definition = ComponentRegistry::get($layoutKey);
+
+        // The theme's data preparation (discover option 'data', its getData()).
+        if ($definition?->data !== null) {
+            try {
+                $section = ($definition->data)($section, $definition);
+            } catch (\Throwable) {
+                return '';
+            }
+            $section['_layout'] ??= $layoutKey;
+        }
+
         // Apply per-component data filters
         if (function_exists('apply_filters')) {
             /** @var array<string, mixed> $section */
@@ -46,8 +61,6 @@ final class ComponentRenderer
             /** @var array<string, mixed> $section */
             $section = apply_filters('ctrlfield/component_data', $section, $layoutKey);
         }
-
-        $definition = ComponentRegistry::get($layoutKey);
 
         if ($definition === null || $definition->templatePath === null) {
             $html = '';

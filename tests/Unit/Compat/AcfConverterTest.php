@@ -43,7 +43,7 @@ final class AcfConverterTest extends TestCase
         $this->assertSame('seamless', $g['style']);
         $this->assertSame('left', $g['labelPlacement']);
         $this->assertSame(
-            ['key' => 'title', 'type' => 'text', 'label' => 'Title', 'required' => true, 'instructions' => 'Help', 'default' => 'x', 'width' => 25],
+            ['key' => 'title', 'type' => 'text', 'label' => 'Title', 'required' => true, 'instructions' => 'Help', 'default' => 'x', 'width' => 33],
             $g['fields'][0]
         );
         $this->assertSame([['a', 'Alpha'], ['b', 'Beta']], $g['fields'][1]['options']);

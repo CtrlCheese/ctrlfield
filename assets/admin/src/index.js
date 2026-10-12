@@ -9,6 +9,7 @@ import { registerWysiwyg } from './wysiwyg.js';
 import { registerUiState, uiPath, uiGet, uiSet } from './uiState.js';
 import { rowSummary, newInstanceId, cloneRow, canAdd, canAddLayout } from './rows.js';
 import { registerLink } from './link.js';
+import { registerIcons } from './icons.js';
 import { registerWpLinkTabs } from './wplinkTabs.js';
 
 function markBlockEditorDirty() {
@@ -77,6 +78,7 @@ registerSortable(Alpine);
 registerWysiwyg(Alpine);
 registerUiState(Alpine);
 registerLink(Alpine);
+registerIcons(Alpine);
 registerWpLinkTabs();
 // A global block of the library by id (FlexibleContentRenderer prints window.ctrlfieldGlobalBlocks).
 Alpine.magic('ctrlfBlock', () => (id) => window.ctrlfieldGlobalBlocks?.blocks?.[id] ?? null);
@@ -103,9 +105,6 @@ document.addEventListener('alpine:init', () => {
 
         /** Cache of selected user display names. */
         selectedUserLabels: {},
-
-        /** Icon picker search query. */
-        iconSearch: '',
 
         // -------------------------------------------------------------------
         // Lifecycle
@@ -271,8 +270,11 @@ document.addEventListener('alpine:init', () => {
                 const attachment = frame.state().get('selection').first().toJSON();
                 const url = attachment.sizes?.thumbnail?.url ?? attachment.url ?? '';
 
-                // Cache for getAttachmentUrl()
+                // Cache for getAttachmentUrl(): the thumbnail, plus every size for previews.
                 this.attachmentUrls[attachment.id] = url;
+                for (const [size, data] of Object.entries(attachment.sizes ?? {})) {
+                    if (data?.url) this.attachmentUrls[`${attachment.id}:${size}`] = data.url;
+                }
 
                 callback.call(this, attachment.id, url);
             });
@@ -281,12 +283,12 @@ document.addEventListener('alpine:init', () => {
         },
 
         /**
-         * Returns a cached thumbnail URL for a given attachment ID.
-         * Falls back to empty string if not yet fetched.
+         * Returns a cached URL for a given attachment ID — in `size` when known
+         * (image previews), else the thumbnail. Empty string if not yet fetched.
          */
-        getAttachmentUrl(id) {
+        getAttachmentUrl(id, size = '') {
             if (!id) return '';
-            return this.attachmentUrls[id] ?? '';
+            return (size && this.attachmentUrls[`${id}:${size}`]) || (this.attachmentUrls[id] ?? '');
         },
 
         // -------------------------------------------------------------------
