@@ -9,6 +9,7 @@ use CtrlField\Data\FieldDataService;
 use CtrlField\Data\FieldWriter;
 use CtrlField\Enums\FieldType;
 use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\ImageField;
 use CtrlField\Registry\FieldRegistry;
 use CtrlField\Schema\JsonGroup;
 use CtrlField\Schema\SchemaErrors;
@@ -549,9 +550,11 @@ final class AcfApi
             'select'       => ['multiple' => $multiple, 'allow_null' => 0, 'ui' => 0, 'ajax' => 0],
             'button_group' => ['allow_null' => method_exists($def, 'isAllowNull') && $def->isAllowNull() ? 1 : 0, 'layout' => 'horizontal'],
             'gallery'      => ['preview_size' => 'medium', 'library' => 'all', 'insert' => 'append'] + $minMax,
-            'image'        => ['preview_size' => 'medium', 'library' => 'all'],
+            'image'        => ['preview_size' => $def instanceof ImageField ? $def->getPreviewSize() : 'medium', 'library' => 'all'],
             'file'         => ['library' => 'all'],
-            'repeater'     => ['layout' => 'block', 'button_label' => ''] + $minMax,
+            'repeater'     => ['layout' => method_exists($def, 'getLayout') ? $def->getLayout() : 'block', 'button_label' => ''] + $minMax,
+            'group'        => ['layout' => method_exists($def, 'getLayout') ? $def->getLayout() : 'block'],
+            'tab'          => ['placement' => method_exists($def, 'getPlacement') ? $def->getPlacement() : 'top', 'endpoint' => 0],
             default        => [],
         };
 

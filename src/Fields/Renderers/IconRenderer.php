@@ -4,141 +4,39 @@ declare(strict_types=1);
 
 namespace CtrlField\Fields\Renderers;
 
+use CtrlField\Data\IconLibrary;
 use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\IconField;
 
+/**
+ * The chosen icon with its name; clicking opens the icon dialog (icons.js),
+ * the × clears it.
+ */
 final class IconRenderer extends AbstractRenderer
 {
-    /** Common Dashicons slugs (without the dashicons- prefix). */
-    private const DASHICONS = [
-        'admin-appearance',
-        'admin-collapse',
-        'admin-comments',
-        'admin-customizer',
-        'admin-generic',
-        'admin-home',
-        'admin-links',
-        'admin-media',
-        'admin-network',
-        'admin-page',
-        'admin-plugins',
-        'admin-post',
-        'admin-settings',
-        'admin-site',
-        'admin-tools',
-        'admin-users',
-        'arrow-down',
-        'arrow-left',
-        'arrow-right',
-        'arrow-up',
-        'awards',
-        'bell',
-        'book',
-        'building',
-        'calendar',
-        'camera',
-        'cart',
-        'category',
-        'chart-bar',
-        'chart-line',
-        'clock',
-        'cloud',
-        'controls-play',
-        'editor-bold',
-        'editor-italic',
-        'email',
-        'external',
-        'facebook',
-        'flag',
-        'format-image',
-        'format-video',
-        'groups',
-        'heart',
-        'hidden',
-        'id-alt',
-        'images-alt',
-        'info',
-        'instagram',
-        'list-view',
-        'location',
-        'lock',
-        'marker',
-        'megaphone',
-        'menu',
-        'migrate',
-        'minus',
-        'money',
-        'networking',
-        'no',
-        'performance',
-        'phone',
-        'plus',
-        'products',
-        'rss',
-        'search',
-        'share',
-        'shield',
-        'smartphone',
-        'smiley',
-        'sort',
-        'star-empty',
-        'star-filled',
-        'store',
-        'tag',
-        'tickets-alt',
-        'twitter',
-        'universal-access',
-        'update',
-        'upload',
-        'users-alt',
-        'video-alt3',
-        'visibility',
-        'warning',
-        'wordpress',
-        'yes',
-    ];
-
     public function render(FieldDefinition $field, string $statePath): string
     {
-        $escapedPath = $this->esc($statePath);
+        $id     = $this->esc($this->inputId($field));
+        $sp     = $this->esc($statePath);
+        $libs   = $field instanceof IconField ? $field->getLibraries() : IconLibrary::LIBRARIES;
+        $config = $this->esc((string) json_encode(['libraries' => $libs]));
+        $choose = $this->esc((string) json_encode(__('Select icon', 'ctrlfield')));
+        $change = $this->esc((string) json_encode(__('Change icon', 'ctrlfield')));
+        $remove = $this->esc(__('Remove icon', 'ctrlfield'));
 
-        $iconButtons = '';
-        foreach (self::DASHICONS as $slug) {
-            $escapedSlug  = $this->esc($slug);
-            $fullClass    = 'dashicons dashicons-' . $escapedSlug;
-            $fullValue    = 'dashicons-' . $escapedSlug;
-            $iconButtons .= sprintf(
-                '<button type="button" class="ctrlf-icon-item"'
-                . ' x-show="!iconSearch || \'%1$s\'.includes(iconSearch.toLowerCase())"'
-                . ' @click="%2$s = \'%3$s\'; open = false">'
-                . '<span class="%4$s"></span>'
-                . '<span>%1$s</span>'
-                . '</button>',
-                $escapedSlug,
-                $escapedPath,
-                $this->esc($fullValue),
-                $this->esc($fullClass),
-            );
-        }
-
-        return sprintf(
-            '<div class="ctrlf-icon-picker" x-data="{ open: false }">'
-            . '<button type="button" class="ctrlf-icon-preview-btn" @click="open = true">'
-            . '<span :class="%1$s ? \'dashicons \' + %1$s : \'ctrlf-icon-empty\'" style="font-size:24px"></span>'
-            . '<span class="ctrlf-icon-label" x-text="%1$s || \'Select icon\'"></span>'
-            . '</button>'
-            . '<div class="ctrlf-icon-modal" x-show="open" @keydown.escape.window="open = false">'
-            . '<div class="ctrlf-icon-modal-inner">'
-            . '<div class="ctrlf-icon-modal-header">'
-            . '<input type="text" x-model="iconSearch" placeholder="Search icons..." class="ctrlf-input">'
-            . '<button type="button" @click="open = false">&#10005;</button>'
-            . '</div>'
-            . '<div class="ctrlf-icon-grid">%2$s</div>'
-            . '<button type="button" class="button" @click="%1$s = \'\'; open = false">Clear</button>'
-            . '</div>'
-            . '</div>'
-            . '</div>',
-            $escapedPath,
-            $iconButtons,
-        );
+        return <<<HTML
+<div class="ctrlf-icon-field">
+    <input type="hidden" id="{$id}" x-model="{$sp}">
+    <button type="button" class="ctrlf-icon-chip" :class="{ 'is-empty': !{$sp} }"
+            :title="{$sp} ? {$change} : ''"
+            @click="\$ctrlfIconPicker({$sp}, (v) => { {$sp} = v; }, {$config}, \$el)">
+        <span class="ctrlf-icon-chip__glyph" x-html="\$ctrlfIcon({$sp}, 20)"></span>
+        <span class="ctrlf-icon-chip__name" x-text="{$sp} ? {$sp}.replace(/^(lucide:|dashicons-)/, '') : {$choose}"></span>
+    </button>
+    <button type="button" class="ctrlf-icon-clear" x-show="{$sp}" x-cloak @click="{$sp} = ''" title="{$remove}" aria-label="{$remove}">
+        <svg viewBox="0 0 20 20" width="12" height="12" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </button>
+</div>
+HTML;
     }
 }

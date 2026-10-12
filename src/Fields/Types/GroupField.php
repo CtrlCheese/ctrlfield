@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace CtrlField\Fields\Types;
 
 use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Concerns\HasSubFieldLayout;
 use CtrlField\Fields\Contracts\NestedFieldInterface;
 use CtrlField\Fields\FieldDefinition;
 
 final class GroupField extends FieldDefinition implements NestedFieldInterface
 {
+    use HasSubFieldLayout;
+
     /** @var array<int, FieldDefinition> */
     private array $fields = [];
 
@@ -42,6 +45,7 @@ final class GroupField extends FieldDefinition implements NestedFieldInterface
     public function getDefinition(): array
     {
         return array_merge(parent::getDefinition(), [
+            'layout' => $this->getLayout(),
             'fields' => array_map(
                 static fn(FieldDefinition $f) => $f->getDefinition(),
                 $this->fields

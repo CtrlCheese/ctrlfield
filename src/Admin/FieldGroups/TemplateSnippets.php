@@ -136,7 +136,7 @@ final class TemplateSnippets
                 $this->html($this->call('wp_oembed_get', [$get]), 'div');
                 return;
             case FieldType::ICON:
-                $this->line('<span class="' . $this->attr($get) . '" aria-hidden="true"></span>');
+                $this->line($this->raw($this->call('ctrlfield_icon', [$get]))); // Lucide SVG or Dashicons span
                 return;
             case FieldType::CODE:
                 $this->line('<pre><code>' . $this->text($get) . '</code></pre>');

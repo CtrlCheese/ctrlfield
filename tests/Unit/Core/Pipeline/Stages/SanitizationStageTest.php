@@ -243,6 +243,19 @@ class SanitizationStageTest extends TestCase
         $this->assertSame('dashicons-admin-home', $context->fields['social_icon']);
     }
 
+    public function test_icon_keeps_lucide_values_and_drops_markup(): void
+    {
+        $group = $this->makeGroup([Field::icon('a'), Field::icon('b')]);
+        $stage = new SanitizationStage($this->makeAdapter());
+
+        $context         = new PipelineContext(1, [], [$group]);
+        $context->fields = ['a' => 'lucide:arrow-right', 'b' => 'lucide:<svg onload=x>'];
+        $stage->handle($context);
+
+        $this->assertSame('lucide:arrow-right', $context->fields['a']);
+        $this->assertSame('', $context->fields['b']);
+    }
+
     public function test_code_field_strips_xss_via_kses(): void
     {
         $group   = $this->makeGroup([Field::code('snippet')]);

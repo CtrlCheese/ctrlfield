@@ -213,16 +213,27 @@ class NewFieldTypesTest extends TestCase
 
     public function test_width_valid_values(): void
     {
-        foreach ([25, 50, 75, 100] as $w) {
-            $field = Field::text('f')->width($w);
-            $this->assertSame($w, $field->getWidth());
+        foreach ([10, 25, 40, 50, 75, 100] as $w) {
+            $this->assertSame($w, Field::text('f')->width($w)->getWidth());
         }
+        $this->assertSame(33.33, Field::text('f')->width(33.3333)->getWidth());
+        $this->assertSame(50, Field::text('f')->width(50.0)->getWidth());
     }
 
-    public function test_width_invalid_throws(): void
+    /** @return iterable<array{0: int|float}> */
+    public static function invalidWidths(): iterable
+    {
+        yield [0];
+        yield [9];
+        yield [101];
+        yield [-50];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalidWidths')]
+    public function test_width_invalid_throws(int|float $width): void
     {
         $this->expectException(InvalidWidthException::class);
-        Field::text('f')->width(33);
+        Field::text('f')->width($width);
     }
 
     public function test_default_value_not_set_by_default(): void

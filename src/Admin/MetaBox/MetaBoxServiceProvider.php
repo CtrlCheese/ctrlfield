@@ -86,21 +86,20 @@ class MetaBoxServiceProvider extends ServiceProvider
             return;
         }
 
-        $base    = CTRLFIELD_URL . 'assets/admin/';
-        $version = CTRLFIELD_VERSION;
+        $base = CTRLFIELD_URL . 'assets/admin/';
 
         wp_enqueue_style(
             'ctrlfield-admin',
             $base . 'ctrlfield.css',
             [],
-            $version,
+            self::assetVersion('ctrlfield.css'),
         );
 
         wp_enqueue_script(
             'ctrlfield-admin',
             $base . 'ctrlfield.js',
             [],
-            $version,
+            self::assetVersion('ctrlfield.js'),
             true, // load in footer
         );
 
@@ -112,7 +111,8 @@ class MetaBoxServiceProvider extends ServiceProvider
             'restUrl'     => rest_url(),
             'restNonce'   => wp_create_nonce('wp_rest'),
             'saveError'   => $this->takeSaveError(),
-            'i18n'        => ['link' => self::linkStrings()],
+            'i18n'        => ['link' => self::linkStrings(), 'icon' => self::iconStrings()],
+            'icons'       => \CtrlField\Data\IconLibrary::clientConfig(),
             'wysiwyg'     => [
                 'template' => WysiwygEditorSettings::TEMPLATE_ID,
                 'toolbars' => WysiwygEditorSettings::toolbars(),
@@ -371,6 +371,35 @@ class MetaBoxServiceProvider extends ServiceProvider
         // We keep it simple: pass an empty map and let Alpine fetch lazily.
         // Full pre-population can be added without changing the JS contract.
         return [];
+    }
+
+    /**
+     * The plugin version plus the file's modification time, so a rebuilt
+     * admin script or stylesheet is never served from the browser cache.
+     */
+    public static function assetVersion(string $file): string
+    {
+        $mtime = @filemtime(CTRLFIELD_PATH . 'assets/admin/' . $file);
+        return CTRLFIELD_VERSION . ($mtime ? '.' . $mtime : '');
+    }
+
+    /** @return array<string, string> Texts of the Icon field dialog (assets/admin/src/icons.js). */
+    private static function iconStrings(): array
+    {
+        return [
+            'title'     => __('Select icon', 'ctrlfield'),
+            'all'       => __('All', 'ctrlfield'),
+            'wordpress' => __('WordPress', 'ctrlfield'),
+            'search'    => __('Search icons', 'ctrlfield'),
+            'results'   => __('Icons', 'ctrlfield'),
+            'loading'   => __('Loading…', 'ctrlfield'),
+            /* translators: %d: number of icons */
+            'count'     => __('%d icons', 'ctrlfield'),
+            'noResults' => __('No icons found.', 'ctrlfield'),
+            'remove'    => __('Remove icon', 'ctrlfield'),
+            'cancel'    => __('Cancel', 'ctrlfield'),
+            'close'     => __('Close', 'ctrlfield'),
+        ];
     }
 
     /** @return array<string, string> Texts of the Link field dialog (assets/admin/src/link.js). */

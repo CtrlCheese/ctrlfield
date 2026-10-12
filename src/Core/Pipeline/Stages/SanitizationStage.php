@@ -122,7 +122,8 @@ class SanitizationStage implements StageInterface
             FieldType::USER => self::sanitizeUsers($value, $definition),
             // C-5: Icon — string like "dashicons-admin-home"
             // Icon = CSS class names only; anything else could break out of class="…".
-            FieldType::ICON => preg_match('/^[a-z0-9_-]+(?: [a-z0-9_-]+)*$/i', trim((string) $value)) ? trim((string) $value) : '',
+            // "dashicons-…", "lucide:…", or class names (older values).
+            FieldType::ICON => \CtrlField\Data\IconLibrary::isValid($value) || preg_match('/^[a-z0-9_-]+(?: [a-z0-9_-]+)*$/i', trim((string) $value)) ? trim((string) $value) : '',
             // C-6: Code — strip all tags; stored as text, escaped on output
             FieldType::CODE => function_exists('sanitize_textarea_field')
                 ? sanitize_textarea_field((string) $value)

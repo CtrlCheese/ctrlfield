@@ -12,6 +12,7 @@ use CtrlField\Fields\FieldDefinition;
 use CtrlField\Fields\Renderers\FieldLayout;
 use CtrlField\Fields\Renderers\RendererRegistry;
 use CtrlField\Fields\Types\GroupField;
+use CtrlField\Fields\Types\ImageField;
 use CtrlField\Fields\Types\RelationshipField;
 use CtrlField\Fields\Types\TabField;
 use CtrlField\Storage\Drivers\WpPostMetaDriver;
@@ -155,14 +156,9 @@ class MetaBoxRenderer
         $instructions = $ui['instructions'];
         $statePath    = "adminState['{$key}']";
         $renderer     = RendererRegistry::resolve($field->getType());
-        $width        = $field->getWidth();
-
-        // CSS class for field width: ctrlf-col-25, ctrlf-col-50, ctrlf-col-75, ctrlf-col-100
-        $widthClass  = $width !== null ? " ctrlf-col-{$width}" : '';
-        $fieldClass  = 'ctrlf-field' . $widthClass;
 
         ?>
-        <div class="<?= esc_attr($fieldClass) ?>" x-show="isVisible('<?= esc_js($key) ?>')" x-cloak>
+        <div class="ctrlf-field<?= \CtrlField\Fields\Renderers\AbstractRenderer::widthAttrs($field) // phpcs:ignore WordPress.Security.EscapeOutput -- a number ?> x-show="isVisible('<?= esc_js($key) ?>')" x-cloak>
             <label class="ctrlf-label" for="ctrlf-<?= esc_attr($key) ?>">
                 <?= esc_html($label) ?>
                 <?php if ($required): ?>
@@ -319,11 +315,11 @@ class MetaBoxRenderer
     /**
      * @param FieldGroup[]         $groups
      * @param array<string, mixed> $values
-     * @return array{0: array<string, string>, 1: array<int, string>}
+     * @return array{0: array<string, string>, 1: array<int|string, string>}
      */
     private function collectPickerLabels(array $groups, array $values): array
     {
-        $postIds = $termIds = $attachmentIds = [];
+        $postIds = $termIds = $attachmentIds = $previewSizes = [];
 
         $ids = static function (mixed $v): array {
             $list = is_array($v) ? $v : [$v];
@@ -332,7 +328,12 @@ class MetaBoxRenderer
 
         // Walk nested values too: images and posts inside groups, repeater rows
         // and flexible content sections need their thumbnails / titles as well.
-        $visit = static function (FieldDefinition $field, mixed $value) use (&$visit, $ids, &$postIds, &$termIds, &$attachmentIds): void {
+        $visit = static function (FieldDefinition $field, mixed $value) use (&$visit, $ids, &$postIds, &$termIds, &$attachmentIds, &$previewSizes): void {
+            if ($field instanceof ImageField && $field->getPreviewSize() !== 'thumbnail') {
+                foreach ($ids($value) as $id) {
+                    $previewSizes[$id . ':' . $field->getPreviewSize()] = [$id, $field->getPreviewSize()];
+                }
+            }
             match ($field->getType()) {
                 FieldType::POST_OBJECT, FieldType::RELATIONSHIP => $postIds = array_merge($postIds, $ids($value)),
                 FieldType::TAXONOMY_TERM                        => $termIds = array_merge($termIds, $ids($value)),
@@ -389,6 +390,12 @@ class MetaBoxRenderer
             $url = wp_get_attachment_image_url($id, 'thumbnail');
             if ($url) {
                 $attachments[$id] = $url;
+            }
+        }
+        foreach ($previewSizes as $cacheKey => [$id, $size]) {
+            $url = wp_get_attachment_image_url($id, $size);
+            if ($url) {
+                $attachments[$cacheKey] = $url;
             }
         }
 

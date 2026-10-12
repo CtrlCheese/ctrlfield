@@ -114,6 +114,39 @@ class RenderersTest extends TestCase
         $this->assertStringContainsString('ctrlf-image-field', $html);
     }
 
+    public function test_image_renderer_removes_with_an_x_and_hides_select_while_filled(): void
+    {
+        $html = (new ImageRenderer())->render(Field::image('photo'), "adminState['photo']");
+
+        $this->assertStringContainsString('class="ctrlf-image-remove"', $html);
+        $this->assertStringNotContainsString('ctrlf-btn--remove', $html);
+        $this->assertMatchesRegularExpression('/ctrlf-btn--upload" x-show="!\(/', $html);
+    }
+
+    public function test_image_renderer_uses_the_preview_size(): void
+    {
+        $default = (new ImageRenderer())->render(Field::image('photo'), "adminState['photo']");
+        $large   = (new ImageRenderer())->render(Field::image('photo')->previewSize('large'), "adminState['photo']");
+
+        $this->assertStringContainsString('ctrlf-image-preview--medium', $default);
+        $this->assertStringContainsString('ctrlf-image-preview--large', $large);
+        $this->assertMatchesRegularExpression('/getAttachmentUrl\([^,]+, ("|&quot;)large/', $large);
+    }
+
+    public function test_nested_instructions_sit_between_label_and_input(): void
+    {
+        $html = \CtrlField\Fields\Renderers\AbstractRenderer::fieldHtml(
+            Field::text('title')->label('Title')->instructions('Short and clear.'),
+            "row['title']"
+        );
+
+        $label = strpos($html, 'ctrlf-label');
+        $instr = strpos($html, 'ctrlf-instructions');
+        $input = strpos($html, '<input');
+        $this->assertNotFalse($instr);
+        $this->assertTrue($label < $instr && $instr < $input);
+    }
+
     public function test_group_renderer_renders_sub_fields(): void
     {
         $html = (new GroupRenderer())->render(

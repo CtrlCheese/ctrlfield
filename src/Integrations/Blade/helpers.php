@@ -42,6 +42,21 @@ if (! function_exists('ctrlfield_link_attrs')) {
     }
 }
 
+if (! function_exists('ctrlfield_icon')) {
+    /**
+     * An Icon field value as HTML, already escaped: Lucide as inline SVG,
+     * Dashicons as a span. Empty string when there is no icon.
+     *
+     *   <?= ctrlfield_icon($icon, ['class' => 'size-5', 'aria-label' => 'Phone']) ?>
+     *
+     * @param array<string, scalar> $attrs
+     */
+    function ctrlfield_icon(mixed $value, array $attrs = []): string
+    {
+        return \CtrlField\Data\IconLibrary::html($value, $attrs);
+    }
+}
+
 if (! function_exists('ctrlfield_get_all')) {
     /**
      * Returns all stored field values for a post.

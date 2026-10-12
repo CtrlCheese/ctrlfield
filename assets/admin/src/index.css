@@ -1,4 +1,8 @@
-@import "tailwindcss";
+/*
+ * No Tailwind import: its preflight reset and global utilities (.fixed,
+ * .hidden, .table…) collide with WP admin classes — e.g. `widefat fixed`
+ * tables turned position:fixed. The CLI only compiles nesting and minifies.
+ */
 
 /*
  * All styles are scoped under .ctrlfield-container to prevent any
@@ -6,6 +10,12 @@
  */
 
 [x-cloak] { display: none !important; }
+
+/* The one part of a reset the layout relies on — scoped to CtrlField's own UI. */
+:where(.ctrlfield-container, .ctrlf-picker-modal, .ctrlf-icondlg, .ctrlf-linkdlg),
+:where(.ctrlfield-container, .ctrlf-picker-modal, .ctrlf-icondlg, .ctrlf-linkdlg) :where(*, ::before, ::after) {
+    box-sizing: border-box;
+}
 
 /* Seamless meta box — remove WP box chrome (border, header, padding) */
 .ctrlfield-seamless.postbox {
@@ -53,12 +63,15 @@
         gap: 4px;
     }
 
-    /* Column widths — account for the 16px gap between columns */
-    .ctrlf-col-25  { flex: 0 0 calc(25%  - 12px); }
-    .ctrlf-col-33  { flex: 0 0 calc(33%  - 11px); }
-    .ctrlf-col-50  { flex: 0 0 calc(50%  - 8px);  }
-    .ctrlf-col-75  { flex: 0 0 calc(75%  - 4px);  }
-    .ctrlf-col-100 { flex: 0 0 100%; }
+    /*
+     * ->width(33.33): --ctrlf-w is the percent. The 16px gap is shared, so a
+     * column is w% minus its part of the gaps: 16px × (1 − w/100).
+     */
+    .ctrlf-col { flex: 0 0 calc(var(--ctrlf-w) * 1% - 16px + var(--ctrlf-w) * 0.16px); }
+
+    @media (max-width: 782px) {
+        .ctrlf-col { flex-basis: 100%; }
+    }
 
     /* ------------------------------------------------------------------ */
     /* Label placement: left (two-column inline layout)                    */
@@ -105,8 +118,13 @@
         font-size: 12px;
         color: #787c82;
         font-weight: 400;
-        margin-top: 2px;
+        margin: 2px 0 0;
         line-height: 1.4;
+    }
+
+    /* Below the label, above the input (every field type). */
+    .ctrlf-field > .ctrlf-label + .ctrlf-instructions {
+        margin: -2px 0 2px;
     }
 
     /* ------------------------------------------------------------------ */
@@ -191,18 +209,80 @@
         align-items: flex-start;
     }
 
-    .ctrlf-image-preview {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
+    /* The preview's width is capped by the column (cqi), so its box hugs the image and the × sits on it. */
+    .ctrlf-image-field {
+        container-type: inline-size;
     }
 
+    /* Image: the preview carries its own ×; the Select button only shows when empty. */
+    .ctrlf-image-preview {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        line-height: 0;
+        --ctrlf-preview: 220px; /* medium, and any custom size */
+    }
+
+    .ctrlf-image-preview--thumbnail    { --ctrlf-preview: 96px; }
+    .ctrlf-image-preview--medium_large { --ctrlf-preview: 360px; }
+    .ctrlf-image-preview--large,
+    .ctrlf-image-preview--full         { --ctrlf-preview: 560px; }
+
     .ctrlf-image-thumb {
-        max-width: 120px;
-        max-height: 120px;
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: min(var(--ctrlf-preview), 100cqi);
+        max-height: var(--ctrlf-preview);
         border: 1px solid #dcdcde;
-        border-radius: 3px;
+        border-radius: 4px;
+        background: repeating-conic-gradient(#f0f0f1 0 25%, #fff 0 50%) 0 0 / 12px 12px; /* transparent PNG/SVG */
+        object-fit: contain;
+    }
+
+    .ctrlf-image-preview--thumbnail .ctrlf-image-thumb {
+        width: var(--ctrlf-preview);
+        height: var(--ctrlf-preview);
+        max-width: none;
         object-fit: cover;
+    }
+
+    .ctrlf-image-remove {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, .92);
+        color: #1d2327;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+        cursor: pointer;
+        opacity: .85;
+        transition: opacity .1s, color .1s, background .1s;
+
+        &:hover,
+        &:focus-visible {
+            opacity: 1;
+            background: #fff;
+            color: #d63638;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--ctrlf-accent-strong);
+            outline-offset: 1px;
+        }
+    }
+
+    .ctrlf-image-preview--thumbnail .ctrlf-image-remove {
+        top: 4px;
+        right: 4px;
+        width: 20px;
+        height: 20px;
     }
 
     .ctrlf-file-name {
@@ -230,9 +310,6 @@
         border: 1px solid #dcdcde;
         border-radius: 3px;
         padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
         background: #f9f9f9;
     }
 
@@ -549,8 +626,6 @@ body.ctrlf-is-sorting * {
     padding: 16px 18px 20px;
     border-top: 1px solid var(--ctrlf-line-soft);
 
-    > .ctrlf-field + .ctrlf-field,
-    .ctrlf-flex-layout-fields > .ctrlf-field + .ctrlf-field { margin-top: 16px; }
 }
 
 /* Nested rows sit on a light background. */
@@ -778,7 +853,7 @@ body.ctrlf-is-sorting * {
     cursor: pointer;
 
     &:hover { color: #1d2327; }
-    &.is-active { border-bottom-color: var(--ctrlf-accent-strong); color: #1d2327; font-weight: 600; }
+    &.is-active { border-bottom-color: var(--ctrlf-accent-strong); color: var(--ctrlf-accent-strong); font-weight: 600; }
 }
 
 .ctrlf-linkdlg__search { margin: 10px 16px 6px; }
@@ -859,6 +934,142 @@ body.ctrlf-is-sorting * {
     .ctrlf-linkdlg__field { grid-template-columns: 1fr; }
     .ctrlf-linkdlg__check { margin-left: 0; }
     .ctrlf-linkdlg__item-url { display: none; }
+}
+
+/* ── Icon field: chip + dialog (icons.js) ───────────────────────────── */
+
+.ctrlf-icon-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ctrlf-icon-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 4px 12px 4px 6px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    background: #fff;
+    color: #1d2327;
+    font-size: 13px;
+    cursor: pointer;
+
+    &:hover { border-color: var(--ctrlf-accent-strong); }
+    &:focus-visible { outline: 2px solid var(--ctrlf-accent-strong); outline-offset: 1px; }
+
+    &.is-empty {
+        padding-left: 12px;
+        border-style: dashed;
+        color: var(--ctrlf-accent-strong);
+        .ctrlf-icon-chip__glyph { display: none; }
+    }
+}
+
+.ctrlf-icon-chip__glyph {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
+    background: #f6f7f7;
+}
+
+.ctrlf-icon-clear {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: #646970;
+    cursor: pointer;
+
+    &:hover, &:focus-visible { background: #fcf0f1; color: #d63638; }
+}
+
+.ctrlf-icondlg {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 640px;
+    height: min(560px, 84vh);
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .2);
+}
+
+.ctrlf-icondlg__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.ctrlf-icondlg__tabs { padding-top: 0; }
+.ctrlf-icondlg__tabs + .ctrlf-icondlg__list { border-top: 0; }
+
+.ctrlf-icondlg__search { margin: 12px 16px 4px; }
+
+.ctrlf-icondlg__list {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    border-top: 1px solid #f0f0f1;
+}
+
+.ctrlf-icondlg__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 6px 16px;
+    border-bottom: 1px solid #f0f0f1;
+    color: #1d2327;
+    cursor: pointer;
+
+    &:hover, &:focus { background: var(--ctrlf-accent-soft); outline: 0; }
+    &.is-selected { background: var(--ctrlf-accent-soft); box-shadow: inset 3px 0 0 var(--ctrlf-accent-strong); }
+}
+
+.ctrlf-icondlg__glyph {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+}
+
+.ctrlf-icondlg__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ctrlf-icondlg__lib { color: #646970; font-size: 11px; }
+
+.ctrlf-icondlg__more { height: 1px; }
+
+.ctrlf-icondlg__status { margin: 0; padding: 6px 16px; border-top: 1px solid #f0f0f1; color: #646970; font-size: 12px; }
+.ctrlf-icondlg__status:empty { display: none; }
+
+.ctrlf-icondlg__foot { justify-content: space-between; align-items: center; }
+
+.ctrlf-icondlg__remove.button {
+    border-color: #d63638;
+    color: #d63638;
+
+    &:hover, &:focus { border-color: #b32d2e; background: #fcf0f1; color: #b32d2e; }
 }
 
 /* WordPress link dialog (wpLink) with the Link field's tabs (wplinkTabs.js). */
@@ -1056,8 +1267,8 @@ body.ctrlf-is-sorting * {
     &:focus-visible { outline: 1px solid var(--ctrlf-accent); outline-offset: -1px; }
 
     &.is-active {
-        background: var(--ctrlf-accent);
-        color: var(--ctrlf-ink);
+        background: var(--ctrlf-accent-strong);
+        color: #fff;
         font-weight: 600;
     }
 }
@@ -1076,6 +1287,189 @@ body.ctrlf-is-sorting * {
     .wp-editor-wrap { margin-top: 2px; }
     textarea.ctrlf-input--wysiwyg { width: 100%; min-height: 160px; }
 }
+
+/* ── Every list of fields is the same wrapping row, so ->width() works at any
+      level: the meta box, groups, repeater rows, flexible sections, tabs and
+      accordions. Tabs and accordions take the full row. ───────────────────── */
+
+.ctrlf-group,
+.ctrlf-row__body,
+.ctrlf-tab-panel,
+.ctrlf-accordion-content,
+.ctrlf-accset__content,
+.ctrlf-flex-layout-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+:where(.ctrlf-group, .ctrlf-row__body, .ctrlf-tab-panel, .ctrlf-accordion-content, .ctrlf-accset__content, .ctrlf-flex-layout-fields) > * {
+    flex: 0 0 100%;
+    min-width: 0;
+}
+
+.ctrlf-tab-panel { width: 100%; }
+
+/* ── Tabs on the left (->placement('left')): a vertical list beside the panel ── */
+
+.ctrlf-tabs--left {
+    display: grid;
+    grid-template-columns: minmax(140px, 22%) minmax(0, 1fr);
+    border: 1px solid var(--ctrlf-line);
+    border-radius: 4px;
+    background: #fff;
+
+    > .ctrlf-tabs-nav {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 0;
+        margin: 0;
+        padding: 8px 0;
+        border-bottom: 0;
+        border-right: 1px solid var(--ctrlf-line);
+        background: var(--ctrlf-surface);
+    }
+
+    > .ctrlf-tabs-nav > .ctrlf-tab-btn {
+        margin: 0 -1px 0 0;
+        padding: 9px 14px;
+        border-bottom: 0;
+        border-right: 2px solid transparent;
+        text-align: left;
+
+        &.is-active { border-right-color: var(--ctrlf-accent-strong); background: #fff; }
+    }
+
+    > .ctrlf-tabs-panels { min-width: 0; padding: 16px 18px 20px; }
+}
+
+@media (max-width: 782px) {
+    .ctrlf-tabs--left { grid-template-columns: 1fr; }
+    .ctrlf-tabs--left > .ctrlf-tabs-nav { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--ctrlf-line); }
+}
+
+/* ── ->layout('row'): label and instructions on the left, field on the right ── */
+
+.ctrlf-layout-row > .ctrlf-field {
+    display: grid;
+    grid-template-columns: minmax(120px, 28%) minmax(0, 1fr);
+    column-gap: 16px;
+    align-items: start;
+
+    > .ctrlf-label { grid-column: 1; padding-top: 7px; }
+    > .ctrlf-instructions { grid-column: 1; margin: 0; }
+    > :not(.ctrlf-label, .ctrlf-instructions) { grid-column: 2; grid-row: 1 / span 3; min-width: 0; }
+}
+
+.ctrlf-layout-row > .ctrlf-field + .ctrlf-field {
+    padding-top: 16px;
+    border-top: 1px solid var(--ctrlf-line-soft);
+}
+
+@media (max-width: 782px) {
+    .ctrlf-layout-row > .ctrlf-field { display: flex; }
+}
+
+/* ── ->layout('table'): header once, one column per sub-field ─────────── */
+
+.ctrlf-table__head,
+.ctrlf-table__row,
+.ctrlf-rtable__row {
+    display: grid;
+    grid-template-columns: var(--ctrlf-cols);
+    align-items: stretch;
+}
+
+.ctrlf-table__th {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--ctrlf-line);
+    background: var(--ctrlf-surface);
+
+    & + & { border-left: 1px solid var(--ctrlf-line-soft); }
+    .ctrlf-instructions { margin: 0; }
+}
+
+.ctrlf-table__td {
+    min-width: 0;
+    padding: 10px;
+
+    & + & { border-left: 1px solid var(--ctrlf-line-soft); }
+
+    /* The header carries label and instructions; cells keep the label for screen readers. */
+    > .ctrlf-field > .ctrlf-label,
+    > .ctrlf-field > .ctrlf-instructions {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .ctrlf-input { max-width: none; }
+}
+
+/* Group as a one-row table: the frame is the table. */
+.ctrlfield-container .ctrlf-group.ctrlf-table,
+.ctrlf-group.ctrlf-table {
+    display: block;
+    padding: 0;
+    overflow-x: auto;
+}
+
+.ctrlf-table__head,
+.ctrlf-table__row { min-width: min-content; }
+
+/* Repeater as a table: one bordered table, rows divided by lines. */
+.ctrlf-rtable {
+    border: 1px solid var(--ctrlf-line);
+    border-radius: 4px;
+    background: #fff;
+    overflow-x: auto;
+
+    .ctrlf-rows { gap: 0; }
+}
+
+.ctrlf-rtable__row {
+    position: relative;
+    border-top: 1px solid var(--ctrlf-line-soft);
+    background: #fff;
+
+    .ctrlf-rows > &:first-child { border-top: 0; }
+    &:focus-within { background: var(--ctrlf-accent-soft); }
+
+    > .ctrlf-row__handle { align-self: stretch; width: auto; }
+    > .ctrlf-row__index { align-self: center; text-align: center; }
+}
+
+.ctrlf-rtable__actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.ctrlf-rtable__action {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: none;
+    color: var(--ctrlf-muted);
+    cursor: pointer;
+
+    &:hover:not(:disabled) { background: var(--ctrlf-accent-soft); color: var(--ctrlf-accent-strong); }
+    &:disabled { opacity: .4; cursor: default; }
+}
+
+.ctrlf-rtable__action--remove:hover:not(:disabled) { background: #fcf0f1; color: var(--ctrlf-danger); }
 
 /* ── Tabs: text with an underline ────────────────────────────────────── */
 
@@ -1115,8 +1509,6 @@ body.ctrlf-is-sorting * {
     }
 }
 
-.ctrlf-tab-panel > .ctrlf-field + .ctrlf-field,
-.ctrlf-group > .ctrlf-field + .ctrlf-field { margin-top: 14px; }
 
 /* ── Accordions: one card per section ────────────────────────────────── */
 
@@ -1163,8 +1555,118 @@ body.ctrlf-is-sorting * {
 .ctrlf-accordion-content {
     padding: 16px 18px 20px;
     border-top: 1px solid var(--ctrlf-line-soft);
+}
 
-    > .ctrlf-field + .ctrlf-field { margin-top: 16px; }
+/* ── Accordion sets (->style('horizontal' | 'side')): one open at a time ── */
+
+.ctrlf-accset {
+    flex: 0 0 100%;
+    width: 100%;
+    border: 1px solid var(--ctrlf-line);
+    border-radius: 4px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.ctrlf-accset__toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    background: var(--ctrlf-surface);
+    color: var(--ctrlf-muted);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover { color: var(--ctrlf-ink); background: var(--ctrlf-accent-soft); }
+    &:focus-visible { outline: 2px solid var(--ctrlf-accent-strong); outline-offset: -2px; }
+    &.is-open { color: var(--ctrlf-accent-strong); background: #fff; }
+}
+
+.ctrlf-accset__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ctrlf-accset__icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin-left: auto;
+    color: var(--ctrlf-faint);
+    transition: transform .15s;
+}
+
+.ctrlf-accset__content { min-width: 0; padding: 16px 18px 20px; }
+
+/* Horizontal: the open panel widens, the others are strips with a vertical title. */
+.ctrlf-accset--horizontal {
+    display: flex;
+    min-height: 240px;
+}
+
+.ctrlf-accset--horizontal > .ctrlf-accset__item {
+    display: flex;
+    flex: 0 0 44px;
+    min-width: 0;
+    transition: flex-grow .2s;
+
+    & + & { border-left: 1px solid var(--ctrlf-line); }
+    &.is-open { flex: 1 1 0; }
+
+    > .ctrlf-accset__toggle {
+        flex: 0 0 44px;
+        flex-direction: column-reverse;
+        justify-content: flex-end;
+        padding: 14px 0;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        border-right: 1px solid var(--ctrlf-line-soft);
+
+        &.is-open { box-shadow: inset -3px 0 0 var(--ctrlf-accent-strong); }
+    }
+
+    > .ctrlf-accset__toggle .ctrlf-accset__icon { margin: 0 0 auto; transform: rotate(90deg); }
+    > .ctrlf-accset__content { flex: 1; }
+}
+
+/* Side: titles on the left, the chosen section on the right. */
+.ctrlf-accset--side {
+    display: grid;
+    grid-template-columns: minmax(150px, 24%) minmax(0, 1fr);
+}
+
+.ctrlf-accset--side > .ctrlf-accset__list {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--ctrlf-line);
+    background: var(--ctrlf-surface);
+
+    > .ctrlf-accset__toggle {
+        width: 100%;
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--ctrlf-line-soft);
+
+        &.is-open { margin-right: -1px; box-shadow: inset 3px 0 0 var(--ctrlf-accent-strong); }
+        &.is-open .ctrlf-accset__icon { color: var(--ctrlf-accent-strong); }
+    }
+}
+
+@media (max-width: 782px) {
+    .ctrlf-accset--horizontal { flex-direction: column; min-height: 0; }
+    .ctrlf-accset--horizontal > .ctrlf-accset__item {
+        flex: none;
+        flex-direction: column;
+        & + & { border-left: 0; border-top: 1px solid var(--ctrlf-line); }
+        > .ctrlf-accset__toggle { flex: none; flex-direction: row; padding: 11px 14px; writing-mode: horizontal-tb; transform: none; border-right: 0; }
+        > .ctrlf-accset__toggle .ctrlf-accset__icon { margin: 0 0 0 auto; }
+    }
+    .ctrlf-accset--side { grid-template-columns: 1fr; }
+    .ctrlf-accset--side > .ctrlf-accset__list { border-right: 0; border-bottom: 1px solid var(--ctrlf-line); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ctrlf-accset--horizontal > .ctrlf-accset__item,
+    .ctrlf-accset__icon { transition: none; }
 }
 
 /* ── Group field: a framed block, no fill ────────────────────────────── */

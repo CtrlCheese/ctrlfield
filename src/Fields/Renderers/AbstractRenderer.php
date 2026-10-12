@@ -143,6 +143,19 @@ abstract class AbstractRenderer implements RendererInterface
         return ' x-show="ctrlfVisibleIn(' . htmlspecialchars($json . ', [' . $scopes . ']', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . ')"';
     }
 
+    /**
+     * Class and style attributes of a field wrapper with its width:
+     * ' ctrlf-col" style="--ctrlf-w:33.33"' — appended inside class="ctrlf-field…".
+     */
+    public static function widthAttrs(\CtrlField\Fields\FieldDefinition $field): string
+    {
+        $width = $field->getWidth();
+        if ($width === null || $width >= 100) {
+            return '"';
+        }
+        return ' ctrlf-col" style="--ctrlf-w:' . $width . '"';
+    }
+
     /** A nested field with its label, required mark and instructions (groups, rows, sections). */
     public static function fieldHtml(\CtrlField\Fields\FieldDefinition $sub, string $path): string
     {
@@ -154,13 +167,12 @@ abstract class AbstractRenderer implements RendererInterface
         $label    = $ui['label'];
         $required = $sub->isRequired() ? '<span class="ctrlf-required" aria-hidden="true">*</span>' : '';
         $instr    = $ui['instructions'];
-        $width    = $sub->getWidth();
         $input    = RendererRegistry::resolve($sub->getType())->render($sub, $path);
 
-        return '<div class="ctrlf-field' . ($width !== null ? ' ctrlf-col-' . $width : '') . '"' . self::conditionAttr($sub) . '>'
+        return '<div class="ctrlf-field' . self::widthAttrs($sub) . self::conditionAttr($sub) . '>'
             . ($label !== '' || $required !== '' ? '<label class="ctrlf-label">' . $esc($label) . $required . '</label>' : '')
-            . $input
             . ($instr !== '' ? '<p class="ctrlf-instructions">' . self::instructionsHtml($instr) . '</p>' : '')
+            . $input
             . '</div>';
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CtrlField\Admin\FieldGroups;
 
+use CtrlField\Admin\MetaBox\MetaBoxServiceProvider;
 use CtrlField\Builder\OptionsPage;
 use CtrlField\Fields\Field;
 use CtrlField\Registry\FieldRegistry;
@@ -46,8 +47,8 @@ final class FieldGroupsPage
             return;
         }
 
-        wp_enqueue_style('ctrlfield-admin', CTRLFIELD_URL . 'assets/admin/ctrlfield.css', [], CTRLFIELD_VERSION);
-        wp_enqueue_script('ctrlfield-admin', CTRLFIELD_URL . 'assets/admin/ctrlfield.js', [], CTRLFIELD_VERSION, true);
+        wp_enqueue_style('ctrlfield-admin', CTRLFIELD_URL . 'assets/admin/ctrlfield.css', [], MetaBoxServiceProvider::assetVersion('ctrlfield.css'));
+        wp_enqueue_script('ctrlfield-admin', CTRLFIELD_URL . 'assets/admin/ctrlfield.js', [], MetaBoxServiceProvider::assetVersion('ctrlfield.js'), true);
     }
 
     // -------------------------------------------------------------------------
@@ -456,6 +457,20 @@ final class FieldGroupsPage
         $row('taxonomies', __('Taxonomies', 'ctrlfield'), $select('taxonomies', $taxonomies, true), __('Terms of these taxonomies can be linked (one tab each).', 'ctrlfield'));
         $row('noAnchors', __('Anchors', 'ctrlfield'), $check('noAnchors', __('Hide the "Anchors" tab (links to #ids on the page)', 'ctrlfield')));
         $row('styles', __('Button styles', 'ctrlfield'), '<textarea class="large-text code" rows="3" x-model="field._stylesText"></textarea>', __('One per line, "value : Label". Empty: no style choice.', 'ctrlfield'));
+        $sizes = [];
+        foreach (array_merge(get_intermediate_image_sizes(), ['full']) as $size) {
+            $sizes[$size] = ucwords(str_replace(['_', '-'], ' ', $size));
+        }
+        $row('previewSize', __('Preview size', 'ctrlfield'), $select('previewSize', $sizes), __('Image size shown in the editor. Empty: Medium.', 'ctrlfield'));
+        $row('library', __('Icon library', 'ctrlfield'), $select('library', ['lucide' => 'Lucide', 'dashicons' => __('WordPress (Dashicons)', 'ctrlfield')]), __('Empty: all libraries, with an "All" tab.', 'ctrlfield'));
+        $row('layout', __('Layout', 'ctrlfield'), $select('layout', [
+            'row' => __('Row — labels on the left', 'ctrlfield'), 'table' => __('Table — one column per field', 'ctrlfield'),
+        ]), __('Empty: Block — labels above, widths put fields side by side.', 'ctrlfield'));
+        $row('placement', __('Tab placement', 'ctrlfield'), $select('placement', ['left' => __('Left — a vertical list', 'ctrlfield')]),
+            __('Empty: Top. The first tab of a set decides.', 'ctrlfield'));
+        $row('accordionStyle', __('Accordion style', 'ctrlfield'), $select('accordionStyle', [
+            'horizontal' => __('Horizontal — panels side by side', 'ctrlfield'), 'side' => __('Side — titles on the left', 'ctrlfield'),
+        ]), __('Empty: Stacked. Consecutive accordions follow the first one; horizontal and side keep one open at a time.', 'ctrlfield'));
         $row('appearance', __('Appearance', 'ctrlfield'), $select('appearance', [
             'select' => __('Dropdown', 'ctrlfield'), 'checkbox' => __('Checkboxes', 'ctrlfield'), 'radio' => __('Radio buttons', 'ctrlfield'),
         ]));
@@ -486,7 +501,10 @@ final class FieldGroupsPage
         ]));
         $row('fields', __('Sub-fields', 'ctrlfield'), '<button type="button" class="button" @click="enter(index)">'
             . esc_html__('Edit sub-fields', 'ctrlfield') . ' (<span x-text="field.fields.length"></span>)</button>');
-        $row('width', __('Width', 'ctrlfield'), $select('width', ['25' => '25%', '50' => '50%', '75' => '75%']), __('Empty: full width.', 'ctrlfield'));
+        $row('width', __('Width', 'ctrlfield'),
+            '<input type="number" class="small-text" min="10" max="100" step="any" list="ctrlf-widths" x-model="field.width"> %'
+            . '<datalist id="ctrlf-widths"><option value="25"><option value="33.33"><option value="50"><option value="66.66"><option value="75"></datalist>',
+            __('Share of the row, 10–100. Fields whose widths add up to 100 sit side by side. Empty: full width.', 'ctrlfield'));
         $row('adminColumn', __('Admin column', 'ctrlfield'), $check('adminColumn', __('Show as a column in the post list', 'ctrlfield')));
         $row('showInRest', __('REST API', 'ctrlfield'), $check('showInRest', __('Include in the REST API', 'ctrlfield')));
         $row('visibleWhen', __('Show only when', 'ctrlfield'),

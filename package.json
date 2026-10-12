@@ -5,6 +5,7 @@
     "build": "npm run build:admin && npm run build:gutenberg",
     "build:admin": "vite build && npx @tailwindcss/cli -i assets/admin/src/index.css -o assets/admin/ctrlfield.css --minify",
     "build:gutenberg": "wp-scripts build assets/gutenberg/index.js --output-path=assets/gutenberg/dist",
+    "build:icons": "node bin/build-icons.mjs",
     "dev:admin": "concurrently \"vite build --watch\" \"npx @tailwindcss/cli -i assets/admin/src/index.css -o assets/admin/ctrlfield.css --watch\"",
     "dev:gutenberg": "wp-scripts start assets/gutenberg/index.js --output-path=assets/gutenberg/dist",
     "test:js": "vitest run",
@@ -21,6 +22,7 @@
     "@playwright/test": "^1.64.0",
     "@tailwindcss/vite": "^4.3.3",
     "@wordpress/scripts": "^36.0.0",
+    "lucide-static": "^1.55.0",
     "tailwindcss": "^4.3.3",
     "vite": "^8.3.2",
     "vitest": "^5.0.3"
