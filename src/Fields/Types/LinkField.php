@@ -46,6 +46,9 @@ final class LinkField extends FieldDefinition
     /** null = the site default (filter ctrlfield/link/icons, off unless a theme turns it on). */
     private ?bool $icons = null;
 
+    /** null = the site default (filter ctrlfield/link/icon_position, 'left'). */
+    private ?string $iconPosition = null;
+
     public function getType(): FieldType
     {
         return FieldType::LINK;
@@ -198,6 +201,27 @@ final class LinkField extends FieldDefinition
         return function_exists('apply_filters') ? (bool) apply_filters('ctrlfield/link/icons', false, $this) : false;
     }
 
+    /** Side a new icon goes to: 'left' or 'right' of the text. */
+    public function defaultIconPosition(string $position): static
+    {
+        $this->iconPosition = $position === 'right' ? 'right' : 'left';
+        return $this;
+    }
+
+    /**
+     * 'left' unless the field or the theme says otherwise:
+     *   add_filter('ctrlfield/link/icon_position', fn () => 'right');
+     */
+    public function getDefaultIconPosition(): string
+    {
+        if ($this->iconPosition !== null) {
+            return $this->iconPosition;
+        }
+        $position = function_exists('apply_filters') ? apply_filters('ctrlfield/link/icon_position', 'left', $this) : 'left';
+
+        return $position === 'right' ? 'right' : 'left';
+    }
+
     /** @return array<string, mixed> */
     public function getDefinition(): array
     {
@@ -206,6 +230,7 @@ final class LinkField extends FieldDefinition
             'max'            => $this->multiple ? $this->max : 1,
             'default_styles' => $this->getDefaultStyles(),
             'icons'          => $this->icons,
+            'icon_position'  => $this->iconPosition,
             'show_target' => $this->showTarget,
             'post_types'  => $this->postTypes,
             'taxonomies'  => $this->taxonomies,

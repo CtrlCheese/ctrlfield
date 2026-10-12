@@ -53,6 +53,22 @@ final class ConditionGroup
     }
 
     /**
+     * The same group with field keys renamed ($map: old key => new key);
+     * keys not in the map (context keys, other fields) stay.
+     *
+     * @param array<string, string> $map
+     */
+    public function withFieldKeys(array $map): self
+    {
+        $conditions = array_map(
+            static fn (array $c): array => [$map[$c[0]] ?? $c[0], $c[1], $c[2]],
+            $this->conditions,
+        );
+
+        return new self($this->type, $conditions);
+    }
+
+    /**
      * Serializes to the format consumed by the Alpine.js condition evaluator.
      *
      * @return array{type: string, conditions: array<int, array{field: string, operator: string, value: mixed}>}

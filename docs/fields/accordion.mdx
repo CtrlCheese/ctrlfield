@@ -17,6 +17,16 @@ Field::accordion(string $key): AccordionField
 ```
 Whether the accordion starts expanded. Default: `true`.
 
+```php
+->style('stacked'|'horizontal'|'side'): static
+```
+How a run of consecutive accordions is shown — the first one's style applies to all of them, until an accordion end:
+- `stacked` (default): cards one under the other, each opens on its own.
+- `horizontal`: panels side by side; the open one widens, the others become narrow strips with a vertical title.
+- `side`: the titles listed on the left, the chosen section on the right.
+
+`horizontal` and `side` keep one section open at a time (the first with `->open()`), remembered across reloads. On small screens they stack.
+
 ---
 
 ## Storage

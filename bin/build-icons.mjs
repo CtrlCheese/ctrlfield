@@ -3,7 +3,7 @@
  * Builds the icon sets the Icon field offers, as static JSON the admin fetches
  * on demand and PHP reads to print icons — no request leaves the site.
  *
- *   assets/icons/lucide.json     { version, icons: { name: "<svg body>" }, tags: { name: "words" } }
+ *   assets/icons/lucide.json     { version, icons: { name: "<svg body>" }, tags: { name: "words" }, aliases: { old: name } }
  *   assets/icons/dashicons.json  { version, icons: [name, …] }
  *
  * Usage: node bin/build-icons.mjs [path/to/wp-includes/css/dashicons.css]
@@ -40,8 +40,25 @@ for (const file of readdirSync(join(pkg, 'icons')).filter((f) => f.endsWith('.sv
     }
 }
 
-writeFileSync(join(out, 'lucide.json'), JSON.stringify({ version: meta.version, icons, tags: words }));
-console.log(`lucide.json: ${Object.keys(icons).length} icons (v${meta.version})`);
+// Old names Lucide still exports (AlertCircle → circle-alert): a value saved
+// before a rename keeps working.
+const aliases = {};
+const kebab = (pascal) => pascal
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .replace(/([a-zA-Z])(\d)/g, '$1-$2')
+    .toLowerCase();
+const esm = readFileSync(join(pkg, 'dist/esm/lucide-static.mjs'), 'utf8');
+for (const [, names, file] of esm.matchAll(/export \{([^}]+)\} from '\.\/icons\/([a-z0-9-]+)\.mjs'/g)) {
+    if (!icons[file]) continue;
+    for (const [, pascal] of names.matchAll(/default as (\w+)/g)) {
+        const old = kebab(pascal);
+        if (old !== file && !icons[old]) aliases[old] = file;
+    }
+}
+
+writeFileSync(join(out, 'lucide.json'), JSON.stringify({ version: meta.version, icons, tags: words, aliases }));
+console.log(`lucide.json: ${Object.keys(icons).length} icons, ${Object.keys(aliases).length} old names (v${meta.version})`);
 
 // Dashicons ---------------------------------------------------------------
 const css = process.argv[2];

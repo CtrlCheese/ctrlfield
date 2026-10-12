@@ -1,6 +1,9 @@
 # Icon
 
-A Dashicons icon picker. Stores the icon slug as a string.
+An icon picked in a dialog: a search box, tabs (All, Lucide, sets a theme adds,
+WordPress) and one icon per row, loaded in batches while scrolling. Lucide
+(2,141 icons) and Dashicons (350) ship with the plugin as static JSON — nothing
+is fetched from a CDN, in the admin or on the site.
 
 ---
 
@@ -13,39 +16,70 @@ Field::icon(string $key): IconField
 ### Type-specific methods
 
 ```php
-->library(string $lib): static
+->library(string|array $lib): static
 ```
-Icon library to use. Default: `'dashicons'`. (Future support planned for FontAwesome, Heroicons.)
+Which libraries the dialog offers: `'lucide'`, `'dashicons'`, a set added with
+the `ctrlfield/icon_sets` filter, or a list of them. Default: all of them, with an "All" tab.
 
 ---
 
 ## Storage
 
-Stored as a string icon slug.
-
 ```json
-{ "social_icon": "dashicons-twitter" }
+{ "social_icon": "lucide:arrow-right" }
+{ "menu_icon": "dashicons-admin-site" }
+{ "brand_icon": "brand:facebook" }
 ```
 
----
-
-## Example
-
-```php
-Field::icon('section_icon')
-    ->label('Section Icon')
-    ->library('dashicons'),
-```
+Lucide values use Iconify's notation, so themes that used Iconify names keep working.
+Older Lucide names that Lucide still recognises are resolved to the current icon.
 
 ---
 
 ## Template usage
 
-```blade
-<span class="dashicons {{ ctrlfield_get('section_icon') }}"></span>
+```php
+<?= ctrlfield_icon(ctrlfield_get('social_icon'), ['class' => 'size-5']) ?>
+<?= ctrlfield_icon($icon, ['aria-label' => 'Phone']) ?>  // role="img" instead of aria-hidden
 ```
 
+`ctrlfield_icon()` prints SVG icons inline (no script, no request) and Dashicons
+as a `<span>` (enqueuing the dashicons style on the site). It returns `''` for
+an empty or unknown value. Attributes you pass (class, width, height,
+stroke-width…) go on the `<svg>`.
+
+---
+
+## Adding an icon set (brands, …)
+
+Lucide has no brand icons. A theme registers the ones it needs as one more tab:
+
 ```php
-$iconSlug = ctrlfield_get('section_icon');
-printf('<span class="dashicons %s"></span>', esc_attr($iconSlug));
+add_filter('ctrlfield/icon_sets', fn (array $sets) => $sets + ['brand' => [
+    'label' => 'Brands',
+    'file'  => get_theme_file_path('icons/brands.json'),  // read by PHP (ctrlfield_icon)
+    'url'   => get_theme_file_uri('icons/brands.json'),   // fetched by the admin dialog
+    'attrs' => ['fill' => 'currentColor'],                // <svg> attributes; default: filled
+]]);
+```
+
+```json
+{
+  "icons": {
+    "facebook": "<path d=\"…\"/>",
+    "x": { "body": "<path d=\"…\"/>", "viewBox": "0 0 512 512" }
+  },
+  "tags": { "facebook": "social meta" }
+}
+```
+
+Set ids are lowercase letters and digits (`brand`, `social2`); `lucide` and
+`dashicons` are taken. The default viewBox is `0 0 24 24`.
+
+---
+
+## Rebuilding the bundled sets
+
+```bash
+npm run build:icons -- /path/to/wp-includes/css/dashicons.css
 ```

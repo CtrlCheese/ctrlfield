@@ -18,7 +18,7 @@ final class IconRenderer extends AbstractRenderer
     {
         $id     = $this->esc($this->inputId($field));
         $sp     = $this->esc($statePath);
-        $libs   = $field instanceof IconField ? $field->getLibraries() : IconLibrary::LIBRARIES;
+        $libs   = $field instanceof IconField ? $field->getLibraries() : IconLibrary::libraries();
         $config = $this->esc((string) json_encode(['libraries' => $libs]));
         $choose = $this->esc((string) json_encode(__('Select icon', 'ctrlfield')));
         $change = $this->esc((string) json_encode(__('Change icon', 'ctrlfield')));

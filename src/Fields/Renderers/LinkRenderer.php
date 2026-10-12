@@ -151,6 +151,7 @@ HTML;
             // Style of a new link by its position (1st, 2nd…); the first style otherwise.
             'defaultStyles' => $link?->getDefaultStyles() ?? [],
             'icons'      => $link?->hasIcons() ?? false,
+            'iconPosition' => $link?->getDefaultIconPosition() ?? 'left',
         ];
     }
 }

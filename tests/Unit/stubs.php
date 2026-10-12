@@ -25,7 +25,9 @@ if (! function_exists('add_filter')) {
 if (! function_exists('apply_filters')) {
     function apply_filters(string $hook, mixed $value, mixed ...$args): mixed
     {
-        return $value;
+        // A test sets $GLOBALS['_wp_test_filters'][$hook] = fn ($value, ...$args) => …
+        $callback = $GLOBALS['_wp_test_filters'][$hook] ?? null;
+        return is_callable($callback) ? $callback($value, ...$args) : $value;
     }
 }
 

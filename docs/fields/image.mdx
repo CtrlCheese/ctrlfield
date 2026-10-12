@@ -23,6 +23,13 @@ Controls what `ctrlfield_get()` returns. Options:
 | `'url'` | `string` — full image URL |
 | `'array'` | `array` — `['id', 'url', 'width', 'height', 'alt']` |
 
+```php
+->previewSize(string $size): static
+```
+Registered WordPress image size shown in the editor — `thumbnail`, `medium` (default), `medium_large`, `large`, `full` or a theme's own size. It also sets the preview's width.
+
+In the editor, the × on the preview removes the image; **Select Image** shows only while the field is empty, so a field never holds an image the theme does not read.
+
 ---
 
 ## Storage

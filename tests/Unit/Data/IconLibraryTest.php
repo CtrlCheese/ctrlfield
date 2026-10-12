@@ -50,4 +50,40 @@ final class IconLibraryTest extends TestCase
         $this->assertSame('', IconLibrary::html(''));
         $this->assertSame('', IconLibrary::html('fa fa-home'));
     }
+
+    public function test_a_theme_can_add_an_icon_set(): void
+    {
+        $file = sys_get_temp_dir() . '/ctrlf_brands_' . uniqid() . '.json';
+        file_put_contents($file, json_encode(['icons' => [
+            'facebook' => '<path d="M1 1"/>',
+            'x'        => ['body' => '<path d="M2 2"/>', 'viewBox' => '0 0 512 512'],
+        ]]));
+        $GLOBALS['_wp_test_filters']['ctrlfield/icon_sets'] = static fn (array $sets): array => $sets + [
+            'brand'     => ['label' => 'Brands', 'file' => $file, 'url' => 'https://t.test/brands.json'],
+            'dashicons' => ['label' => 'not allowed'],
+        ];
+        IconLibrary::reset();
+
+        try {
+            $this->assertSame(['lucide', 'brand', 'dashicons'], IconLibrary::libraries());
+            $this->assertSame(['brand', 'facebook'], IconLibrary::parse('brand:facebook'));
+            $this->assertTrue(IconLibrary::isValid('brand:x'));
+
+            $html = IconLibrary::html('brand:x');
+            $this->assertStringContainsString('viewBox="0 0 512 512"', $html);
+            $this->assertStringContainsString('fill="currentColor"', $html);
+            $this->assertStringContainsString('class="brand brand-x"', $html);
+            $this->assertSame('', IconLibrary::html('brand:missing'));
+        } finally {
+            unset($GLOBALS['_wp_test_filters']);
+            IconLibrary::reset();
+            @unlink($file);
+        }
+    }
+
+    public function test_unknown_sets_are_not_icons(): void
+    {
+        IconLibrary::reset();
+        $this->assertSame(['', ''], IconLibrary::parse('mdi:star'));
+    }
 }

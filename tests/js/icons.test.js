@@ -60,3 +60,18 @@ describe('filterIcons', () => {
         expect(filterIcons(icons, 'arrow left')).toHaveLength(0);
     });
 });
+
+describe('icon sets added by a theme', () => {
+    const known = ['lucide', 'brand', 'dashicons'];
+
+    it('reads and writes "{set}:{name}"', () => {
+        expect(parseIcon('brand:facebook', known)).toEqual({ lib: 'brand', name: 'facebook' });
+        expect(parseIcon('mdi:star', known)).toEqual({ lib: '', name: 'mdi:star' });
+        expect(iconValue('brand', 'x')).toBe('brand:x');
+    });
+
+    it('keeps the tab order Lucide, added sets, WordPress', () => {
+        expect(normalizeLibraries(undefined, known)).toEqual(known);
+        expect(normalizeLibraries(['dashicons', 'brand'], known)).toEqual(['brand', 'dashicons']);
+    });
+});

@@ -10,7 +10,12 @@ A UI-only divider that groups fields into labelled tabs within a meta box.
 Field::tab(string $key): TabField
 ```
 
-No type-specific methods. The `key` is used as the tab identifier; the `label` is the tab title.
+The `key` is used as the tab identifier; the `label` is the tab title.
+
+```php
+->placement('top'|'left'): static
+```
+Where the tab bar sits: `top` (default) or `left`, a vertical list beside the fields. As in ACF, the first tab of a set decides for the whole set.
 
 ---
 

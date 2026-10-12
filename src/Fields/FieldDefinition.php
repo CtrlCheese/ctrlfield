@@ -513,6 +513,22 @@ abstract class FieldDefinition implements FieldInterface
     }
 
     /**
+     * A copy whose condition points at renamed sibling fields ($map: old key
+     * => new key) — needed when a layout's field keys get a prefix.
+     *
+     * @param array<string, string> $map
+     */
+    public function withConditionFieldsRenamed(array $map): static
+    {
+        if ($this->conditionGroup === null || $map === []) {
+            return $this;
+        }
+        $clone                 = clone $this;
+        $clone->conditionGroup = $this->conditionGroup->withFieldKeys($map);
+        return $clone;
+    }
+
+    /**
      * Validates that FlexibleContent is not nested in illegal positions.
      * No-op for all field types except FlexibleContentField (Pro), which overrides this.
      * RepeaterField and GroupField propagate the flags to their sub-fields.

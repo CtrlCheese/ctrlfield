@@ -464,7 +464,9 @@ final class FieldGroupsPage
             $sizes[$size] = ucwords(str_replace(['_', '-'], ' ', $size));
         }
         $row('previewSize', __('Preview size', 'ctrlfield'), $select('previewSize', $sizes), __('Image size shown in the editor. Empty: Medium.', 'ctrlfield'));
-        $row('library', __('Icon library', 'ctrlfield'), $select('library', ['lucide' => 'Lucide', 'dashicons' => __('WordPress (Dashicons)', 'ctrlfield')]), __('Empty: all libraries, with an "All" tab.', 'ctrlfield'));
+        $iconLibs = array_map(static fn (array $set): string => $set['label'], \CtrlField\Data\IconLibrary::svgSets())
+            + ['dashicons' => __('WordPress (Dashicons)', 'ctrlfield')];
+        $row('library', __('Icon library', 'ctrlfield'), $select('library', $iconLibs), __('Empty: all libraries, with an "All" tab.', 'ctrlfield'));
         $row('layout', __('Layout', 'ctrlfield'), $select('layout', [
             'row' => __('Row — labels on the left', 'ctrlfield'), 'table' => __('Table — one column per field', 'ctrlfield'),
         ]), __('Empty: Block — labels above, widths put fields side by side.', 'ctrlfield'));

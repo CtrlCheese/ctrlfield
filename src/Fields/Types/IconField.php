@@ -10,7 +10,7 @@ use CtrlField\Fields\FieldDefinition;
 
 /**
  * An icon picked in a dialog with one tab per library (and "All").
- * Stored as "dashicons-admin-site" or "lucide:arrow-right";
+ * Stored as "dashicons-admin-site", "lucide:arrow-right" or "{set}:{name}";
  * print it with ctrlfield_icon($value).
  */
 final class IconField extends FieldDefinition
@@ -24,21 +24,25 @@ final class IconField extends FieldDefinition
     }
 
     /**
-     * Which libraries the dialog offers: 'lucide', 'dashicons', a list of
-     * them, or 'all' (the default).
+     * Which libraries the dialog offers: 'lucide', 'dashicons', a set added
+     * with the ctrlfield/icon_sets filter ('brand'), a list of them, or 'all'
+     * (the default).
      *
      * @param string|list<string> $lib
      */
     public function library(string|array $lib): static
     {
-        $this->libraries = array_values(array_intersect(IconLibrary::LIBRARIES, (array) $lib));
+        $this->libraries = array_values(array_filter((array) $lib, 'is_string'));
         return $this;
     }
 
-    /** @return list<string> */
+    /** @return list<string> The chosen libraries that exist, in tab order; all of them by default. */
     public function getLibraries(): array
     {
-        return $this->libraries !== [] ? $this->libraries : IconLibrary::LIBRARIES;
+        $all    = IconLibrary::libraries();
+        $chosen = array_values(array_intersect($all, $this->libraries));
+
+        return $chosen !== [] ? $chosen : $all;
     }
 
     /** 'lucide', 'dashicons' or 'all'. */

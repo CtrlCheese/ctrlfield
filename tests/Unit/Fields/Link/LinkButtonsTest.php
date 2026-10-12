@@ -115,4 +115,21 @@ final class LinkButtonsTest extends TestCase
         $this->assertStringContainsString('class="button button--outline"', $html);
         $this->assertStringNotContainsString('none', $html);
     }
+
+    public function test_icon_position_defaults_to_the_field_or_the_site(): void
+    {
+        $value = ['url' => 'https://other.test/', 'icon' => 'lucide:arrow-right'];
+
+        $this->assertSame('left', LinkSanitizer::forField(Field::link('a')->icons())->sanitizeValue($value)['icon_position']);
+        $this->assertSame('right', LinkSanitizer::forField(Field::link('a')->icons()->defaultIconPosition('right'))->sanitizeValue($value)['icon_position']);
+
+        $GLOBALS['_wp_test_filters']['ctrlfield/link/icon_position'] = static fn (): string => 'right';
+        try {
+            $this->assertSame('right', Field::link('a')->getDefaultIconPosition());
+            // A side chosen in the dialog wins.
+            $this->assertSame('left', LinkSanitizer::forField(Field::link('a')->icons())->sanitizeValue($value + ['icon_position' => 'left'])['icon_position']);
+        } finally {
+            unset($GLOBALS['_wp_test_filters']);
+        }
+    }
 }

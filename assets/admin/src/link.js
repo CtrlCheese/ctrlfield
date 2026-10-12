@@ -258,7 +258,7 @@ function openDialog(value, set, config, opener, position = 0) {
         newTab: link.target === '_blank',
         style: link.style ?? defaultStyle(config, position),
         icon: link.icon ?? '',
-        iconPosition: link.icon_position === 'right' ? 'right' : 'left',
+        iconPosition: ['left', 'right'].includes(link.icon_position) ? link.icon_position : (config.iconPosition === 'right' ? 'right' : 'left'),
     };
     let picked = link.id ? { kind: link.type, id: link.id, object: link.object, url: link.url } : null;
     let autoTitle = ''; // the title filled from a result, replaced by the next pick

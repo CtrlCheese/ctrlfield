@@ -23,6 +23,7 @@ final class LinkSanitizer implements SanitizerInterface
         private readonly array $styles = [],
         private readonly bool $icons = false,
         private readonly ?int $multiple = null,
+        private readonly string $iconPosition = 'left',
     ) {}
 
     public static function forField(?FieldDefinition $field): self
@@ -35,6 +36,7 @@ final class LinkSanitizer implements SanitizerInterface
             array_keys($field->getStyles()),
             $field->hasIcons(),
             $field->isMultiple() ? $field->getMax() : null,
+            $field->getDefaultIconPosition(),
         );
     }
 
@@ -108,7 +110,8 @@ final class LinkSanitizer implements SanitizerInterface
 
         if ($this->icons && IconLibrary::isValid($value['icon'] ?? null)) {
             $link['icon']          = trim((string) $value['icon']);
-            $link['icon_position'] = ($value['icon_position'] ?? '') === 'right' ? 'right' : 'left';
+            $side                  = (string) ($value['icon_position'] ?? '');
+            $link['icon_position'] = in_array($side, ['left', 'right'], true) ? $side : $this->iconPosition;
         }
 
         return $link;

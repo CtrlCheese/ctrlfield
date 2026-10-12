@@ -122,7 +122,7 @@ final class JsonGroup
         'styles'          => 'options',
         'language'        => 'slug',
         'previewSize'     => 'slug',
-        'library'         => ['lucide', 'dashicons'],
+        'library'         => 'slug', // lucide, dashicons or a set a theme added
         'layout'          => ['row', 'table'],
         'placement'       => ['left'],
         'accordionStyle'  => ['horizontal', 'side'],

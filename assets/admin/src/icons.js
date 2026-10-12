@@ -1,16 +1,18 @@
-// Icon field: a dialog with tabs (All, Lucide, WordPress), a search box
-// and one icon per row, rendered in batches while scrolling. The sets are
-// static JSON in assets/icons/ (bin/build-icons.mjs), fetched the first time
-// they are needed — nothing is requested from a third-party server.
+// Icon field: a dialog with tabs (All, Lucide, sets a theme adds, WordPress),
+// a search box and one icon per row, rendered in batches while scrolling. The
+// sets are static JSON (assets/icons/, bin/build-icons.mjs; a theme's own via
+// the ctrlfield/icon_sets filter), fetched the first time they are needed —
+// nothing is requested from a third-party server.
 //
-// Stored values: "dashicons-admin-site" (WordPress) or "lucide:arrow-right"
-// (Iconify-style, so themes that used Iconify names keep working).
+// Stored values: "dashicons-admin-site" (WordPress), "lucide:arrow-right"
+// (Iconify-style, so themes that used Iconify names keep working), "{set}:{name}".
 //
 //   $ctrlfIconPicker(value, set, config, $el)   opens the dialog
 //   $ctrlfIcon(value)                           the icon's HTML (preview)
 
 export const LIBRARIES = ['lucide', 'dashicons'];
 const BATCH = 60;
+const LUCIDE_ATTRS = { fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
 
 function data() {
     return globalThis.window?.ctrlfieldData ?? {};
@@ -20,23 +22,37 @@ function t(key, fallback) {
     return data().i18n?.icon?.[key] ?? fallback;
 }
 
+/** SVG sets: id => { label, url, attrs } (Lucide, plus those a theme added). */
+function svgSets() {
+    const out = {};
+    for (const set of data().icons?.sets ?? []) out[set.id] = set;
+    out.lucide ??= { id: 'lucide', label: 'Lucide', url: `${data().icons?.url ?? ''}lucide.json`, attrs: LUCIDE_ATTRS };
+    return out;
+}
+
+/** Every library id in tab order: Lucide, added sets, Dashicons. */
+export function knownLibraries() {
+    return [...Object.keys(svgSets()), 'dashicons'];
+}
+
 /** "lucide:arrow-right" → { lib: 'lucide', name: 'arrow-right' } (pure: tested). */
-export function parseIcon(value) {
+export function parseIcon(value, known = knownLibraries()) {
     const v = String(value ?? '').trim();
-    if (v.startsWith('lucide:')) return { lib: 'lucide', name: v.slice(7) };
     if (v.startsWith('dashicons-')) return { lib: 'dashicons', name: v.slice(10) };
+    const colon = v.indexOf(':');
+    if (colon > 0 && known.includes(v.slice(0, colon))) return { lib: v.slice(0, colon), name: v.slice(colon + 1) };
     return { lib: '', name: v };
 }
 
 /** The value stored for an icon (pure: tested). */
 export function iconValue(lib, name) {
-    return lib === 'lucide' ? `lucide:${name}` : `dashicons-${name}`;
+    return lib === 'dashicons' ? `dashicons-${name}` : `${lib}:${name}`;
 }
 
 /** The libraries a field offers, in display order (pure: tested). */
-export function normalizeLibraries(libraries) {
-    const list = [].concat(libraries ?? []).filter((l) => LIBRARIES.includes(l));
-    return list.length ? LIBRARIES.filter((l) => list.includes(l)) : [...LIBRARIES];
+export function normalizeLibraries(libraries, known = knownLibraries()) {
+    const list = [].concat(libraries ?? []).filter((l) => known.includes(l));
+    return list.length ? known.filter((l) => list.includes(l)) : [...known];
 }
 
 /**
@@ -67,21 +83,25 @@ export function filterIcons(entries, query) {
 
 // ── Icon sets ───────────────────────────────────────────────────────────────
 
-const sets = {};      // lib => Promise<entries>
-let lucideBodies = null; // name => svg body, once Lucide is loaded
-let ready = null;    // Alpine-reactive { lucide: bool } so previews re-render
+const sets = {};    // lib => Promise<entries>
+const bodies = {};  // svg set => { name: body | { body, viewBox } }, once loaded
+const aliases = {}; // svg set => { old name: current name }
+let ready = null;   // Alpine-reactive { [set]: true } so previews re-render
 
 function loadSet(lib) {
     sets[lib] ??= (async () => {
         const d = data();
-        const url = `${d.icons?.url ?? ''}${lib}.json?ver=${encodeURIComponent(d.icons?.version ?? '')}`;
+        const svg = svgSets()[lib];
+        const base = svg ? svg.url : `${d.icons?.url ?? ''}${lib}.json`;
+        const url = `${base}${base.includes('?') ? '&' : '?'}ver=${encodeURIComponent(d.icons?.version ?? '')}`;
         try {
             const res = await fetch(url, { credentials: 'same-origin' });
             const body = res.ok ? await res.json() : null;
-            if (lib === 'lucide') {
-                lucideBodies = body?.icons ?? {};
-                if (ready) ready.lucide = true;
-                return Object.keys(lucideBodies).map((name) => ({ lib, name, tags: body?.tags?.[name] ?? '' }));
+            if (svg) {
+                bodies[lib] = body?.icons ?? {};
+                aliases[lib] = body?.aliases ?? {};
+                if (ready) ready[lib] = true;
+                return Object.keys(bodies[lib]).map((name) => ({ lib, name, tags: body?.tags?.[name] ?? '' }));
             }
             return (body?.icons ?? []).map((name) => ({ lib, name, tags: '' }));
         } catch {
@@ -92,22 +112,26 @@ function loadSet(lib) {
     return sets[lib];
 }
 
-function lucideSvg(name, size = 20) {
-    const body = lucideBodies?.[name];
+function svgHtml(lib, name, size = 20) {
+    const icon = bodies[lib]?.[name] ?? bodies[lib]?.[aliases[lib]?.[name]];
+    const body = typeof icon === 'string' ? icon : icon?.body;
     if (!body) return '';
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`;
+    const viewBox = (typeof icon === 'object' && icon.viewBox) || '0 0 24 24';
+    const attrs = Object.entries(svgSets()[lib]?.attrs ?? {})
+        .map(([k, v]) => ` ${k.replace(/[^a-zA-Z0-9:_-]/g, '')}="${String(v).replace(/"/g, '&quot;')}"`).join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="${viewBox}"${attrs} aria-hidden="true" focusable="false">${body}</svg>`;
 }
 
-/** The icon as HTML; Lucide icons appear once their set has loaded. */
+/** The icon as HTML; SVG icons appear once their set has loaded. */
 export function iconHtml(value, size = 20) {
     const { lib, name } = parseIcon(value);
     if (!name || !/^[a-z0-9-]+$/.test(name)) return '';
     if (lib === 'dashicons') {
         return `<span class="dashicons dashicons-${name}" style="font-size:${size}px;width:${size}px;height:${size}px" aria-hidden="true"></span>`;
     }
-    if (lib === 'lucide') {
-        if (!lucideBodies) loadSet('lucide');
-        return lucideSvg(name, size);
+    if (lib && svgSets()[lib]) {
+        if (!bodies[lib]) loadSet(lib);
+        return svgHtml(lib, name, size);
     }
     return '';
 }
@@ -128,7 +152,8 @@ function el(tag, attrs = {}, children = []) {
 
 export function openIconPicker(value, set, config, opener) {
     const libraries = normalizeLibraries(config.libraries);
-    const labels = { lucide: 'Lucide', dashicons: t('wordpress', 'WordPress') };
+    const labels = { dashicons: t('wordpress', 'WordPress') };
+    for (const [id, set] of Object.entries(svgSets())) labels[id] = set.label;
     const tabs = [
         ...(libraries.length > 1 ? [{ id: 'all', label: t('all', 'All') }] : []),
         ...libraries.map((lib) => ({ id: lib, label: labels[lib] })),
@@ -263,8 +288,8 @@ export function openIconPicker(value, set, config, opener) {
 }
 
 export function registerIcons(Alpine) {
-    ready = Alpine.reactive({ lucide: false });
+    ready = Alpine.reactive({});
     Alpine.magic('ctrlfIconPicker', () => (value, set, config, opener) => openIconPicker(value, set, config ?? {}, opener));
     // Reads ready.lucide so a Lucide preview re-renders once the set arrives.
-    Alpine.magic('ctrlfIcon', () => (value, size) => (ready.lucide, iconHtml(value, size)));
+    Alpine.magic('ctrlfIcon', () => (value, size) => (ready[parseIcon(value).lib], iconHtml(value, size)));
 }
