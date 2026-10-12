@@ -172,7 +172,7 @@ class TypeCoercionStage implements StageInterface
             return '';
         }
 
-        $hex = strtoupper($str);
+        $hex = $str; // case kept as typed (ColorSanitizer validates)
 
         if (! str_starts_with($hex, '#')) {
             $hex = '#' . $hex;

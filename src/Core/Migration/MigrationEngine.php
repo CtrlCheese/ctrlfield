@@ -65,6 +65,34 @@ final class MigrationEngine
         ksort(self::$registry);
     }
 
+    /**
+     * Fields stored under an older schema version, brought up to $to in memory
+     * by the registered migrations (pure functions) — nothing is written; `wp
+     * ctrlfield migrate` stores the result. Null when a migration fails, so the
+     * caller falls back to treating the payload as unreadable.
+     *
+     * Without this, a post or options page whose payload predates the current
+     * version read as empty until someone ran the migration.
+     *
+     * @param  array<string, mixed> $fields
+     * @return array<string, mixed>|null
+     */
+    public static function upgradeOnRead(array $fields, int $from, int $to): ?array
+    {
+        foreach (self::$registry as $version => $migration) {
+            if ($version <= $from || $version > $to) {
+                continue;
+            }
+            try {
+                $fields = $migration->up($fields);
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return $fields;
+    }
+
     /** @return list<MigrationInterface> */
     public static function registered(): array
     {

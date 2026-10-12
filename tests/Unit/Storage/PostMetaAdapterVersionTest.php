@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace CtrlField\Tests\Unit\Storage;
 
 use CtrlField\Core\Cache\CacheAdapter;
+use CtrlField\Core\Migration\MigrationEngine;
+use CtrlField\Core\Migration\MigrationInterface;
 use CtrlField\Core\Migration\SchemaVersion;
 use CtrlField\Storage\PostMetaAdapter;
 use PHPUnit\Framework\TestCase;
@@ -20,20 +22,44 @@ class PostMetaAdapterVersionTest extends TestCase
     // load() version mismatch (acceptance criterion from CYCLES.md)
     // -------------------------------------------------------------------------
 
-    public function test_load_returns_null_and_logs_error_on_version_mismatch(): void
+    public function test_load_reads_an_older_version_through_the_migrations(): void
     {
         $driver  = new VersionCheckInMemoryDriver();
-        // Adapter configured to current version = 1
         $adapter = new PostMetaAdapter($driver, currentVersion: 1);
+        MigrationEngine::register(new class implements MigrationInterface {
+            public function up(array $data): array { return ['name' => strtoupper((string) $data['name'])]; }
+            public function version(): int { return 1; }
+        });
 
-        // Save data with schema_version = 0 (older than current)
-        $adapter->save(1, ['name' => 'Acme'], 0);
-        CacheAdapter::flush();
+        try {
+            $adapter->save(1, ['name' => 'Acme'], 0);
+            CacheAdapter::flush();
 
-        // load() must detect mismatch and return null
-        $result = $adapter->load(1);
+            // Read in memory, not written back (wp ctrlfield migrate does that).
+            $this->assertSame(['name' => 'ACME'], $adapter->load(1));
+            $this->assertSame(0, $adapter->loadRaw(1)['schema_version']);
+        } finally {
+            MigrationEngine::reset();
+        }
+    }
 
-        $this->assertNull($result, 'load() must return null when stored schema_version < current.');
+    public function test_load_returns_null_when_a_migration_fails(): void
+    {
+        $driver  = new VersionCheckInMemoryDriver();
+        $adapter = new PostMetaAdapter($driver, currentVersion: 1);
+        MigrationEngine::register(new class implements MigrationInterface {
+            public function up(array $data): array { throw new \RuntimeException('cannot'); }
+            public function version(): int { return 1; }
+        });
+
+        try {
+            $adapter->save(1, ['name' => 'Acme'], 0);
+            CacheAdapter::flush();
+
+            $this->assertNull($adapter->load(1));
+        } finally {
+            MigrationEngine::reset();
+        }
     }
 
     public function test_load_returns_data_when_version_matches(): void
@@ -72,8 +98,8 @@ class PostMetaAdapterVersionTest extends TestCase
         $adapter = new PostMetaAdapter($driver, currentVersion: 1);
         $result  = $adapter->load(1);
 
-        // Missing schema_version → treated as 0 → mismatch against current 1 → null
-        $this->assertNull($result);
+        // Missing schema_version → treated as 0; no migration to apply → read as is.
+        $this->assertSame(['name' => 'Legacy'], $result);
     }
 
     // -------------------------------------------------------------------------

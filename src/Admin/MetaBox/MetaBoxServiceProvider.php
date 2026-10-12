@@ -15,6 +15,7 @@ use CtrlField\Data\FieldDataService;
 use CtrlField\Registry\ContextRegistry;
 use CtrlField\Storage\Drivers\WpPostMetaDriver;
 use CtrlField\Storage\PostMetaAdapter;
+use CtrlField\Storage\RevisionSnapshots;
 
 /**
  * Boots the meta box UI and the save_post pipeline hook.
@@ -203,6 +204,8 @@ class MetaBoxServiceProvider extends ServiceProvider
             SavePipeline::run($postId, array_merge($_POST, [
                 'ctrlfield_payload' => wp_slash((string) wp_json_encode($merged)),
             ]));
+            // The revision WordPress made for this save was given the old values.
+            RevisionSnapshots::make()->onFieldsSaved($postId);
         } catch (PipelineException $e) {
             // A validation error must not turn the save into a 500: keep the
             // message and show it on the next load of the edit screen.
@@ -224,35 +227,15 @@ class MetaBoxServiceProvider extends ServiceProvider
         (new NotificationDispatcher())->dispatch($postId, $oldFields, $newFields, $groups);
     }
 
+    /** A new revision gets the post's fields (see RevisionSnapshots). */
     public function onPutRevision(int $revisionId): void
     {
-        $parentId = (int) wp_get_post_parent_id($revisionId);
-        if ($parentId <= 0) {
-            return;
-        }
-
-        // Use loadRaw() to read fields even if the schema_version is stale.
-        // getAll() returns [] for unmigrated posts, which would create an empty snapshot
-        // and permanently lose the field history for that revision.
-        $adapter = new PostMetaAdapter(new WpPostMetaDriver());
-        $raw     = $adapter->loadRaw($parentId);
-        $data    = $raw['fields'] ?? [];
-
-        if (empty($data)) {
-            return;
-        }
-
-        $adapter->save($revisionId, $data, SchemaVersion::CURRENT);
+        RevisionSnapshots::make()->onRevisionCreated($revisionId);
     }
 
     public function onRestoreRevision(int $postId, int $revisionId): void
     {
-        $data = FieldDataService::getInstance()->getAll($revisionId, 'post');
-        if (empty($data)) {
-            return;
-        }
-
-        (new PostMetaAdapter(new WpPostMetaDriver()))->save($postId, $data, SchemaVersion::CURRENT);
+        RevisionSnapshots::make()->onRevisionRestored($postId, $revisionId);
     }
 
     public function onOembedPreview(): void

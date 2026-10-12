@@ -92,14 +92,15 @@ class NewSanitizersTest extends TestCase
 
     public function test_color_valid_six_digit(): void
     {
+        // Case is kept as typed (the color picker and themes use lowercase).
         $this->assertSame('#FF5733', (new ColorSanitizer())->sanitize('#FF5733'));
-        $this->assertSame('#FF5733', (new ColorSanitizer())->sanitize('#ff5733'));
-        $this->assertSame('#FF5733', (new ColorSanitizer())->sanitize('ff5733'));
+        $this->assertSame('#ff5733', (new ColorSanitizer())->sanitize('#ff5733'));
+        $this->assertSame('#ff5733', (new ColorSanitizer())->sanitize('ff5733'));
     }
 
     public function test_color_valid_three_digit(): void
     {
-        $this->assertSame('#FFF', (new ColorSanitizer())->sanitize('#fff'));
+        $this->assertSame('#fff', (new ColorSanitizer())->sanitize('#fff'));
     }
 
     public function test_color_valid_eight_digit_alpha(): void

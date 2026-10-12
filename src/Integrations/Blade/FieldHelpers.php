@@ -31,6 +31,13 @@ use CtrlField\Fields\Types\CheckboxField;
  *           FieldHelpers::titleColor(),
  *       ])
  *       ->register();
+ *
+ * Each helper returns the field, so anything can be changed by chaining —
+ * keys, values and defaults stay the same:
+ *   FieldHelpers::background()->label('Fundo')->instructions('Cor de fundo da seção.')
+ *   FieldHelpers::autoplay()->instructions('')   // no help text
+ *
+ * Labels and texts are translatable (text domain "ctrlfield").
  */
 final class FieldHelpers
 {
@@ -43,15 +50,15 @@ final class FieldHelpers
     public static function background(string $default = 'no-bg'): SelectField
     {
         return Field::select('background')
-            ->label('Background')
+            ->label(__('Background', 'ctrlfield'))
             ->options([
-                'no-bg'  => 'No Background',
-                'light'  => 'Primary — Light (20%)',
-                'medium' => 'Primary — Medium (35%)',
-                'dark'   => 'Primary — Dark (60%)',
+                'no-bg'  => __('No Background', 'ctrlfield'),
+                'light'  => __('Primary — Light (20%)', 'ctrlfield'),
+                'medium' => __('Primary — Medium (35%)', 'ctrlfield'),
+                'dark'   => __('Primary — Dark (60%)', 'ctrlfield'),
             ])
             ->default($default)
-            ->instructions('Section background tint. Uses the Primary Color from Theme Options.');
+            ->instructions(__('Section background tint. Uses the Primary Color from Theme Options.', 'ctrlfield'));
     }
 
     /**
@@ -62,12 +69,12 @@ final class FieldHelpers
     public static function titleColor(string $default = 'default'): SelectField
     {
         return Field::select('title_color')
-            ->label('Title Color')
+            ->label(__('Title Color', 'ctrlfield'))
             ->options([
-                'default'   => 'Default',
-                'primary'   => 'Primary',
-                'secondary' => 'Secondary',
-                'accent'    => 'Accent',
+                'default'   => __('Default', 'ctrlfield'),
+                'primary'   => __('Primary', 'ctrlfield'),
+                'secondary' => __('Secondary', 'ctrlfield'),
+                'accent'    => __('Accent', 'ctrlfield'),
             ])
             ->default($default);
     }
@@ -81,7 +88,7 @@ final class FieldHelpers
     public static function layout(array $options, string $default = ''): SelectField
     {
         $field = Field::select('layout')
-            ->label('Layout')
+            ->label(__('Layout', 'ctrlfield'))
             ->options($options);
 
         if ($default !== '') {
@@ -98,11 +105,12 @@ final class FieldHelpers
     {
         $options = [];
         for ($i = $min; $i <= $max; $i++) {
-            $options[(string) $i] = $i . ' columns';
+            /* translators: %d: number of columns */
+            $options[(string) $i] = sprintf(_n('%d column', '%d columns', $i, 'ctrlfield'), $i);
         }
 
         return Field::select('columns')
-            ->label('Columns')
+            ->label(__('Columns', 'ctrlfield'))
             ->options($options)
             ->default((string) $default);
     }
@@ -120,7 +128,7 @@ final class FieldHelpers
         }
 
         return Field::select('heading_level')
-            ->label('Heading Level')
+            ->label(__('Heading Level', 'ctrlfield'))
             ->options($options)
             ->default($default);
     }
@@ -131,10 +139,10 @@ final class FieldHelpers
     public static function autoplay(string $default = ''): CheckboxField
     {
         return Field::checkbox('autoplay')
-            ->label('Autoplay')
-            ->options(['yes' => 'Enable autoplay'])
+            ->label(__('Autoplay', 'ctrlfield'))
+            ->options(['yes' => __('Enable autoplay', 'ctrlfield')])
             ->default($default)
-            ->instructions('Automatically advance slides.');
+            ->instructions(__('Automatically advance slides.', 'ctrlfield'));
     }
 
     /**
