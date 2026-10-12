@@ -192,6 +192,60 @@ class ComponentRegistryTest extends TestCase
     // Private helpers
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+    // discover() options (themes with their own conventions)
+    // -------------------------------------------------------------------------
+
+    public function test_key_formats(): void
+    {
+        $this->assertSame('moduletabs', ComponentRegistry::keyFor('ModuleTabs'));
+        $this->assertSame('module_tabs', ComponentRegistry::keyFor('ModuleTabs', 'snake'));
+        $this->assertSame('module-tabs', ComponentRegistry::keyFor('ModuleTabs', 'kebab'));
+        $this->assertSame('cta_banner', ComponentRegistry::keyFor('CTABanner', 'snake'));
+        $this->assertSame('hero_section', ComponentRegistry::keyFor('hero-section', 'snake'));
+        $this->assertSame('x_ModuleTabs', ComponentRegistry::keyFor('ModuleTabs', static fn (string $f): string => 'x_' . $f));
+    }
+
+    public function test_options_shape_the_definition(): void
+    {
+        $this->makeComponent('ModuleTabs', "<?php return [];");
+        file_put_contents($this->tmpBase . '/ModuleTabs/ModuleTabs.blade.php', '');
+        file_put_contents($this->tmpBase . '/ModuleTabs/index.blade.php', '');
+        $this->makeComponent('ModuleFooter', "<?php return [];");
+
+        ComponentRegistry::discover($this->tmpBase, 'fields.php', [
+            'key'          => 'snake',
+            'templates'    => ['{folder}.blade.php', 'index.blade.php'],
+            'prefixFields' => true,
+            'skip'         => ['ModuleFooter'],
+            'meta'         => static fn (string $folder): array => ['label' => 'Tabs', 'category' => 'content', 'description' => 'Tabbed panels'],
+            'data'         => static fn (array $section): array => $section,
+        ]);
+
+        $def = ComponentRegistry::get('module_tabs');
+        $this->assertNotNull($def);
+        $this->assertFalse(ComponentRegistry::has('module_footer'));
+        $this->assertSame('ModuleTabs', $def->folder);
+        $this->assertStringEndsWith('/ModuleTabs/ModuleTabs.blade.php', (string) $def->templatePath);
+        $this->assertSame('module_tabs_', $def->fieldPrefix);
+        $this->assertSame(['Tabs', 'content', 'Tabbed panels'], [$def->label, $def->category, $def->description]);
+        $this->assertNotNull($def->data);
+    }
+
+    public function test_defaults_are_unchanged(): void
+    {
+        $this->makeComponent('HeroBanner', "<?php return [];");
+        file_put_contents($this->tmpBase . '/HeroBanner/index.php', '');
+
+        ComponentRegistry::discover($this->tmpBase);
+
+        $def = ComponentRegistry::get('herobanner');
+        $this->assertNotNull($def);
+        $this->assertStringEndsWith('/HeroBanner/index.php', (string) $def->templatePath);
+        $this->assertSame('', $def->fieldPrefix);
+        $this->assertNull($def->data);
+    }
+
     private function makeComponent(string $name, string $fieldsPhpContent): void
     {
         $dir = $this->tmpBase . '/' . $name;
