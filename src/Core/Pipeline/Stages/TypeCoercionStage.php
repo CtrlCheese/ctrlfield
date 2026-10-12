@@ -46,7 +46,9 @@ class TypeCoercionStage implements StageInterface
             FieldType::TIME     => self::coerceTime($value, $key),
             FieldType::DATETIME => self::coerceDateTime($value, $key),
             FieldType::COLOR    => self::coerceColor($value),
-            FieldType::LINK     => self::coerceLink($value),
+            FieldType::LINK     => $definition instanceof \CtrlField\Fields\Types\LinkField && $definition->isMultiple()
+                ? self::coerceLinks($value)
+                : self::coerceLink($value),
             FieldType::RANGE            => self::coerceRange($value, $definition),
             FieldType::OEMBED           => is_string($value) ? trim($value) : (string) $value,
             FieldType::FLEXIBLE_CONTENT => $definition instanceof FlexibleContentInterface
@@ -180,6 +182,29 @@ class TypeCoercionStage implements StageInterface
     }
 
     /** @return array<string, string|int> */
+    /**
+     * A multiple link field: a list of links. A single link (an older value,
+     * or a field switched to ->multiple()) becomes a list of one.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function coerceLinks(mixed $value): array
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $value   = is_array($decoded) ? $decoded : [];
+        }
+        if (! is_array($value) || $value === []) {
+            return [];
+        }
+        if (! array_is_list($value)) {
+            $value = [$value];
+        }
+
+        return array_map(self::coerceLink(...), $value);
+    }
+
+    /** @return array<string, string|int> */
     private static function coerceLink(mixed $value): array
     {
         if (is_string($value)) {
@@ -197,7 +222,7 @@ class TypeCoercionStage implements StageInterface
             'target' => (($value['target'] ?? '') === '_blank') ? '_blank' : '_self',
         ];
         // Set by the link dialog; the sanitizer checks the allowed values.
-        foreach (['type', 'object', 'style'] as $k) {
+        foreach (['type', 'object', 'style', 'icon', 'icon_position'] as $k) {
             if (isset($value[$k]) && is_scalar($value[$k]) && (string) $value[$k] !== '') {
                 $link[$k] = (string) $value[$k];
             }

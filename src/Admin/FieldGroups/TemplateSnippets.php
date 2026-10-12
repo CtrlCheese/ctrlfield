@@ -108,6 +108,11 @@ final class TemplateSnippets
                 $this->ifSet($var, fn () => $this->line('<a href="mailto:' . $this->attr($var) . '">' . $this->text($var) . '</a>'));
                 return;
             case FieldType::LINK:
+                if ($f instanceof \CtrlField\Fields\Types\LinkField && $f->isMultiple()) {
+                    // Every link as <a class="btn btn--{style}"> with its icon.
+                    $this->line($this->raw($this->call('ctrlfield_button', [$get])));
+                    return;
+                }
                 $this->assign($var, $get);
                 $this->ifSet($this->index($var, 'url'), fn () => $this->line('<a ' . $this->linkAttrs($var) . '>' . $this->text($this->index($var, 'title')) . '</a>'));
                 return;

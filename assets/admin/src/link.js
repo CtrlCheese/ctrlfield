@@ -6,7 +6,10 @@
 //   $ctrlfLink(value, (v) => path = v, config, $el)   opens the dialog
 //   $ctrlfLinkState(value)                            what the compact line shows
 
+import { openIconPicker, iconHtml } from './icons.js';
+
 const ANCHOR = /^#[A-Za-z][A-Za-z0-9_:.-]*$/;
+const PATH = /^\/(?!\/)/; // "/services/" — a page of this site, typed by hand
 
 function data() {
     return globalThis.window?.ctrlfieldData ?? {};
@@ -43,11 +46,24 @@ export function buildLink(form, picked) {
         link.object = picked.object;
     } else if (ANCHOR.test(url)) {
         link.type = 'anchor';
+    } else if (PATH.test(url)) {
+        link.type = 'internal'; // saved as a post link when the path is one (LinkSanitizer)
     } else if (url !== '') {
         link.type = 'external';
     }
     if (form.style) link.style = form.style;
+    if (form.icon) {
+        link.icon = form.icon;
+        link.icon_position = form.iconPosition === 'right' ? 'right' : 'left';
+    }
     return link;
+}
+
+/** Style of a new link at `position`: the field's default for it, else the first style (pure: tested). */
+export function defaultStyle(config, position = 0) {
+    const styles = Object.keys(config?.styles ?? {});
+    const wanted = (config?.defaultStyles ?? [])[position];
+    return styles.includes(wanted) ? wanted : (styles[0] ?? '');
 }
 
 /** "Page", "Anchor", "External" — the kind shown before the URL (pure: tested). */
@@ -55,7 +71,24 @@ export function linkKind(link, state = {}) {
     if (!link) return '';
     if (link.type === 'anchor' || ANCHOR.test(link.url ?? '')) return t('anchor', 'Anchor');
     if (link.type === 'post' || link.type === 'term') return state.typeLabel || link.object || '';
+    if (link.type === 'internal' || PATH.test(link.url ?? '')) return t('internal', 'This site');
     return t('external', 'External');
+}
+
+/**
+ * The Anchors tab: this page's anchors ("#form"), then the other pages' ones
+ * ("Services · #price"), picked as a link to that page plus the fragment so it
+ * follows permalink changes (pure: tested).
+ */
+export function anchorItems(body, query = '') {
+    const q = String(query).trim().toLowerCase();
+    const here = (body?.results ?? [])
+        .filter((a) => !q || a.anchor.toLowerCase().includes(q))
+        .map((a) => ({ kind: 'anchor', url: `#${a.anchor}`, title: a.label ?? `#${a.anchor}`, typeLabel: t('thisPage', 'This page') }));
+    const site = (body?.site ?? [])
+        .filter((a) => !q || a.anchor.toLowerCase().includes(q) || String(a.title).toLowerCase().includes(q))
+        .map((a) => ({ kind: 'post', id: a.id, object: a.object, url: a.url, title: a.title, typeLabel: `#${a.anchor}` }));
+    return [...here, ...site];
 }
 
 // ── Saved links: current title / URL, and whether the target still exists ──
@@ -96,6 +129,7 @@ function el(tag, attrs = {}, children = []) {
     const node = document.createElement(tag);
     for (const [k, v] of Object.entries(attrs)) {
         if (k === 'text') node.textContent = v;
+        else if (k === 'html') node.innerHTML = v;
         else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
         else if (v !== false && v !== null && v !== undefined) node.setAttribute(k, v === true ? '' : v);
     }
@@ -164,12 +198,8 @@ export function linkBrowser(config, { search, onChoose, onConfirm, selectedUrl =
         status.textContent = t('loading', 'Loading…');
         let items = [];
         if (active === 'anchors') {
-            const id = currentPostId();
-            const body = id ? await rest('link/anchors', { post_id: id }) : { results: [] };
-            const q = search.value.trim().toLowerCase();
-            items = (body?.results ?? [])
-                .filter((a) => !q || a.anchor.toLowerCase().includes(q))
-                .map((a) => ({ kind: 'anchor', url: `#${a.anchor}`, title: a.label ?? `#${a.anchor}`, typeLabel: t('anchor', 'Anchor') }));
+            const body = await rest('link/anchors', { post_id: currentPostId() });
+            items = anchorItems(body, search.value);
             more = false;
         } else {
             const body = await rest('link/search', { source: active, search: search.value.trim(), page });
@@ -219,14 +249,16 @@ export function linkBrowser(config, { search, onChoose, onConfirm, selectedUrl =
     };
 }
 
-function openDialog(value, set, config, opener) {
+function openDialog(value, set, config, opener, position = 0) {
     const link = value && typeof value === 'object' ? value : {};
     const styles = Object.entries(config.styles ?? {});
     const form = {
         url: link.url ?? '',
         title: link.title ?? '',
         newTab: link.target === '_blank',
-        style: link.style ?? (styles[0]?.[0] ?? ''),
+        style: link.style ?? defaultStyle(config, position),
+        icon: link.icon ?? '',
+        iconPosition: link.icon_position === 'right' ? 'right' : 'left',
     };
     let picked = link.id ? { kind: link.type, id: link.id, object: link.object, url: link.url } : null;
     let autoTitle = ''; // the title filled from a result, replaced by the next pick
@@ -241,6 +273,36 @@ function openDialog(value, set, config, opener) {
         ? el('select', { class: 'ctrlf-linkdlg__input', id: 'ctrlf-linkdlg-style' },
             styles.map(([v, label]) => el('option', { value: v, text: label, selected: v === form.style })))
         : null;
+
+    // Icon (->icons()): a chip opening the icon dialog, and the side it sits on.
+    let iconRow = null;
+    if (config.icons) {
+        const glyph = el('span', { class: 'ctrlf-icon-chip__glyph' });
+        const name = el('span', { class: 'ctrlf-icon-chip__name' });
+        const chip = el('button', { type: 'button', class: 'ctrlf-icon-chip', id: 'ctrlf-linkdlg-icon' }, [glyph, name]);
+        const clear = el('button', { type: 'button', class: 'ctrlf-icon-clear', 'aria-label': t('removeIcon', 'Remove icon'), title: t('removeIcon', 'Remove icon'),
+            html: '<svg viewBox="0 0 20 20" width="12" height="12" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>' });
+        const side = el('select', { class: 'ctrlf-linkdlg__iconside', 'aria-label': t('iconPosition', 'Icon position') }, [
+            el('option', { value: 'left', text: t('iconLeft', 'Left of the text'), selected: form.iconPosition === 'left' }),
+            el('option', { value: 'right', text: t('iconRight', 'Right of the text'), selected: form.iconPosition === 'right' }),
+        ]);
+        const paint = () => {
+            glyph.innerHTML = iconHtml(form.icon, 18);
+            if (form.icon && !glyph.innerHTML) setTimeout(paint, 150); // Lucide set still loading
+            name.textContent = form.icon ? form.icon.replace(/^(lucide:|dashicons-)/, '') : t('chooseIcon', 'Select icon');
+            chip.classList.toggle('is-empty', !form.icon);
+            clear.hidden = !form.icon;
+            side.hidden = !form.icon;
+        };
+        chip.addEventListener('click', () => openIconPicker(form.icon, (v) => { form.icon = v; paint(); }, {}, chip));
+        clear.addEventListener('click', () => { form.icon = ''; paint(); });
+        side.addEventListener('change', () => { form.iconPosition = side.value; });
+        paint();
+        iconRow = el('div', { class: 'ctrlf-linkdlg__field' }, [
+            el('label', { for: 'ctrlf-linkdlg-icon', text: t('icon', 'Icon') }),
+            el('div', { class: 'ctrlf-linkdlg__icon' }, [chip, clear, side]),
+        ]);
+    }
 
     urlInput.addEventListener('input', () => {
         form.url = urlInput.value;
@@ -283,6 +345,7 @@ function openDialog(value, set, config, opener) {
             field(t('url', 'URL'), 'ctrlf-linkdlg-url', urlInput),
             field(t('text', 'Link text'), 'ctrlf-linkdlg-title', titleInput),
             styleSelect ? field(t('style', 'Style'), 'ctrlf-linkdlg-style', styleSelect) : null,
+            iconRow,
             newTab ? el('label', { class: 'ctrlf-linkdlg__check', for: 'ctrlf-linkdlg-newtab' }, [newTab, ` ${t('newTab', 'Open link in a new tab')}`]) : null,
         ]),
         tabs.length ? el('div', { class: 'ctrlf-linkdlg__browse' }, [
@@ -310,6 +373,7 @@ function openDialog(value, set, config, opener) {
     }
 
     function onKey(e) {
+        if (document.querySelector('.ctrlf-icondlg')) return; // the icon dialog on top handles its own keys
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
         if (e.key === 'Enter' && (e.target === urlInput || e.target === titleInput)) { e.preventDefault(); submit(); }
         if (e.key === 'Tab') { // keep focus inside the dialog
@@ -329,6 +393,6 @@ function openDialog(value, set, config, opener) {
 }
 
 export function registerLink(Alpine) {
-    Alpine.magic('ctrlfLink', () => (value, set, config, opener) => openDialog(value, set, config ?? {}, opener));
+    Alpine.magic('ctrlfLink', () => (value, set, config, opener, position) => openDialog(value, set, config ?? {}, opener, position ?? 0));
     Alpine.magic('ctrlfLinkState', () => (value) => linkState(Alpine, value));
 }

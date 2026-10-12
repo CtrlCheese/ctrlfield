@@ -420,11 +420,19 @@ class MetaBoxServiceProvider extends ServiceProvider
             'results'   => __('Results', 'ctrlfield'),
             'loading'   => __('Loading…', 'ctrlfield'),
             'noResults' => __('Nothing found.', 'ctrlfield'),
-            'noAnchors' => __('No anchors on this page yet. Type #name in the URL.', 'ctrlfield'),
+            'noAnchors' => __('No anchors yet. Type #name in the URL, or /page/#name for another page.', 'ctrlfield'),
             'cancel'    => __('Cancel', 'ctrlfield'),
             'add'       => __('Add link', 'ctrlfield'),
             'update'    => __('Update', 'ctrlfield'),
             'close'     => __('Close', 'ctrlfield'),
+            'internal'     => __('This site', 'ctrlfield'),
+            'thisPage'     => __('This page', 'ctrlfield'),
+            'icon'         => __('Icon', 'ctrlfield'),
+            'chooseIcon'   => __('Select icon', 'ctrlfield'),
+            'removeIcon'   => __('Remove icon', 'ctrlfield'),
+            'iconPosition' => __('Icon position', 'ctrlfield'),
+            'iconLeft'     => __('Left of the text', 'ctrlfield'),
+            'iconRight'    => __('Right of the text', 'ctrlfield'),
         ];
     }
 

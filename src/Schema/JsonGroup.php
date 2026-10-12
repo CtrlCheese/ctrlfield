@@ -52,7 +52,7 @@ final class JsonGroup
         'color'         => ['color', ['default'], false],
         'image'         => ['image', ['previewSize', 'returnFormat'], false],
         'file'          => ['file', ['returnFormat'], false],
-        'link'          => ['link', ['postType', 'taxonomies', 'noAnchors', 'styles', 'returnFormat'], false],
+        'link'          => ['link', ['postType', 'taxonomies', 'noAnchors', 'styles', 'defaultStyles', 'icons', 'multiple', 'maxItems', 'returnFormat'], false],
         'oembed'        => ['oembed', [], false],
         'page_link'     => ['pageLink', ['postType', 'multiple'], false],
         'post_object'   => ['postObject', ['postType', 'multiple', 'returnFormat'], false],
@@ -126,6 +126,8 @@ final class JsonGroup
         'layout'          => ['row', 'table'],
         'placement'       => ['left'],
         'accordionStyle'  => ['horizontal', 'side'],
+        'defaultStyles'   => 'slugs',
+        'icons'           => 'bool',
         'fields'          => 'fields',
         'layouts'         => 'layouts',
     ];
@@ -379,7 +381,8 @@ final class JsonGroup
     /** @return list<string> */
     private static function slugs(mixed $v): array
     {
-        $list = is_string($v) ? [$v] : (is_array($v) ? $v : []);
+        // "primary, outline" from a text input is a list too.
+        $list = is_string($v) ? explode(',', $v) : (is_array($v) ? $v : []);
 
         return array_values(array_unique(array_filter(array_map(
             static fn ($s) => is_string($s) ? sanitize_key($s) : '',
@@ -586,6 +589,7 @@ final class JsonGroup
             $v = $f[$setting];
 
             switch ($setting) {
+                case 'icons':
                 case 'required':
                 case 'globalBlocks':
                 case 'showInRest':

@@ -760,6 +760,41 @@ body.ctrlf-is-sorting * {
 
 .ctrlf-linkfield__action--remove { color: #b32d2e; }
 
+/* ->multiple(): one line per link, dragged by the handle. */
+.ctrlf-linklist {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+
+    > .ctrlf-linkfield__set { padding-left: 0; }
+    > .ctrlf-linkfield__set > .ctrlf-row__handle { align-self: stretch; }
+}
+
+.ctrlf-linkfield__foot { display: flex; align-items: center; gap: 10px; }
+
+.ctrlf-linkfield__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    background: var(--ctrlf-surface);
+    color: var(--ctrlf-ink);
+}
+
+/* Icon row of the link dialog. */
+.ctrlf-linkdlg__icon {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+
+    .ctrlf-linkdlg__iconside { margin-left: 4px; }
+    [hidden] { display: none !important; }
+}
+
 .ctrlf-linkdlg-backdrop {
     position: fixed;
     inset: 0;
@@ -991,6 +1026,8 @@ body.ctrlf-is-sorting * {
 
     &:hover, &:focus-visible { background: #fcf0f1; color: #d63638; }
 }
+
+.ctrlf-linkdlg-backdrop:has(> .ctrlf-icondlg) { z-index: 100060; } /* opened from the link dialog: on top */
 
 .ctrlf-icondlg {
     display: flex;

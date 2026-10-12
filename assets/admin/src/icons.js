@@ -126,7 +126,7 @@ function el(tag, attrs = {}, children = []) {
     return node;
 }
 
-function openDialog(value, set, config, opener) {
+export function openIconPicker(value, set, config, opener) {
     const libraries = normalizeLibraries(config.libraries);
     const labels = { lucide: 'Lucide', dashicons: t('wordpress', 'WordPress') };
     const tabs = [
@@ -264,7 +264,7 @@ function openDialog(value, set, config, opener) {
 
 export function registerIcons(Alpine) {
     ready = Alpine.reactive({ lucide: false });
-    Alpine.magic('ctrlfIconPicker', () => (value, set, config, opener) => openDialog(value, set, config ?? {}, opener));
+    Alpine.magic('ctrlfIconPicker', () => (value, set, config, opener) => openIconPicker(value, set, config ?? {}, opener));
     // Reads ready.lucide so a Lucide preview re-renders once the set arrives.
     Alpine.magic('ctrlfIcon', () => (value, size) => (ready.lucide, iconHtml(value, size)));
 }

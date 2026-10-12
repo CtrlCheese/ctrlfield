@@ -26,6 +26,12 @@ class RestServiceProvider extends ServiceProvider
         }
 
         add_action('rest_api_init', [$this, 'registerRoutes']);
+
+        // The Link dialog's list of anchors across the site is cached; any saved
+        // or deleted post may add or remove anchors.
+        foreach (['save_post', 'deleted_post', 'ctrlfield/after_save'] as $hook) {
+            add_action($hook, [LinkController::class, 'forgetSiteAnchors']);
+        }
     }
 
     public function registerRoutes(): void

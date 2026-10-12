@@ -4,19 +4,68 @@ declare(strict_types=1);
 
 namespace CtrlField\Fields\Sanitizers;
 
+use CtrlField\Data\IconLibrary;
 use CtrlField\Fields\Contracts\SanitizerInterface;
+use CtrlField\Fields\FieldDefinition;
+use CtrlField\Fields\Types\LinkField;
 
 final class LinkSanitizer implements SanitizerInterface
 {
-    /** Link kinds the dialog produces. */
-    public const TYPES = ['post', 'term', 'anchor', 'external'];
+    /** Link kinds the dialog produces ('internal': a path on this site that is no post). */
+    public const TYPES = ['post', 'term', 'anchor', 'internal', 'external'];
 
-    /** @param list<string> $styles Allowed button styles; empty = no style is stored. */
-    public function __construct(private readonly array $styles = []) {}
+    /**
+     * @param list<string> $styles   Allowed button styles; empty = no style is stored.
+     * @param bool         $icons    Whether icon / icon_position are kept.
+     * @param int|null     $multiple Most links of a multiple field; null = a single link.
+     */
+    public function __construct(
+        private readonly array $styles = [],
+        private readonly bool $icons = false,
+        private readonly ?int $multiple = null,
+    ) {}
+
+    public static function forField(?FieldDefinition $field): self
+    {
+        if (! $field instanceof LinkField) {
+            return new self();
+        }
+
+        return new self(
+            array_keys($field->getStyles()),
+            $field->hasIcons(),
+            $field->isMultiple() ? $field->getMax() : null,
+        );
+    }
+
+    /**
+     * The field's value: one link, or for a multiple field the list of links
+     * with a URL, at most ->max() of them.
+     *
+     * @return array<string, string|int>|list<array<string, string|int>>|null
+     */
+    public function sanitizeValue(mixed $value): ?array
+    {
+        if ($this->multiple === null) {
+            return $this->sanitize($value);
+        }
+        if (! is_array($value)) {
+            return [];
+        }
+        $links = [];
+        foreach (array_is_list($value) ? $value : [$value] as $item) {
+            $link = $this->sanitize($item);
+            if ($link !== null && $link['url'] !== '') {
+                $links[] = $link;
+            }
+        }
+
+        return array_slice($links, 0, $this->multiple);
+    }
 
     /**
      * Returns a sanitized ['url', 'title', 'target'] array, plus type / id /
-     * object / style when the link has them (older links stay unchanged).
+     * object / style / icon when the link has them (older links stay unchanged).
      * Returns null when the input is not an array.
      *
      * @return array<string, string|int>|null
@@ -47,11 +96,62 @@ final class LinkSanitizer implements SanitizerInterface
             if ($object !== '' && $object !== null) {
                 $link['object'] = $object;
             }
+        } elseif ($url !== '' && in_array($type, ['internal', 'external'], true)) {
+            // Typed in the dialog (older links without a type stay as they are).
+            $link = self::matchSiteUrl($link);
         }
 
         $style = (string) ($value['style'] ?? '');
         if ($style !== '' && in_array($style, $this->styles, true)) {
             $link['style'] = $style;
+        }
+
+        if ($this->icons && IconLibrary::isValid($value['icon'] ?? null)) {
+            $link['icon']          = trim((string) $value['icon']);
+            $link['icon_position'] = ($value['icon_position'] ?? '') === 'right' ? 'right' : 'left';
+        }
+
+        return $link;
+    }
+
+    /**
+     * A URL typed by hand that points into this site ("/services/",
+     * "https://this-site/services/#price") becomes a link to that post, so it
+     * follows permalink changes like a picked one. Other paths on the site are
+     * 'internal'; everything else is 'external'.
+     *
+     * @param  array<string, string|int> $link
+     * @return array<string, string|int>
+     */
+    private static function matchSiteUrl(array $link): array
+    {
+        $url = (string) $link['url'];
+        if (str_starts_with($url, '#')) {
+            $link['type'] = 'anchor';
+            return $link;
+        }
+        if (! function_exists('home_url')) {
+            return $link;
+        }
+
+        $home     = (string) home_url('/');
+        $homeHost = (string) parse_url($home, PHP_URL_HOST);
+        $host     = parse_url($url, PHP_URL_HOST);
+        $relative = str_starts_with($url, '/') && ! str_starts_with($url, '//');
+
+        if (! $relative && (! is_string($host) || strcasecmp($host, $homeHost) !== 0)) {
+            $link['type'] = 'external';
+            return $link;
+        }
+
+        $absolute = $relative ? rtrim($home, '/') . $url : $url;
+        $postId   = function_exists('url_to_postid') ? url_to_postid($absolute) : 0;
+        if ($postId > 0) {
+            $link['type']   = 'post';
+            $link['id']     = $postId;
+            $link['object'] = (string) get_post_type($postId);
+        } else {
+            $link['type'] = 'internal';
         }
 
         return $link;

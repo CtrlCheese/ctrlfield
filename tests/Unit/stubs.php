@@ -438,3 +438,18 @@ if (! function_exists('wp_delete_file')) {
         @unlink($file);
     }
 }
+
+if (! function_exists('home_url')) {
+    function home_url(string $path = ''): string
+    {
+        return 'https://example.test/' . ltrim($path, '/');
+    }
+}
+
+if (! function_exists('url_to_postid')) {
+    // Known URLs in $GLOBALS['_wp_url_to_postid'] (url without fragment => id).
+    function url_to_postid(string $url): int
+    {
+        return (int) ($GLOBALS['_wp_url_to_postid'][strtok($url, '#')] ?? 0);
+    }
+}

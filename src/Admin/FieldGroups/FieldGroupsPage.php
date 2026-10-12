@@ -456,6 +456,8 @@ final class FieldGroupsPage
         $row('taxonomy', __('Taxonomy', 'ctrlfield'), $select('taxonomy', $taxonomies));
         $row('taxonomies', __('Taxonomies', 'ctrlfield'), $select('taxonomies', $taxonomies, true), __('Terms of these taxonomies can be linked (one tab each).', 'ctrlfield'));
         $row('noAnchors', __('Anchors', 'ctrlfield'), $check('noAnchors', __('Hide the "Anchors" tab (links to #ids on the page)', 'ctrlfield')));
+        $row('defaultStyles', __('Default styles', 'ctrlfield'), $text('defaultStyles'), __('Style of a new link by position, comma separated: "primary, outline" — the 1st button primary, the 2nd outline.', 'ctrlfield'));
+        $row('icons', __('Icons', 'ctrlfield'), $check('icons', __('Offer an icon (and its side) per link', 'ctrlfield')), __('Off: the site default (a theme can turn it on for every link field).', 'ctrlfield'));
         $row('styles', __('Button styles', 'ctrlfield'), '<textarea class="large-text code" rows="3" x-model="field._stylesText"></textarea>', __('One per line, "value : Label". Empty: no style choice.', 'ctrlfield'));
         $sizes = [];
         foreach (array_merge(get_intermediate_image_sizes(), ['full']) as $size) {
