@@ -110,22 +110,20 @@ class BootManager
                     continue;
                 }
 
-                // A wrong path in wp-config must not take the whole site down:
-                // skip it and tell admins instead.
+                // No schema folder is a normal setup (field groups made in the
+                // admin, JSON or the theme): skip it quietly, note it in debug.log.
+                if (! is_dir($path)) {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('CtrlField: schema directory not found, skipped: ' . $path);
+                    }
+                    continue;
+                }
+
                 try {
                     SchemaLoader::loadDirectory($path);
                 } catch (SchemaDirectoryNotFoundException $e) {
+                    // Removed between the check and the load: same as missing.
                     error_log($e->getMessage());
-                    add_action('admin_notices', static function () use ($path): void {
-                        if (! current_user_can('manage_options')) {
-                            return;
-                        }
-                        printf(
-                            '<div class="notice notice-error"><p>%s <code>%s</code></p></div>',
-                            esc_html__('CtrlField: schema directory not found, its field groups were not loaded:', 'ctrlfield'),
-                            esc_html($path)
-                        );
-                    });
                 }
             }
         }, 5);
