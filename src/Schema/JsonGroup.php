@@ -40,16 +40,16 @@ final class JsonGroup
         'url'           => ['url', ['placeholder', 'default', 'prepend', 'append', 'maxLength'], false],
         'password'      => ['password', ['placeholder', 'maxLength'], false],
         'wysiwyg'       => ['wysiwyg', ['default', 'toolbar', 'noMedia'], false],
-        'range'         => ['range', ['min', 'max', 'step', 'default'], false],
-        'select'        => ['select', ['options', 'default', 'returnFormat'], false],
-        'radio'         => ['radio', ['options', 'default', 'returnFormat'], false],
-        'checkbox'      => ['checkbox', ['options', 'returnFormat'], false],
+        'range'         => ['range', ['min', 'max', 'step', 'default', 'append'], false],
+        'select'        => ['select', ['options', 'default', 'searchable', 'returnFormat'], false],
+        'radio'         => ['radio', ['options', 'default', 'horizontal', 'cards', 'returnFormat'], false],
+        'checkbox'      => ['checkbox', ['options', 'horizontal', 'cards', 'toggleAll', 'returnFormat'], false],
         'button_group'  => ['buttonGroup', ['options', 'allowNull', 'default', 'returnFormat'], false],
         'true_false'    => ['trueFalse', ['message'], false],
         'date'          => ['date', ['format', 'returnFormat'], false],
         'datetime'      => ['datetime', ['format', 'returnFormat'], false],
         'time'          => ['time', ['returnFormat'], false],
-        'color'         => ['color', ['default'], false],
+        'color'         => ['color', ['default', 'themePalette', 'enableAlpha'], false],
         'image'         => ['image', ['previewSize', 'returnFormat'], false],
         'file'          => ['file', ['returnFormat'], false],
         'link'          => ['link', ['postType', 'taxonomies', 'noAnchors', 'styles', 'defaultStyles', 'icons', 'multiple', 'maxItems', 'returnFormat'], false],
@@ -70,7 +70,7 @@ final class JsonGroup
         'separator'     => ['separator', [], false],
         'repeater'      => ['repeater', ['layout', 'fields', 'minItems', 'maxItems', 'buttonLabel'], true],
         'clone'         => ['clone', ['cloneFrom', 'clonePrefix', 'cloneDisplay'], true],
-        'gallery'       => ['gallery', ['minItems', 'maxItems', 'returnFormat'], true],
+        'gallery'       => ['gallery', ['minItems', 'maxItems', 'previewSize', 'returnFormat'], true],
         // Layouts are kept and registered, but edited in PHP (no editor UI yet).
         'flexible_content' => ['flexibleContent', ['layouts', 'globalBlocks', 'buttonLabel'], true],
     ];
@@ -128,6 +128,12 @@ final class JsonGroup
         'accordionStyle'  => ['horizontal', 'side'],
         'defaultStyles'   => 'slugs',
         'prepend'         => 'string',
+        'horizontal'      => 'bool',
+        'themePalette'    => 'bool',
+        'enableAlpha'     => 'bool',
+        'cards'           => 'bool',
+        'toggleAll'       => 'bool',
+        'searchable'      => 'bool',
         'append'          => 'string',
         'maxLength'       => 'count',
         'rows'            => 'count',
@@ -593,6 +599,14 @@ final class JsonGroup
             $v = $f[$setting];
 
             switch ($setting) {
+                case 'horizontal':
+                    $calls[] = ['layout', ['horizontal']];
+                    break;
+                case 'themePalette':
+                case 'enableAlpha':
+                case 'cards':
+                case 'toggleAll':
+                case 'searchable':
                 case 'icons':
                 case 'required':
                 case 'globalBlocks':

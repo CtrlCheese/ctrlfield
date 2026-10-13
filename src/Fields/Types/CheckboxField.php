@@ -5,10 +5,27 @@ declare(strict_types=1);
 namespace CtrlField\Fields\Types;
 
 use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Concerns\HasChoiceLayout;
 use CtrlField\Fields\FieldDefinition;
 
 final class CheckboxField extends FieldDefinition
 {
+    use HasChoiceLayout;
+
+    private bool $toggleAll = false;
+
+    /** A "Select all" choice above the options. */
+    public function toggleAll(bool $toggleAll = true): static
+    {
+        $this->toggleAll = $toggleAll;
+        return $this;
+    }
+
+    public function hasToggleAll(): bool
+    {
+        return $this->toggleAll;
+    }
+
     /** @var array<string, string> */
     private array $options = [];
 
@@ -33,6 +50,6 @@ final class CheckboxField extends FieldDefinition
     /** @return array<string, mixed> */
     public function getDefinition(): array
     {
-        return array_merge(parent::getDefinition(), ['options' => $this->options]);
+        return array_merge(parent::getDefinition(), ['options' => $this->options], $this->choiceDefinition(), ['toggle_all' => $this->toggleAll]);
     }
 }

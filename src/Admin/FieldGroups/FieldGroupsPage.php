@@ -484,6 +484,12 @@ final class FieldGroupsPage
         $row('accordionStyle', __('Accordion style', 'ctrlfield'), $select('accordionStyle', [
             'horizontal' => __('Horizontal — panels side by side', 'ctrlfield'), 'side' => __('Side — titles on the left', 'ctrlfield'),
         ]), __('Empty: Stacked. Consecutive accordions follow the first one; horizontal and side keep one open at a time.', 'ctrlfield'));
+        $row('themePalette', __('Palette', 'ctrlfield'), $check('themePalette', __("Offer the theme's colours (theme.json)", 'ctrlfield')));
+        $row('enableAlpha', __('Transparency', 'ctrlfield'), $check('enableAlpha', __('Allow transparent colours', 'ctrlfield')));
+        $row('horizontal', __('Direction', 'ctrlfield'), $check('horizontal', __('Side by side (instead of one per line)', 'ctrlfield')));
+        $row('cards', __('Cards', 'ctrlfield'), $check('cards', __('A framed box per choice', 'ctrlfield')), __('Good for a few short options.', 'ctrlfield'));
+        $row('toggleAll', __('Select all', 'ctrlfield'), $check('toggleAll', __('Show a "Select all" choice', 'ctrlfield')));
+        $row('searchable', __('Search', 'ctrlfield'), $check('searchable', __('Always show the search box', 'ctrlfield')), __('Lists with 8 or more options get it anyway.', 'ctrlfield'));
         $row('appearance', __('Appearance', 'ctrlfield'), $select('appearance', [
             'select' => __('Dropdown', 'ctrlfield'), 'checkbox' => __('Checkboxes', 'ctrlfield'), 'radio' => __('Radio buttons', 'ctrlfield'),
         ]));

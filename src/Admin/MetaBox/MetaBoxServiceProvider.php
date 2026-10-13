@@ -114,6 +114,13 @@ class MetaBoxServiceProvider extends ServiceProvider
             'saveError'   => $this->takeSaveError(),
             'i18n'        => ['link' => self::linkStrings(), 'icon' => self::iconStrings(), 'picker' => self::pickerStrings()],
             'icons'       => \CtrlField\Data\IconLibrary::clientConfig(),
+            // The calendar (dates.js): the site's language, first day of the week and formats.
+            'dates'       => [
+                'locale'     => str_replace('_', '-', get_user_locale()),
+                'firstDay'   => (int) get_option('start_of_week', 1),
+                'dateFormat' => (string) get_option('date_format', 'Y-m-d'),
+                'timeFormat' => (string) get_option('time_format', 'H:i'),
+            ],
             'wysiwyg'     => [
                 'template' => WysiwygEditorSettings::TEMPLATE_ID,
                 'toolbars' => WysiwygEditorSettings::toolbars(),

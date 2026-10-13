@@ -171,6 +171,16 @@ final class AcfConverter
             $width        = max(10.0, $width); // narrower than 10 % is unusable in the editor
             $out['width'] = fmod($width, 1.0) === 0.0 ? (int) $width : $width;
         }
+        // Choices: ACF's horizontal layout, "Toggle all", and the select's UI (search).
+        if (in_array($out['type'], ['checkbox', 'radio'], true) && ($f['layout'] ?? '') === 'horizontal') {
+            $out['horizontal'] = true;
+        }
+        if ($out['type'] === 'checkbox' && ! empty($f['toggle'])) {
+            $out['toggleAll'] = true;
+        }
+        if ($out['type'] === 'select' && ! empty($f['ui'])) {
+            $out['searchable'] = true;
+        }
         // Text inputs: prepend / append / maxlength / rows; number min / max / step.
         foreach (['prepend' => 'prepend', 'append' => 'append'] as $acfKey => $ours) {
             if (is_string($f[$acfKey] ?? null) && $f[$acfKey] !== '' && in_array($out['type'], ['text', 'number', 'email', 'url'], true)) {

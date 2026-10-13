@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace CtrlField\Fields\Types;
 
 use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Concerns\HasTextInputOptions;
 use CtrlField\Fields\FieldDefinition;
 
 final class RangeField extends FieldDefinition
 {
+    use HasTextInputOptions; // ->append('%') / ->prepend(): the unit beside the number
+
     private float $min       = 0.0;
     private float $max       = 100.0;
     private float $step      = 1.0;
@@ -67,7 +70,7 @@ final class RangeField extends FieldDefinition
     /** @return array<string, mixed> */
     public function getDefinition(): array
     {
-        return array_merge(parent::getDefinition(), [
+        return array_merge(parent::getDefinition(), $this->textInputDefinition(), [
             'min'        => $this->min,
             'max'        => $this->max,
             'step'       => $this->step,

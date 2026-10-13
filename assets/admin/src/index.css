@@ -189,6 +189,37 @@
         cursor: pointer;
     }
 
+    /* ->layout('horizontal'): side by side, wrapping. */
+    .ctrlf-choices--row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+    }
+
+    /* ->cards(): a framed box per choice, violet when chosen. */
+    .ctrlf-choices--cards {
+        gap: 8px;
+
+        > label {
+            padding: 9px 12px;
+            border: 1px solid var(--ctrlf-line);
+            border-radius: 4px;
+            background: #fff;
+            transition: border-color .1s, background .1s;
+
+            &:hover { border-color: var(--ctrlf-accent); }
+            &:has(input:checked) { border-color: var(--ctrlf-accent-strong); background: var(--ctrlf-accent-soft); box-shadow: inset 0 0 0 1px var(--ctrlf-accent-strong); }
+            &:has(input:focus-visible) { outline: 2px solid var(--ctrlf-accent); outline-offset: 1px; }
+        }
+    }
+
+    .ctrlf-checkbox-label--all {
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--ctrlf-line-soft);
+        font-weight: 600;
+    }
+
     .ctrlf-checkbox,
     .ctrlf-radio {
         width: 16px;
@@ -1220,6 +1251,215 @@ body.ctrlf-is-sorting * {
 .ctrlf-pickdlg__count { color: var(--ctrlf-muted); font-size: 12px; }
 .ctrlf-pickdlg__actions { display: flex; gap: 8px; }
 
+/* ── Date / date-time / time: the plugin's calendar (dates.js) ──────── */
+
+.ctrlf-date { position: relative; width: 100%; max-width: 320px; }
+.ctrlf-date__field { display: flex; align-items: center; gap: 6px; }
+
+.ctrlfield-container .ctrlf-date__button,
+.ctrlf-date__button {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    max-width: none;
+    text-align: left;
+    cursor: pointer;
+
+    svg { flex: none; color: var(--ctrlf-accent-strong); }
+    &.is-empty > span { color: var(--ctrlf-muted); }
+}
+
+.ctrlf-cal {
+    position: absolute;
+    z-index: 60;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 280px;
+    padding: 10px;
+    border: 1px solid var(--ctrlf-line);
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+}
+
+.ctrlf-cal--time { width: auto; }
+
+.ctrlf-cal__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.ctrlf-cal__title { font-size: 13px; text-transform: capitalize; }
+
+.ctrlf-cal__nav {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--ctrlf-ink);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover, &:focus-visible { background: var(--ctrlf-accent-soft); color: var(--ctrlf-accent-strong); }
+}
+
+.ctrlf-cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+
+.ctrlf-cal__weekday { padding: 4px 0; color: var(--ctrlf-muted); font-size: 11px; text-align: center; text-transform: capitalize; }
+
+.ctrlf-cal__day {
+    aspect-ratio: 1;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--ctrlf-ink);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+
+    &:hover:not(:disabled) { background: var(--ctrlf-accent-soft); }
+    &.is-out { color: #a7aaad; }
+    &.is-today { box-shadow: inset 0 0 0 1px var(--ctrlf-accent-strong); }
+    &.is-selected { background: var(--ctrlf-accent-strong); color: #fff; font-weight: 600; }
+    &:focus-visible { outline: 2px solid var(--ctrlf-accent); outline-offset: 1px; }
+    &:disabled { opacity: .3; cursor: not-allowed; }
+}
+
+.ctrlf-cal__time {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding-top: 8px;
+
+    .ctrlf-cal--datetime & { margin-top: 8px; border-top: 1px solid var(--ctrlf-line-soft); }
+    select { width: auto; min-width: 64px; }
+}
+
+.ctrlf-cal__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--ctrlf-line-soft); }
+
+/* ── Range: violet slider with its ends, the value as a number + unit ── */
+
+.ctrlf-range {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.ctrlf-range__track { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; padding-top: 9px; }
+
+.ctrlf-range__slider {
+    width: 100%;
+    height: 6px;
+    margin: 0;
+    border-radius: 3px;
+    background: linear-gradient(var(--ctrlf-accent-strong), var(--ctrlf-accent-strong)) 0 0 / var(--ctrlf-fill, 0%) 100% no-repeat, var(--ctrlf-line);
+    appearance: none;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb { width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; background: var(--ctrlf-accent-strong); box-shadow: 0 1px 3px rgba(0, 0, 0, .3); appearance: none; }
+    &::-moz-range-thumb { width: 14px; height: 14px; border: 2px solid #fff; border-radius: 50%; background: var(--ctrlf-accent-strong); box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
+    &:focus-visible { outline: 2px solid var(--ctrlf-accent); outline-offset: 4px; }
+}
+
+.ctrlf-range__ends { display: flex; justify-content: space-between; color: var(--ctrlf-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+.ctrlf-range__value { flex: none; width: auto; }
+.ctrlfield-container .ctrlf-range__value .ctrlf-input,
+.ctrlf-range__value .ctrlf-input { width: 84px; }
+
+/* ── Color: swatch + hex + clear, opacity, palette (color.js) ────────── */
+
+.ctrlf-color { display: flex; flex-direction: column; gap: 8px; }
+.ctrlf-color__row { display: flex; align-items: center; gap: 8px; }
+
+.ctrlf-color__swatch {
+    --ctrlf-checker: repeating-conic-gradient(#dcdcde 0 25%, #fff 0 50%) 0 0 / 10px 10px;
+    position: relative;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    overflow: hidden;
+    border: 1px solid var(--ctrlf-line);
+    border-radius: 4px;
+    background: linear-gradient(var(--ctrlf-swatch, transparent), var(--ctrlf-swatch, transparent)), var(--ctrlf-checker);
+    cursor: pointer;
+
+    &:hover, &:focus-within { border-color: var(--ctrlf-accent-strong); }
+    &.is-empty::after { content: ""; position: absolute; inset: 50% -4px auto; height: 2px; background: #d63638; transform: rotate(-45deg); }
+}
+
+.ctrlf-color__native { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+
+.ctrlfield-container .ctrlf-color__hex,
+.ctrlf-color__hex { width: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+.ctrlf-color__alpha {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 320px;
+    color: var(--ctrlf-muted);
+    font-size: 12px;
+
+    input { flex: 1; accent-color: var(--ctrlf-accent-strong); }
+    output { min-width: 3em; text-align: right; font-variant-numeric: tabular-nums; }
+}
+
+.ctrlf-color__palette { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.ctrlf-color__preset {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 50%;
+    background: var(--ctrlf-swatch);
+    cursor: pointer;
+
+    &:hover { transform: scale(1.1); }
+    &.is-selected { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ctrlf-accent-strong); }
+}
+
+/* ── Select with many options (select.js): button + searchable dropdown ── */
+
+.ctrlf-select {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+}
+
+.ctrlfield-container .ctrlf-select__button,
+.ctrlf-select__button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    max-width: none;
+    text-align: left;
+    cursor: pointer;
+
+    &.is-empty > span { color: var(--ctrlf-muted); }
+}
+
+.ctrlf-select__chevron { flex: none; width: 14px; height: 14px; color: var(--ctrlf-muted); }
+
+.ctrlf-select__dropdown {
+    padding: 6px 0 4px;
+
+    > ul { max-height: 260px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+}
+
+.ctrlfield-container .ctrlf-select__search,
+.ctrlf-select__search { display: block; width: calc(100% - 12px); max-width: none; margin: 0 6px 6px; }
+
+.ctrlf-picker__option.is-selected { box-shadow: inset 3px 0 0 var(--ctrlf-accent-strong); font-weight: 600; }
+
 /* ── Icon field: chip + dialog (icons.js) ───────────────────────────── */
 
 .ctrlf-icon-field {
@@ -1428,13 +1668,22 @@ body.ctrlf-is-sorting * {
     &:not(:has(li)) { display: none; }
 }
 
+.ctrlf-gallery { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; --ctrlf-tile: 88px; }
+.ctrlf-gallery--medium { --ctrlf-tile: 150px; }
+.ctrlf-gallery--large { --ctrlf-tile: 220px; }
+.ctrlf-gallery__items { margin: 0; }
+
 .ctrlf-gallery-item {
     position: relative;
-    width: 88px;
-    height: 88px;
+    width: var(--ctrlf-tile);
+    height: var(--ctrlf-tile);
     margin: 0;
+    overflow: hidden;
     border: 1px solid var(--ctrlf-line);
+    border-radius: 4px;
     background: #fff;
+
+    &:hover, &:focus-within { border-color: var(--ctrlf-accent-strong); }
 }
 
 .ctrlf-gallery-item__handle {
@@ -1444,34 +1693,39 @@ body.ctrlf-is-sorting * {
     padding: 0;
     border: 0;
     background: none;
+    cursor: grab;
 
     img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
 
     &:focus-visible { outline: 2px solid var(--ctrlf-accent); outline-offset: -2px; }
 }
 
-.ctrlf-gallery-item__remove {
+/* × (top right, same as the Image field) and pencil (top left): on hover. */
+.ctrlf-gallery-item__remove.ctrlf-image-remove { top: 4px; right: 4px; width: 22px; height: 22px; }
+
+.ctrlf-gallery-item__edit {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 4px;
+    left: 4px;
+    display: grid;
+    place-items: center;
     width: 22px;
     height: 22px;
+    padding: 0;
     border: 0;
-    border-radius: 0;
-    background: var(--ctrlf-ink);
-    color: #fff;
-    font-size: 14px;
-    line-height: 1;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .92);
+    color: var(--ctrlf-ink);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
     cursor: pointer;
-    opacity: 0;
 
-    &:hover { background: var(--ctrlf-danger); }
-    &:focus-visible { opacity: 1; }
+    &:hover, &:focus-visible { background: #fff; color: var(--ctrlf-accent-strong); }
 }
 
-.ctrlf-gallery-item:hover .ctrlf-gallery-item__remove { opacity: 1; }
+.ctrlf-gallery-item :is(.ctrlf-gallery-item__remove, .ctrlf-gallery-item__edit) { opacity: 0; transition: opacity .1s; }
+.ctrlf-gallery-item:is(:hover, :focus-within) :is(.ctrlf-gallery-item__remove, .ctrlf-gallery-item__edit) { opacity: 1; }
 
-@media (hover: none) { .ctrlf-gallery-item__remove { opacity: 1; } }
+@media (hover: none) { .ctrlf-gallery-item :is(.ctrlf-gallery-item__remove, .ctrlf-gallery-item__edit) { opacity: 1; } }
 
 /* ── Field group editor: one card per field ──────────────────────────── */
 

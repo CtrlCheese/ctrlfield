@@ -11,21 +11,17 @@ final class DateRenderer extends AbstractRenderer
 {
     public function render(FieldDefinition $field, string $statePath): string
     {
-        $min      = $field instanceof DateField ? $field->getMinDate() : null;
-        $max      = $field instanceof DateField ? $field->getMaxDate() : null;
-        $readOnly = $field->isReadOnly();
+        $format = $field instanceof DateField ? $field->getFormat() : '';
 
-        $minAttr = $min !== null ? sprintf(' min="%s"', $this->esc($min)) : '';
-        $maxAttr = $max !== null ? sprintf(' max="%s"', $this->esc($max)) : '';
-        $roAttr  = $readOnly ? ' disabled' : '';
-
-        return sprintf(
-            '<input type="date" id="%s" x-model="%s" class="ctrlf-input ctrlf-input--date"%s%s%s>',
-            $this->esc($this->inputId($field)),
-            $this->esc($statePath),
-            $minAttr,
-            $maxAttr,
-            $roAttr,
+        return DatePicker::render(
+            $this->inputId($field),
+            $statePath,
+            'date',
+            $format === 'Y-m-d' ? '' : $format, // the default: shown in the site's format
+            $field instanceof DateField ? $field->getMinDate() : null,
+            $field instanceof DateField ? $field->getMaxDate() : null,
+            1,
+            $field->isReadOnly(),
         );
     }
 }

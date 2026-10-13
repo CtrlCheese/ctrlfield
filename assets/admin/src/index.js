@@ -11,6 +11,9 @@ import { rowSummary, newInstanceId, cloneRow, canAdd, canAddLayout } from './row
 import { registerLink } from './link.js';
 import { registerIcons } from './icons.js';
 import { registerPicker } from './picker.js';
+import { registerSelect } from './select.js';
+import { registerColor } from './color.js';
+import { registerDates } from './dates.js';
 
 /** What the File field shows of a wp.media attachment (pure: tested). */
 export function fileInfoFrom(a) {
@@ -88,6 +91,9 @@ registerUiState(Alpine);
 registerLink(Alpine);
 registerIcons(Alpine);
 registerPicker(Alpine);
+registerSelect(Alpine);
+registerColor(Alpine);
+registerDates(Alpine);
 registerWpLinkTabs();
 // A global block of the library by id (FlexibleContentRenderer prints window.ctrlfieldGlobalBlocks).
 Alpine.magic('ctrlfBlock', () => (id) => window.ctrlfieldGlobalBlocks?.blocks?.[id] ?? null);
@@ -495,8 +501,26 @@ document.addEventListener('alpine:init', () => {
                 const picked = frame.state().get('selection').toJSON();
                 picked.forEach((a) => {
                     this.attachmentUrls[a.id] = a.sizes?.thumbnail?.url ?? a.url ?? '';
+                    for (const [size, data] of Object.entries(a.sizes ?? {})) {
+                        if (data?.url) this.attachmentUrls[`${a.id}:${size}`] = data.url;
+                    }
                 });
                 done(mergeGallery(current, picked.map((a) => a.id), max));
+            });
+            frame.open();
+        },
+
+        /**
+         * Gallery: opens the media library on one image, so its alt text,
+         * caption and title can be edited there (WordPress saves them).
+         */
+        editAttachment(id) {
+            if (typeof wp === 'undefined' || !wp.media) return;
+            const frame = wp.media({ title: 'Edit image', button: { text: 'Done' }, multiple: false, library: { type: 'image' } });
+            frame.on('open', () => {
+                const attachment = wp.media.attachment(id);
+                attachment.fetch();
+                frame.state().get('selection').reset([attachment]);
             });
             frame.open();
         },
