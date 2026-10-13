@@ -1251,6 +1251,85 @@ body.ctrlf-is-sorting * {
 .ctrlf-pickdlg__count { color: var(--ctrlf-muted); font-size: 12px; }
 .ctrlf-pickdlg__actions { display: flex; gap: 8px; }
 
+/* ── Message: a note with an icon, coloured by type ─────────────────── */
+
+.ctrlf-message {
+    --ctrlf-msg: var(--ctrlf-accent-strong);
+    --ctrlf-msg-bg: var(--ctrlf-accent-soft);
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid color-mix(in srgb, var(--ctrlf-msg) 35%, transparent);
+    border-left: 4px solid var(--ctrlf-msg);
+    border-radius: 4px;
+    background: var(--ctrlf-msg-bg);
+    color: var(--ctrlf-ink);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ctrlf-message--success { --ctrlf-msg: #00a32a; --ctrlf-msg-bg: #edfaef; }
+.ctrlf-message--warning { --ctrlf-msg: #dba617; --ctrlf-msg-bg: #fcf9e8; }
+.ctrlf-message--error   { --ctrlf-msg: #d63638; --ctrlf-msg-bg: #fcf0f1; }
+
+.ctrlf-message__icon { flex: none; margin-top: 1px; color: var(--ctrlf-msg); }
+.ctrlf-message__body { min-width: 0; > :first-child { margin-top: 0; } > :last-child { margin-bottom: 0; } }
+
+/* ── Map: search, results, address, preview, coordinates ─────────────── */
+
+.ctrlf-map { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 640px; }
+.ctrlf-map__search { display: flex; gap: 6px; .ctrlf-input { flex: 1; max-width: none; } }
+.ctrlf-map__results { position: static; box-shadow: none; }
+.ctrlf-map__address { margin: 0; font-weight: 500; }
+
+.ctrlf-map__preview { display: block; border: 1px solid var(--ctrlf-accent); border-radius: 6px; }
+
+.ctrlf-map__actions { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 0; font-size: 12px; }
+
+.ctrlf-map__coords-toggle {
+    font-size: 12px;
+
+    summary { color: var(--ctrlf-muted); cursor: pointer; }
+    summary:hover { color: var(--ctrlf-accent-strong); }
+}
+
+.ctrlf-map__coords {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+
+    label { display: flex; flex: 1; flex-direction: column; gap: 4px; color: var(--ctrlf-muted); }
+}
+
+/* ── oEmbed: address + preview (oembed.js) ──────────────────────────── */
+
+.ctrlf-oembed { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 640px; }
+.ctrlfield-container .ctrlf-oembed .ctrlf-input { max-width: none; }
+
+.ctrlf-oembed__status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--ctrlf-muted);
+    font-size: 12px;
+
+    .spinner { float: none; margin: 0; }
+}
+
+.ctrlf-oembed__status--none { color: #8a5a00; }
+
+.ctrlf-oembed__preview {
+    overflow: hidden;
+    border: 1px solid var(--ctrlf-accent);
+    border-radius: 6px;
+    background: #000;
+    line-height: 0;
+
+    iframe, video, img { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; border: 0; }
+    blockquote { margin: 0; padding: 12px; background: #fff; line-height: 1.5; }
+}
+
 /* ── Date / date-time / time: the plugin's calendar (dates.js) ──────── */
 
 .ctrlf-date { position: relative; width: 100%; max-width: 320px; }

@@ -23,10 +23,18 @@ final class MessageRenderer extends AbstractRenderer
         $safeContent = function_exists('wp_kses_post') ? wp_kses_post($content) : htmlspecialchars($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $safeType    = $this->esc($type);
 
-        return sprintf(
-            '<div class="ctrlf-message ctrlf-message--%s"><p>%s</p></div>',
-            $safeType,
-            $safeContent,
-        );
+        $icons = [
+            'info'    => '<circle cx="10" cy="10" r="7.5"/><path d="M10 9v5M10 6.2v.1"/>',
+            'success' => '<circle cx="10" cy="10" r="7.5"/><path d="M6.8 10.3l2.2 2.2 4.2-4.6"/>',
+            'warning' => '<path d="M10 3.2l7.6 13.3H2.4z"/><path d="M10 8.2v3.8M10 14.2v.1"/>',
+            'error'   => '<circle cx="10" cy="10" r="7.5"/><path d="M7.4 7.4l5.2 5.2M12.6 7.4l-5.2 5.2"/>',
+        ];
+        $icon = '<svg class="ctrlf-message__icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
+            . ($icons[$type] ?? $icons['info']) . '</svg>';
+        $role = in_array($type, ['warning', 'error'], true) ? 'alert' : 'note';
+        $body = preg_match('/<(p|ul|ol|div|h[1-6])\b/i', $safeContent) ? $safeContent : '<p>' . $safeContent . '</p>';
+
+        return '<div class="ctrlf-message ctrlf-message--' . $safeType . '" role="' . $role . '">' . $icon
+            . '<div class="ctrlf-message__body">' . $body . '</div></div>';
     }
 }

@@ -14,6 +14,8 @@ import { registerPicker } from './picker.js';
 import { registerSelect } from './select.js';
 import { registerColor } from './color.js';
 import { registerDates } from './dates.js';
+import { registerCode } from './code.js';
+import { registerOembed } from './oembed.js';
 
 /** What the File field shows of a wp.media attachment (pure: tested). */
 export function fileInfoFrom(a) {
@@ -94,6 +96,8 @@ registerPicker(Alpine);
 registerSelect(Alpine);
 registerColor(Alpine);
 registerDates(Alpine);
+registerCode(Alpine);
+registerOembed(Alpine);
 registerWpLinkTabs();
 // A global block of the library by id (FlexibleContentRenderer prints window.ctrlfieldGlobalBlocks).
 Alpine.magic('ctrlfBlock', () => (id) => window.ctrlfieldGlobalBlocks?.blocks?.[id] ?? null);
@@ -149,11 +153,6 @@ document.addEventListener('alpine:init', () => {
             if (phData.saveError) {
                 showSaveError(phData.saveError);
             }
-
-            // Code editors are initialised after the DOM is ready (WYSIWYG: x-ctrlf-wysiwyg).
-            this.$nextTick(() => {
-                this.initCodeEditors();
-            });
         },
 
         // -------------------------------------------------------------------
@@ -334,39 +333,6 @@ document.addEventListener('alpine:init', () => {
         // -------------------------------------------------------------------
         // Code Editor (CodeMirror)
         // -------------------------------------------------------------------
-
-        /**
-         * Initialises CodeMirror on all [data-ctrlfield-code] wrappers.
-         * Called in init() after the DOM is ready.
-         */
-        initCodeEditors() {
-            this.$el.querySelectorAll('[data-ctrlfield-code]').forEach(wrap => {
-                const fieldKey = wrap.dataset.ctrlfieldCode;
-                const textarea = wrap.querySelector('textarea');
-                if (!textarea || typeof wp === 'undefined' || !wp.CodeMirror) return;
-
-                const cm = wp.CodeMirror.fromTextArea(textarea, {
-                    mode:          wrap.dataset.language || 'text',
-                    lineNumbers:   true,
-                    lineWrapping:  wrap.dataset.wrapLines === 'true',
-                    indentUnit:    4,
-                    tabSize:       4,
-                    indentWithTabs: false,
-                    theme:         'default',
-                });
-
-                // Sync CodeMirror → adminState
-                cm.on('change', () => {
-                    this.adminState[fieldKey] = cm.getValue();
-                });
-
-                // Sync stored value → CodeMirror
-                const stored = this.adminState[fieldKey];
-                if (stored && cm.getValue() !== stored) {
-                    cm.setValue(stored);
-                }
-            });
-        },
 
         // -------------------------------------------------------------------
         // User Field — AJAX search

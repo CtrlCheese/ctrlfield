@@ -28,13 +28,13 @@ final class CodeRenderer extends AbstractRenderer
         $wrapLinesStr = $this->esc($wrapLines ? 'true' : 'false');
 
         return sprintf(
-            '<div class="ctrlf-code-editor-wrap"'
+            '<div class="ctrlf-code-editor-wrap" x-ctrlf-code'
             . ' data-ctrlfield-code="%1$s"'
             . ' data-language="%2$s"'
             . ' data-rows="%3$s"'
             . ' data-wrap-lines="%4$s">'
             . '<textarea id="ctrlf-code-%1$s" class="ctrlf-code-textarea" rows="%3$s"'
-            . ' x-model="%5$s"></textarea>'
+            . ' x-model="%5$s"' . ($field->isReadOnly() ? ' readonly' : '') . '></textarea>'
             . '</div>',
             $fieldKey,
             $escapedLang,

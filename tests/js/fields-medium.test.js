@@ -35,3 +35,14 @@ describe('select search', () => {
         expect(filterOptions(options, '')).toHaveLength(3);
     });
 });
+
+import { isEmbeddable } from '../../assets/admin/src/oembed.js';
+
+describe('oembed', () => {
+    it('asks only about web addresses', () => {
+        expect(isEmbeddable('https://www.youtube.com/watch?v=abc')).toBe(true);
+        expect(isEmbeddable('https://vimeo.com/123')).toBe(true);
+        expect(isEmbeddable('youtube')).toBe(false);
+        expect(isEmbeddable('')).toBe(false);
+    });
+});
