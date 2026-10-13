@@ -4,7 +4,6 @@
 <violation file="ctrlfield.php" sniff="WordPress.Security.EscapeOutput.OutputNotEscaped" signature="80c42e2edc731c880abb88ba99a9429243ef5bbf"/>
 <violation file="ctrlfield.php" sniff="WordPress.Security.EscapeOutput.OutputNotEscaped" signature="efb1c8fbf77260e0f4c008c561f71a994de02245"/>
 <violation file="pro/bin/issue-license-token.php" sniff="WordPress.Security.EscapeOutput.OutputNotEscaped" signature="c05ddf0ddbbe561b3e0c4357c445f68653fd317e"/>
-<violation file="pro/src/Admin/Builder/BuilderPage.php" sniff="WordPress.Security.EscapeOutput.OutputNotEscaped" signature="b5a9b2eee3a3b90ed23556b9177b310107ef020c"/>
 <violation file="pro/src/Admin/ContentTable/ContentTableEditPage.php" sniff="WordPress.Security.EscapeOutput.OutputNotEscaped" signature="7eb5d9bb08f11150b470ff9392aeba8c031fd9b7"/>
 <violation file="pro/src/Admin/ContentTable/ContentTableEditPage.php" sniff="WordPress.Security.EscapeOutput.OutputNotEscaped" signature="d01c64edc04aa738590139d7225dc4d1adb67000"/>
 <violation file="pro/src/Admin/ContentTable/ContentTableEditPage.php" sniff="WordPress.Security.NonceVerification.Recommended" signature="3505000e9655528d853403c9a4a9feb733982b83"/>
