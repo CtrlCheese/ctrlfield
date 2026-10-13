@@ -55,12 +55,6 @@ parameters:
 			path: src/Admin/Inspector/InspectorServiceProvider.php
 
 		-
-			message: '#^Method CtrlField\\Admin\\Inspector\\SchemaInspectorRenderer\:\:renderGroupRow\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Admin/Inspector/SchemaInspectorRenderer.php
-
-		-
 			message: '#^Method CtrlField\\Admin\\MetaBox\\MetaBoxRenderer\:\:buildConditions\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

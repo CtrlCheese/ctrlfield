@@ -46,3 +46,13 @@ describe('oembed', () => {
         expect(isEmbeddable('')).toBe(false);
     });
 });
+
+import { importSummary } from '../../assets/admin/src/inspector.js';
+
+describe('inspector CSV import', () => {
+    it('summarises the importer stats', () => {
+        expect(importSummary({ updated: 3, created: 1, skipped: 0, errors: [] })).toBe('3 updated · 1 created');
+        expect(importSummary({ updated: 0, created: 0, skipped: 0, errors: [] })).toBe('nothing changed');
+        expect(importSummary({ updated: 1, created: 0, skipped: 2, errors: ['Row 4: no ID'] })).toBe('1 updated · 2 skipped — Row 4: no ID');
+    });
+});
