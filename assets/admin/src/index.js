@@ -17,6 +17,7 @@ import { registerDates } from './dates.js';
 import { registerCode } from './code.js';
 import { registerOembed } from './oembed.js';
 import { registerInspector } from './inspector.js';
+import { registerPostTypes } from './posttypes.js';
 
 /** What the File field shows of a wp.media attachment (pure: tested). */
 export function fileInfoFrom(a) {
@@ -100,6 +101,7 @@ registerDates(Alpine);
 registerCode(Alpine);
 registerOembed(Alpine);
 registerInspector(Alpine);
+registerPostTypes(Alpine);
 registerWpLinkTabs();
 // A global block of the library by id (FlexibleContentRenderer prints window.ctrlfieldGlobalBlocks).
 Alpine.magic('ctrlfBlock', () => (id) => window.ctrlfieldGlobalBlocks?.blocks?.[id] ?? null);

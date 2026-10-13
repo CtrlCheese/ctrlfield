@@ -18,16 +18,14 @@ final class PostTypeDefinition
         'comments', 'revisions', 'page-attributes', 'custom-fields',
     ];
 
-    /** Post type keys WordPress core uses or reserves (register_post_type docs). */
-    public const RESERVED = [
-        'post', 'page', 'attachment', 'revision', 'nav_menu_item', 'custom_css',
-        'customize_changeset', 'oembed_cache', 'user_request', 'wp_block',
-        'wp_template', 'wp_template_part', 'wp_global_styles', 'wp_navigation',
-        'wp_font_family', 'wp_font_face', 'action', 'author', 'order', 'theme',
-    ];
+    /** Post type keys WordPress core uses (and ReservedNames::TERMS, its query vars). */
+    public const RESERVED = ReservedNames::POST_TYPES;
+
+    public const CAPABILITY_TYPES = ['post', 'page'];
 
     /**
      * @param string[] $supports
+     * @param string[] $taxonomies taxonomies used with this post type
      */
     public function __construct(
         public readonly string $slug,
@@ -42,6 +40,11 @@ final class PostTypeDefinition
         public readonly string $rewriteSlug = '',
         public readonly int $menuPosition = 25,
         public readonly string $description = '',
+        public readonly array $taxonomies = [],
+        public readonly string $archiveSlug = '',
+        public readonly string $restBase = '',
+        public readonly bool $excludeFromSearch = false,
+        public readonly string $capabilityType = 'post',
     ) {}
 
     /**
@@ -60,7 +63,7 @@ final class PostTypeDefinition
             $errors['slug'] = __('The key is required.', 'ctrlfield');
         } elseif (! preg_match('/^[a-z][a-z0-9_-]{0,19}$/', $slug)) {
             $errors['slug'] = __('Use 1–20 lowercase letters, numbers, "-" or "_", starting with a letter.', 'ctrlfield');
-        } elseif (in_array($slug, self::RESERVED, true)) {
+        } elseif (ReservedNames::forPostType($slug)) {
             /* translators: %s: post type key */
             $errors['slug'] = sprintf(__('"%s" is reserved by WordPress.', 'ctrlfield'), $slug);
         }
@@ -81,10 +84,24 @@ final class PostTypeDefinition
 
         $supports = array_values(array_intersect(self::SUPPORTS, (array) ($input['supports'] ?? [])));
 
-        $rewrite = trim(strtolower(trim((string) ($input['rewrite_slug'] ?? ''))), '/');
+        $rewrite = self::path($input['rewrite_slug'] ?? '');
         if ($rewrite !== '' && ! preg_match('/^[a-z0-9][a-z0-9\/_-]*$/', $rewrite)) {
             $errors['rewrite_slug'] = __('Use lowercase letters, numbers, "-", "_" or "/".', 'ctrlfield');
         }
+        $archive = self::path($input['archive_slug'] ?? '');
+        if ($archive !== '' && ! preg_match('/^[a-z0-9][a-z0-9\/_-]*$/', $archive)) {
+            $errors['archive_slug'] = __('Use lowercase letters, numbers, "-", "_" or "/".', 'ctrlfield');
+        }
+        $restBase = strtolower(trim((string) ($input['rest_base'] ?? '')));
+        if ($restBase !== '' && ! preg_match('/^[a-z0-9][a-z0-9_-]*$/', $restBase)) {
+            $errors['rest_base'] = __('Use lowercase letters, numbers, "-" or "_".', 'ctrlfield');
+        }
+        $taxonomies = array_values(array_unique(array_filter(
+            array_map(static fn ($t): string => strtolower((string) $t), (array) ($input['taxonomies'] ?? [])),
+            static fn (string $t): bool => (bool) preg_match('/^[a-z0-9_-]{1,32}$/', $t)
+        )));
+        $capability = (string) ($input['capability_type'] ?? 'post');
+        $capability = in_array($capability, self::CAPABILITY_TYPES, true) ? $capability : 'post';
 
         $position = (int) ($input['menu_position'] ?? 25);
         $position = max(5, min(100, $position));
@@ -106,6 +123,11 @@ final class PostTypeDefinition
             rewriteSlug:  $rewrite,
             menuPosition: $position,
             description:  self::text($input['description'] ?? ''),
+            taxonomies:   $taxonomies,
+            archiveSlug:  $archive,
+            restBase:     $restBase,
+            excludeFromSearch: self::bool($input['exclude_from_search'] ?? false),
+            capabilityType: $capability,
         ), []];
     }
 
@@ -125,6 +147,12 @@ final class PostTypeDefinition
             rewriteSlug:  (string) ($data['rewrite_slug'] ?? ''),
             menuPosition: (int) ($data['menu_position'] ?? 25),
             description:  (string) ($data['description'] ?? ''),
+            taxonomies:   array_values(array_map('strval', (array) ($data['taxonomies'] ?? []))),
+            archiveSlug:  (string) ($data['archive_slug'] ?? ''),
+            restBase:     (string) ($data['rest_base'] ?? ''),
+            // Rows saved before this setting: private types were left out of search.
+            excludeFromSearch: (bool) ($data['exclude_from_search'] ?? ! (bool) ($data['public'] ?? true)),
+            capabilityType: in_array($data['capability_type'] ?? 'post', self::CAPABILITY_TYPES, true) ? (string) ($data['capability_type'] ?? 'post') : 'post',
         );
     }
 
@@ -144,7 +172,24 @@ final class PostTypeDefinition
             'rewrite_slug'  => $this->rewriteSlug,
             'menu_position' => $this->menuPosition,
             'description'   => $this->description,
+            'taxonomies'    => $this->taxonomies,
+            'archive_slug'  => $this->archiveSlug,
+            'rest_base'     => $this->restBase,
+            'exclude_from_search' => $this->excludeFromSearch,
+            'capability_type'     => $this->capabilityType,
         ];
+    }
+
+    /** has_archive: the archive's own slug, or true (archive at the URL slug), or false. */
+    public function archive(): bool|string
+    {
+        return $this->hasArchive ? ($this->archiveSlug !== '' ? $this->archiveSlug : true) : false;
+    }
+
+    /** "/work/" → "work" */
+    private static function path(mixed $value): string
+    {
+        return trim(strtolower(trim((string) $value)), '/');
     }
 
     private static function text(mixed $value): string

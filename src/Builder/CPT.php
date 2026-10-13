@@ -32,8 +32,13 @@ final class CPT
     private bool        $canExport        = true;
     private bool        $showUi           = true;
 
+    private string      $restBase         = '';
+
     /** @var array<int, string> */
     private array $supports = ['title', 'editor'];
+
+    /** @var array<int, string> taxonomies linked to this post type (category, post_tag, own ones) */
+    private array $taxonomies = [];
 
     /** @var array<string, self> */
     private static array $registry = [];
@@ -163,6 +168,25 @@ final class CPT
         return $this;
     }
 
+    /**
+     * Taxonomies to use with this post type ('category', 'post_tag', or one
+     * registered elsewhere) — linked once every taxonomy is registered.
+     *
+     * @param array<int, string> $taxonomies
+     */
+    public function taxonomies(array $taxonomies): self
+    {
+        $this->taxonomies = array_values($taxonomies);
+        return $this;
+    }
+
+    /** The REST route base (/wp/v2/{base}); defaults to the post type key. */
+    public function restBase(string $base): self
+    {
+        $this->restBase = $base;
+        return $this;
+    }
+
     public function register(): void
     {
         self::$registry[$this->postType] = $this;
@@ -191,6 +215,9 @@ final class CPT
     public function isShowInAdminBar(): bool    { return $this->showInAdminBar; }
     public function canExportPosts(): bool      { return $this->canExport; }
     public function isShowUi(): bool            { return $this->showUi; }
+    public function getRestBase(): string       { return $this->restBase; }
+    /** @return array<int, string> */
+    public function getTaxonomies(): array      { return $this->taxonomies; }
 
     // -------------------------------------------------------------------------
     // Static registry helpers

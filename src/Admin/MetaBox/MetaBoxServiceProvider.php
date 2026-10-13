@@ -393,7 +393,7 @@ class MetaBoxServiceProvider extends ServiceProvider
     }
 
     /** @return array<string, string> Texts of the Icon field dialog (assets/admin/src/icons.js). */
-    private static function iconStrings(): array
+    public static function iconStrings(): array
     {
         return [
             'title'     => __('Select icon', 'ctrlfield'),

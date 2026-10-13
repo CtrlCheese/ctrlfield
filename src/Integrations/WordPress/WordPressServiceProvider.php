@@ -32,6 +32,7 @@ class WordPressServiceProvider extends ServiceProvider
         add_action('init', [$this, 'registerCpts'], 20);
         add_action('deleted_post', [\CtrlField\Storage\RelationshipAdapter::class, 'deleteForPost']);
         add_action('init', [$this, 'registerTaxonomies'], 20);
+        add_action('init', [$this, 'linkCptTaxonomies'], 21);
         add_action('init', [$this, 'bindTaxonomyTermHooks'], 20);
         add_action('init', [$this, 'bindOptionsPageSaveHooks'], 20);
         // After top-level menus (priority 10, CtrlField's own at 9): a submenu added
@@ -68,7 +69,22 @@ class WordPressServiceProvider extends ServiceProvider
                 'has_archive'         => $cpt->getHasArchive(),
                 'rewrite'             => ['slug' => $cpt->getRewriteSlug() ?: $cpt->getPostType()],
                 'can_export'          => $cpt->canExportPosts(),
-            ]);
+            ] + ($cpt->getRestBase() !== '' ? ['rest_base' => $cpt->getRestBase()] : []));
+        }
+    }
+
+    /**
+     * ->taxonomies([...]) of each post type: linked once every taxonomy is
+     * registered (core's own, a plugin's, or one registered on the same init).
+     */
+    public function linkCptTaxonomies(): void
+    {
+        foreach (CPT::all() as $cpt) {
+            foreach ($cpt->getTaxonomies() as $taxonomy) {
+                if (taxonomy_exists($taxonomy)) {
+                    register_taxonomy_for_object_type($taxonomy, $cpt->getPostType());
+                }
+            }
         }
     }
 
