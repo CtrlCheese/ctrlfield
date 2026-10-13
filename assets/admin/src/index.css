@@ -1077,12 +1077,33 @@ body.ctrlf-is-sorting * {
     gap: 10px;
     margin: 0;
     padding: 6px 8px;
-    border: 1px solid var(--ctrlf-line);
+    border: 1px solid var(--ctrlf-accent);
     border-radius: 4px;
     background: #fff;
 
     > .ctrlf-row__handle { align-self: stretch; }
+    &:hover, &:focus-within { border-color: var(--ctrlf-accent-strong); }
     &.is-missing { border-color: #d63638; }
+}
+
+/* The position number; the drag handle takes its place on hover or focus. */
+.ctrlf-picker__handle {
+    position: relative;
+    width: 22px;
+
+    svg { display: none; }
+}
+
+.ctrlf-picker__num {
+    color: var(--ctrlf-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.ctrlf-picker__line:hover .ctrlf-picker__handle,
+.ctrlf-picker__handle:focus-visible {
+    .ctrlf-picker__num { display: none; }
+    svg { display: block; }
 }
 
 .ctrlf-picker__thumb {
@@ -1128,6 +1149,9 @@ body.ctrlf-is-sorting * {
 .ctrlf-picker__limit { margin: 0; color: var(--ctrlf-muted); font-size: 12px; }
 
 .ctrlf-picker__combo { position: relative; }
+
+/* As wide as the chosen lines (beats .ctrlf-input's 480px cap). */
+.ctrlfield-container .ctrlf-picker__search,
 .ctrlf-picker__search { width: 100%; max-width: none; }
 
 .ctrlf-picker__dropdown {
@@ -1921,4 +1945,74 @@ body.ctrlf-is-sorting * {
 @media (prefers-reduced-motion: reduce) {
     .ctrlf-row__chevron,
     .ctrlf-accordion-icon { transition: none; }
+}
+
+/* ── CtrlField violet wherever the plugin draws its own UI: meta boxes,
+      dialogs and CtrlField's admin pages (body class "…ctrlfield…", options
+      pages: .ctrlfield-page). WordPress's own chrome (Publish, menu, notices)
+      keeps the user's admin colour scheme. ─────────────────────────────── */
+
+:is(.ctrlf-linkdlg, .ctrlf-icondlg, .ctrlfield-container, body[class*="ctrlfield"] #wpbody-content, .ctrlfield-page) {
+    --ctrlf-accent-hover: #5b21b6;
+
+    /* Primary buttons */
+    .button-primary {
+        border-color: var(--ctrlf-accent-strong);
+        background: var(--ctrlf-accent-strong);
+        color: #fff;
+
+        &:hover, &:focus { border-color: var(--ctrlf-accent-hover); background: var(--ctrlf-accent-hover); color: #fff; }
+        &:focus { box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--ctrlf-accent); }
+        &:disabled, &[disabled] { border-color: var(--ctrlf-accent) !important; background: var(--ctrlf-accent) !important; color: #fff !important; opacity: .6; }
+    }
+
+    /* Secondary buttons: violet outline (Cancel in dialogs: neutral, below) */
+    .button:not(.button-primary, .button-link, .ctrlf-icondlg__remove),
+    .page-title-action {
+        border-color: var(--ctrlf-accent);
+        background: #fff;
+        color: var(--ctrlf-accent-strong);
+
+        &:hover, &:focus { border-color: var(--ctrlf-accent-strong); background: var(--ctrlf-accent-soft); color: var(--ctrlf-accent-hover); }
+        &:focus { box-shadow: 0 0 0 1px var(--ctrlf-accent-strong); }
+    }
+
+    /* Links and link-buttons */
+    a:not(.button, .page-title-action, .row-title):not([class*="dashicons"]),
+    .button-link:not(.button-link-delete, .delete) { color: var(--ctrlf-accent-strong); }
+    a:not(.button, .page-title-action):hover, .button-link:not(.button-link-delete, .delete):hover { color: var(--ctrlf-accent-hover); }
+    .row-title { color: var(--ctrlf-accent-strong); }
+
+    /* Focus of inputs, checkboxes and radios */
+    :is(input[type="text"], input[type="search"], input[type="url"], input[type="email"], input[type="number"], input[type="password"], textarea, select):focus {
+        border-color: var(--ctrlf-accent-strong);
+        box-shadow: 0 0 0 1px var(--ctrlf-accent-strong);
+        outline: 2px solid transparent;
+    }
+    input[type="checkbox"], input[type="radio"] { accent-color: var(--ctrlf-accent-strong); }
+    input[type="checkbox"]:checked::before { content: none; }
+    input[type="checkbox"]:checked, input[type="radio"]:checked { border-color: var(--ctrlf-accent-strong); }
+    input[type="checkbox"]:focus, input[type="radio"]:focus { border-color: var(--ctrlf-accent-strong); box-shadow: 0 0 0 1px var(--ctrlf-accent-strong); }
+
+    /* WordPress nav tabs on CtrlField pages (Template code: PHP / Blade / Twig) */
+    .nav-tab-active, .nav-tab-active:hover, .nav-tab-active:focus { border-bottom-color: #f0f0f1; color: var(--ctrlf-accent-strong); box-shadow: inset 0 -2px 0 var(--ctrlf-accent-strong); }
+}
+
+/* Dialogs: Cancel / Close stay neutral next to the violet action.
+   (#ctrlf-id only lifts the specificity to the block above, which has an id.) */
+:is(.ctrlf-linkdlg, .ctrlf-icondlg, #ctrlf-id #ctrlf-id) .ctrlf-linkdlg__foot .button:not(.button-primary, .ctrlf-icondlg__remove) {
+    border-color: #8c8f94;
+    background: #fff;
+    color: var(--ctrlf-ink);
+
+    &:hover, &:focus { border-color: var(--ctrlf-ink); background: var(--ctrlf-surface); color: var(--ctrlf-ink); }
+}
+
+/* A checked WordPress checkbox draws its tick as an image in the scheme colour: use a violet one. */
+:is(.ctrlf-linkdlg, .ctrlf-icondlg, .ctrlfield-container, body[class*="ctrlfield"] #wpbody-content, .ctrlfield-page) input[type="checkbox"]:checked {
+    background: var(--ctrlf-accent-strong) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3.2L15 7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat;
+}
+
+:is(.ctrlf-linkdlg, .ctrlf-icondlg, .ctrlfield-container, body[class*="ctrlfield"] #wpbody-content, .ctrlfield-page) input[type="radio"]:checked::before {
+    background-color: var(--ctrlf-accent-strong);
 }

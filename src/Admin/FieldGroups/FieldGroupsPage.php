@@ -43,6 +43,11 @@ final class FieldGroupsPage
 
     public function enqueueAssets(string $hook): void
     {
+        // Every CtrlField page (Inspector, Post Types, Map, License, ACF import…)
+        // gets the stylesheet, so its buttons and links wear the plugin's colour.
+        if (str_contains($hook, 'ctrlfield')) {
+            wp_enqueue_style('ctrlfield-admin', CTRLFIELD_URL . 'assets/admin/ctrlfield.css', [], MetaBoxServiceProvider::assetVersion('ctrlfield.css'));
+        }
         if ($this->hook === '' || $hook !== $this->hook) {
             return;
         }

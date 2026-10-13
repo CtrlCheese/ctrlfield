@@ -10,11 +10,11 @@ use CtrlField\Fields\FieldDefinition;
  * The content picker shared by Post Object, Relationship, Page Link, Taxonomy
  * and User (assets/admin/src/picker.js):
  *
- *  - the chosen items as lines — thumbnail, title, type · date, × (and a drag
- *    handle when the order matters);
- *  - a "Search or choose…" box: its dropdown lists the 7 newest items (or the
- *    7 best matches) and ends with "Browse all…", a dialog with search, tabs
- *    and the whole list;
+ *  - a "Search or choose…" box right under the label: its dropdown lists the
+ *    7 newest items (or the 7 best matches) and ends with "Browse all…", a
+ *    dialog with search, tabs and the whole list;
+ *  - the chosen items below it as lines — position number (the drag handle on
+ *    hover, when the order matters), thumbnail, title, type · date, ×;
  *  - at the maximum the box hides until an item is removed; under the minimum
  *    a message asks for more (saving is refused too: RulesVerificationStage).
  *
@@ -60,8 +60,10 @@ abstract class AbstractPickerRenderer extends AbstractRenderer
         $maxText  = $multiple && $max !== null ? $this->esc(sprintf(_n('Maximum of %d item reached.', 'Maximum of %d items reached.', $max, 'ctrlfield'), $max)) : '';
 
         $sortAttr = $multiple && $sortable ? ' x-ctrlf-sort="' . $p . '"' : '';
+        // The position number; on hover (or keyboard focus) the drag handle takes its place.
         $handle   = $multiple && $sortable
-            ? '<button type="button" class="ctrlf-row__handle" x-ctrlf-handle aria-label="' . $drag . '" title="' . $drag . '">' . self::dragHandleIcon() . '</button>'
+            ? '<button type="button" class="ctrlf-row__handle ctrlf-picker__handle" x-ctrlf-handle aria-label="' . $drag . '" title="' . $drag . '">'
+                . '<span class="ctrlf-picker__num" x-text="idx + 1"></span>' . self::dragHandleIcon() . '</button>'
             : '';
         $item     = $multiple && $sortable ? ' data-ctrlf-item' : '';
         $id       = $this->esc($this->inputId($field));
@@ -72,25 +74,6 @@ abstract class AbstractPickerRenderer extends AbstractRenderer
 
         return '<div class="ctrlf-picker" x-data="ctrlfPicker(' . $config . ')"'
             . ' @click.outside="open = false" @keydown.escape="open = false">'
-
-            // The chosen items.
-            . '<ul class="ctrlf-picker__chosen"' . $sortAttr . ' x-show="list(' . $p . ').length">'
-            . '<template x-for="(id, idx) in list(' . $p . ')" :key="id">'
-            . '<li class="ctrlf-picker__line" :class="{ \'is-missing\': info(id).missing }"' . $item . '>'
-            . $handle
-            . $thumb('info(id)')
-            . '<span class="ctrlf-picker__text"><strong x-text="info(id).title"></strong>'
-            . '<small x-text="[info(id).meta, info(id).date].filter(Boolean).join(\' · \')"></small></span>'
-            . '<button type="button" class="ctrlf-picker__x" @click="' . $p . ' = remove(' . $p . ', id)"'
-            . ' aria-label="' . $remove . '" title="' . $remove . '"' . $disabled . '>'
-            . '<svg viewBox="0 0 20 20" width="12" height="12" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
-            . '</button>'
-            . '</li>'
-            . '</template>'
-            . '</ul>'
-
-            . ($minText !== '' ? '<p class="ctrlf-picker__error" role="alert" x-show="belowMin(' . $p . ')">' . $minText . '</p>' : '')
-            . ($maxText !== '' ? '<p class="ctrlf-picker__limit" x-show="full(' . $p . ')">' . $maxText . '</p>' : '')
 
             // Search or choose: the 7 newest, then "Browse all…".
             . '<div class="ctrlf-picker__combo" x-show="!full(' . $p . ')">'
@@ -115,6 +98,25 @@ abstract class AbstractPickerRenderer extends AbstractRenderer
             . ' @mouseenter="active = items.length" @click="browse(' . $p . ', (v) => ' . $p . ' = v, $el)">' . $browse . '</button></li>'
             . '</ul>'
             . '</div>'
+            // The chosen items.
+            . '<ul class="ctrlf-picker__chosen"' . $sortAttr . ' x-show="list(' . $p . ').length">'
+            . '<template x-for="(id, idx) in list(' . $p . ')" :key="id">'
+            . '<li class="ctrlf-picker__line" :class="{ \'is-missing\': info(id).missing }"' . $item . '>'
+            . $handle
+            . $thumb('info(id)')
+            . '<span class="ctrlf-picker__text"><strong x-text="info(id).title"></strong>'
+            . '<small x-text="[info(id).meta, info(id).date].filter(Boolean).join(\' · \')"></small></span>'
+            . '<button type="button" class="ctrlf-picker__x" @click="' . $p . ' = remove(' . $p . ', id)"'
+            . ' aria-label="' . $remove . '" title="' . $remove . '"' . $disabled . '>'
+            . '<svg viewBox="0 0 20 20" width="12" height="12" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
+            . '</button>'
+            . '</li>'
+            . '</template>'
+            . '</ul>'
+
+            . ($minText !== '' ? '<p class="ctrlf-picker__error" role="alert" x-show="belowMin(' . $p . ')">' . $minText . '</p>' : '')
+            . ($maxText !== '' ? '<p class="ctrlf-picker__limit" x-show="full(' . $p . ')">' . $maxText . '</p>' : '')
+
             . '</div>';
     }
 

@@ -268,7 +268,7 @@ class WordPressServiceProvider extends ServiceProvider
         $adapter = new OptionsAdapter(new WpOptionsDriver());
         $saved   = $adapter->load($key) ?? [];
         ?>
-        <div class="wrap">
+        <div class="wrap ctrlfield-page">
             <h1><?php echo esc_html($page->getTitle()); ?></h1>
             <?php if (isset($_GET['settings-updated'])): ?>
                 <div class="notice notice-success is-dismissible">
