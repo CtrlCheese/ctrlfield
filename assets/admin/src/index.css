@@ -12,8 +12,8 @@
 [x-cloak] { display: none !important; }
 
 /* The one part of a reset the layout relies on — scoped to CtrlField's own UI. */
-:where(.ctrlfield-container, .ctrlf-picker-modal, .ctrlf-icondlg, .ctrlf-linkdlg),
-:where(.ctrlfield-container, .ctrlf-picker-modal, .ctrlf-icondlg, .ctrlf-linkdlg) :where(*, ::before, ::after) {
+:where(.ctrlfield-container, .ctrlf-icondlg, .ctrlf-linkdlg),
+:where(.ctrlfield-container, .ctrlf-icondlg, .ctrlf-linkdlg) :where(*, ::before, ::after) {
     box-sizing: border-box;
 }
 
@@ -283,6 +283,44 @@
         right: 4px;
         width: 20px;
         height: 20px;
+    }
+
+    .ctrlf-file {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 480px;
+        padding: 6px 8px;
+        border: 1px solid #dcdcde;
+        border-radius: 4px;
+        background: #fff;
+
+        &.is-missing { border-color: #d63638; }
+    }
+
+    .ctrlf-file__icon {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 3px;
+        background: #f6f7f7;
+
+        img { width: 24px; height: auto; }
+    }
+
+    .ctrlf-file__text {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+
+        a, small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        a { color: #1d2327; font-size: 13px; font-weight: 500; text-decoration: none; }
+        a:hover { color: var(--ctrlf-accent-strong); text-decoration: underline; }
+        small { color: #646970; font-size: 12px; }
     }
 
     .ctrlf-file-name {
@@ -971,6 +1009,193 @@ body.ctrlf-is-sorting * {
     .ctrlf-linkdlg__item-url { display: none; }
 }
 
+/* ── Text inputs: fixed text before / after (->prepend / ->append), counter ── */
+
+.ctrlf-affix {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    max-width: 480px;
+
+    > .ctrlf-input { flex: 1; min-width: 0; max-width: none; border-radius: 0; }
+    > .ctrlf-input:first-child { border-radius: 3px 0 0 3px; }
+    > .ctrlf-input:last-child { border-radius: 0 3px 3px 0; }
+}
+
+.ctrlf-affix__text {
+    display: flex;
+    flex: none;
+    align-items: center;
+    padding: 0 10px;
+    border: 1px solid #8c8f94;
+    background: var(--ctrlf-surface);
+    color: var(--ctrlf-muted);
+    font-size: 13px;
+    white-space: nowrap;
+
+    &:first-child { border-right: 0; border-radius: 3px 0 0 3px; }
+    &:last-child { border-left: 0; border-radius: 0 3px 3px 0; }
+}
+
+.ctrlf-counter {
+    align-self: flex-start;
+    color: var(--ctrlf-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+
+    &.is-full { color: #d63638; }
+}
+
+.ctrlfield-container .ctrlf-input[readonly] {
+    background: var(--ctrlf-surface);
+    color: var(--ctrlf-muted);
+    cursor: default;
+}
+
+/* ── Content pickers (picker.js): chosen lines + "Search or choose" dropdown ── */
+
+.ctrlf-picker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 640px;
+}
+
+.ctrlf-picker__chosen {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ctrlf-picker__line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 6px 8px;
+    border: 1px solid var(--ctrlf-line);
+    border-radius: 4px;
+    background: #fff;
+
+    > .ctrlf-row__handle { align-self: stretch; }
+    &.is-missing { border-color: #d63638; }
+}
+
+.ctrlf-picker__thumb {
+    display: block;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--ctrlf-surface);
+
+    img { display: block; width: 100%; height: 100%; object-fit: cover; }
+}
+
+.ctrlf-picker__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+
+    strong, small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    strong { color: var(--ctrlf-ink); font-size: 13px; font-weight: 500; }
+    small { color: var(--ctrlf-muted); font-size: 12px; }
+}
+
+.ctrlf-picker__x {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--ctrlf-muted);
+    cursor: pointer;
+
+    &:hover:not(:disabled), &:focus-visible { background: #fcf0f1; color: #d63638; }
+}
+
+.ctrlf-picker__error { margin: 0; color: #d63638; font-size: 12px; }
+.ctrlf-picker__limit { margin: 0; color: var(--ctrlf-muted); font-size: 12px; }
+
+.ctrlf-picker__combo { position: relative; }
+.ctrlf-picker__search { width: 100%; max-width: none; }
+
+.ctrlf-picker__dropdown {
+    position: absolute;
+    z-index: 50;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    border: 1px solid var(--ctrlf-line);
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
+
+    li { margin: 0; }
+}
+
+.ctrlf-picker__option,
+.ctrlf-picker__browse {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 12px;
+    border: 0;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+
+    &.is-active, &:hover:not(:disabled) { background: var(--ctrlf-accent-soft); }
+    &:disabled { opacity: .45; cursor: default; }
+}
+
+.ctrlf-picker__browse {
+    margin-top: 4px;
+    padding: 9px 12px;
+    border-top: 1px solid var(--ctrlf-line-soft);
+    color: var(--ctrlf-accent-strong);
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.ctrlf-picker__status { padding: 8px 12px; color: var(--ctrlf-muted); font-size: 12px; }
+
+/* The picker dialog reuses the icon dialog's frame; selected rows get a check. */
+.ctrlf-pickdlg__item {
+    &.is-disabled { opacity: .45; }
+}
+
+.ctrlf-pickdlg__check {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-left: auto;
+    border: 1.5px solid var(--ctrlf-line);
+    border-radius: 3px;
+
+    .is-selected > & {
+        border-color: var(--ctrlf-accent-strong);
+        background: var(--ctrlf-accent-strong) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3.2L15 7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat;
+    }
+}
+
+.ctrlf-pickdlg__count { color: var(--ctrlf-muted); font-size: 12px; }
+.ctrlf-pickdlg__actions { display: flex; gap: 8px; }
+
 /* ── Icon field: chip + dialog (icons.js) ───────────────────────────── */
 
 .ctrlf-icon-field {
@@ -1223,35 +1448,6 @@ body.ctrlf-is-sorting * {
 .ctrlf-gallery-item:hover .ctrlf-gallery-item__remove { opacity: 1; }
 
 @media (hover: none) { .ctrlf-gallery-item__remove { opacity: 1; } }
-
-/* ── Picked items (post object, relationship, user, taxonomy) ───────── */
-
-.ctrlf-picker__selected {
-    display: flex;
-    flex-direction: column;
-    margin: 0 0 8px;
-    padding: 0;
-    list-style: none;
-    max-width: 480px;
-    border: 1px solid var(--ctrlf-line);
-
-    &:not(:has(li)) { display: none; }
-}
-
-.ctrlf-picker__item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 0;
-    padding: 5px 8px;
-    background: #fff;
-
-    & + & { border-top: 1px solid var(--ctrlf-line-soft); }
-
-    > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-}
-
-.ctrlf-picker__item:has(.ctrlf-picker__handle) { padding-left: 0; }
 
 /* ── Field group editor: one card per field ──────────────────────────── */
 

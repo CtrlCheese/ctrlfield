@@ -10,10 +10,6 @@ final class TextRenderer extends AbstractRenderer
 {
     public function render(FieldDefinition $field, string $statePath): string
     {
-        return sprintf(
-            '<input type="text" id="%s" x-model="%s" class="ctrlf-input ctrlf-input--text">',
-            $this->esc($this->inputId($field)),
-            $this->esc($statePath),
-        );
+        return $this->textInput($field, $statePath, 'text');
     }
 }

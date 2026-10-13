@@ -438,6 +438,10 @@ final class FieldGroupsPage
         $row('allowNull', __('Allow empty', 'ctrlfield'), $check('allowNull', __('No choice selected is allowed', 'ctrlfield')));
         $row('default', __('Default value', 'ctrlfield'), $text('default'));
         $row('placeholder', __('Placeholder', 'ctrlfield'), $text('placeholder'));
+        $row('prepend', __('Before the input', 'ctrlfield'), $text('prepend'), __('Fixed text shown before the field, e.g. "R$" or "https://". Not stored.', 'ctrlfield'));
+        $row('append', __('After the input', 'ctrlfield'), $text('append'), __('Fixed text shown after the field, e.g. "%" or "px". Not stored.', 'ctrlfield'));
+        $row('maxLength', __('Character limit', 'ctrlfield'), $text('maxLength', 'number'), __('Shows a counter and stops at the limit. Empty: no limit.', 'ctrlfield'));
+        $row('rows', __('Rows', 'ctrlfield'), $text('rows', 'number'), __('Visible lines. Empty: 5.', 'ctrlfield'));
         $row('min', __('Minimum', 'ctrlfield'), $text('min', 'number'));
         $row('max', __('Maximum', 'ctrlfield'), $text('max', 'number'));
         $row('step', __('Step', 'ctrlfield'), $text('step', 'number'));

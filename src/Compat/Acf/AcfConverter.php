@@ -171,6 +171,25 @@ final class AcfConverter
             $width        = max(10.0, $width); // narrower than 10 % is unusable in the editor
             $out['width'] = fmod($width, 1.0) === 0.0 ? (int) $width : $width;
         }
+        // Text inputs: prepend / append / maxlength / rows; number min / max / step.
+        foreach (['prepend' => 'prepend', 'append' => 'append'] as $acfKey => $ours) {
+            if (is_string($f[$acfKey] ?? null) && $f[$acfKey] !== '' && in_array($out['type'], ['text', 'number', 'email', 'url'], true)) {
+                $out[$ours] = $f[$acfKey];
+            }
+        }
+        if (is_numeric($f['maxlength'] ?? null) && (int) $f['maxlength'] > 0 && in_array($out['type'], ['text', 'textarea', 'email', 'url', 'password'], true)) {
+            $out['maxLength'] = (int) $f['maxlength'];
+        }
+        if ($out['type'] === 'textarea' && is_numeric($f['rows'] ?? null) && (int) $f['rows'] > 0) {
+            $out['rows'] = (int) $f['rows'];
+        }
+        if ($out['type'] === 'number') {
+            foreach (['min', 'max', 'step'] as $k) {
+                if (is_numeric($f[$k] ?? null)) {
+                    $out[$k] = 0 + $f[$k];
+                }
+            }
+        }
         if (! empty($f['conditional_logic']) && is_array($f['conditional_logic'])) {
             $out['_acfCondition'] = $f['conditional_logic'];
         }

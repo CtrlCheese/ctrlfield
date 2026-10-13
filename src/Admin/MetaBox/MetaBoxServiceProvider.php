@@ -112,7 +112,7 @@ class MetaBoxServiceProvider extends ServiceProvider
             'restUrl'     => rest_url(),
             'restNonce'   => wp_create_nonce('wp_rest'),
             'saveError'   => $this->takeSaveError(),
-            'i18n'        => ['link' => self::linkStrings(), 'icon' => self::iconStrings()],
+            'i18n'        => ['link' => self::linkStrings(), 'icon' => self::iconStrings(), 'picker' => self::pickerStrings()],
             'icons'       => \CtrlField\Data\IconLibrary::clientConfig(),
             'wysiwyg'     => [
                 'template' => WysiwygEditorSettings::TEMPLATE_ID,
@@ -364,6 +364,25 @@ class MetaBoxServiceProvider extends ServiceProvider
     {
         $mtime = @filemtime(CTRLFIELD_PATH . 'assets/admin/' . $file);
         return CTRLFIELD_VERSION . ($mtime ? '.' . $mtime : '');
+    }
+
+    /** @return array<string, string> Texts of the content picker dialog (assets/admin/src/picker.js). */
+    private static function pickerStrings(): array
+    {
+        return [
+            'title'     => __('Choose', 'ctrlfield'),
+            'all'       => __('All', 'ctrlfield'),
+            'search'    => __('Search', 'ctrlfield'),
+            'loading'   => __('Loading…', 'ctrlfield'),
+            'noResults' => __('Nothing found.', 'ctrlfield'),
+            /* translators: %d: number of selected items */
+            'count'     => __('%d selected', 'ctrlfield'),
+            /* translators: 1: number of selected items, 2: maximum */
+            'countMax'  => __('%1$d of %2$d selected', 'ctrlfield'),
+            'select'    => __('Select', 'ctrlfield'),
+            'cancel'    => __('Cancel', 'ctrlfield'),
+            'close'     => __('Close', 'ctrlfield'),
+        ];
     }
 
     /** @return array<string, string> Texts of the Icon field dialog (assets/admin/src/icons.js). */

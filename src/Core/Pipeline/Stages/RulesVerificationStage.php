@@ -16,6 +16,7 @@ use CtrlField\Fields\FieldDefinition;
 use CtrlField\Fields\Types\ButtonGroupField;
 use CtrlField\Fields\Types\CheckboxField;
 use CtrlField\Fields\Types\LinkField;
+use CtrlField\Fields\Types\NumberField;
 use CtrlField\Fields\Types\RadioField;
 use CtrlField\Fields\Types\RangeField;
 use CtrlField\Fields\Types\SelectField;
@@ -50,16 +51,22 @@ class RulesVerificationStage implements StageInterface
                 self::verifyNested($key, $definition, $value, $topScope);
             }
 
-            // Collection fields (PostObject, TaxonomyTerm, Relationship): min/max item count
-            if ($definition instanceof CollectionConstraintsInterface) {
+            // Collection fields (PostObject, TaxonomyTerm, Relationship, PageLink, User):
+            // min/max item count when the editor sees the field; "required" below still applies.
+            if ($definition instanceof CollectionConstraintsInterface && ! $hidden) {
                 self::verifyCollectionConstraints($key, $value, $definition);
-                continue;
             }
 
             // Required check — LinkField has special logic: only url sub-key matters
-            $isEffectivelyEmpty = $definition instanceof LinkField
-                ? (! is_array($value) || empty($value['url']))
-                : self::isEmpty($value);
+            $isEffectivelyEmpty = match (true) {
+                // One link: its url; ->multiple(): a list, empty when no link has a url.
+                $definition instanceof LinkField                      => ! is_array($value) || (array_is_list($value)
+                    ? array_filter($value, static fn ($l) => is_array($l) && ! empty($l['url'])) === []
+                    : empty($value['url'])),
+                // A single picker with nothing chosen holds 0.
+                $definition instanceof CollectionConstraintsInterface => $value === 0 || $value === '0' || self::isEmpty($value),
+                default                                                => self::isEmpty($value),
+            };
 
             if ($definition->isRequired() && $isEffectivelyEmpty && ! $hidden) {
                 throw new PipelineException(
@@ -68,6 +75,34 @@ class RulesVerificationStage implements StageInterface
                     fieldKey:     $key,
                     stageName:    self::NAME,
                 );
+            }
+
+            // Text inputs: ->maxLength() (the editor stops typing there; this catches the rest).
+            if (method_exists($definition, 'getMaxLength') && is_string($value) && ! $hidden) {
+                $limit = $definition->getMaxLength();
+                if ($limit !== null && mb_strlen($value) > $limit) {
+                    throw new PipelineException(
+                        errorCode:    'TOO_LONG',
+                        errorMessage: "Field '{$key}' allows at most {$limit} characters.",
+                        fieldKey:     $key,
+                        stageName:    self::NAME,
+                    );
+                }
+            }
+
+            // Number: ->min() / ->max().
+            if ($definition instanceof NumberField && is_numeric($value) && ! $hidden) {
+                $number = (float) $value;
+                $min    = $definition->getMin();
+                $max    = $definition->getMax();
+                if (($min !== null && $number < $min) || ($max !== null && $number > $max)) {
+                    throw new PipelineException(
+                        errorCode:    'OUT_OF_RANGE',
+                        errorMessage: sprintf("Field '%s' must be between %s and %s.", $key, $min ?? '−∞', $max ?? '∞'),
+                        fieldKey:     $key,
+                        stageName:    self::NAME,
+                    );
+                }
             }
 
             // RangeField bounds check (belt-and-suspenders after TypeCoercionStage clamping)

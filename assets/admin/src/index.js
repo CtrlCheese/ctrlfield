@@ -10,6 +10,14 @@ import { registerUiState, uiPath, uiGet, uiSet } from './uiState.js';
 import { rowSummary, newInstanceId, cloneRow, canAdd, canAddLayout } from './rows.js';
 import { registerLink } from './link.js';
 import { registerIcons } from './icons.js';
+import { registerPicker } from './picker.js';
+
+/** What the File field shows of a wp.media attachment (pure: tested). */
+export function fileInfoFrom(a) {
+    const name = a?.filename || a?.title || (a?.url ?? '').split('/').pop() || '';
+    const ext = (name.match(/\.([a-z0-9]+)$/i)?.[1] ?? a?.subtype ?? '').toUpperCase();
+    return { name, ext, size: a?.filesizeHumanReadable ?? '', icon: a?.icon ?? '', url: a?.url ?? '' };
+}
 import { registerWpLinkTabs } from './wplinkTabs.js';
 
 function markBlockEditorDirty() {
@@ -79,6 +87,7 @@ registerWysiwyg(Alpine);
 registerUiState(Alpine);
 registerLink(Alpine);
 registerIcons(Alpine);
+registerPicker(Alpine);
 registerWpLinkTabs();
 // A global block of the library by id (FlexibleContentRenderer prints window.ctrlfieldGlobalBlocks).
 Alpine.magic('ctrlfBlock', () => (id) => window.ctrlfieldGlobalBlocks?.blocks?.[id] ?? null);
@@ -96,6 +105,9 @@ document.addEventListener('alpine:init', () => {
 
         /** Cache of attachment URLs fetched from WP (id → url). */
         attachmentUrls: {},
+
+        /** File field: id → { name, ext, size, icon, url } (fileInfo()). */
+        fileInfos: {},
 
         /** Active tab per group — keyed by group key, value is active tab key. */
         activeTabs: {},
@@ -272,6 +284,7 @@ document.addEventListener('alpine:init', () => {
 
                 // Cache for getAttachmentUrl(): the thumbnail, plus every size for previews.
                 this.attachmentUrls[attachment.id] = url;
+                this.fileInfos[attachment.id] = fileInfoFrom(attachment);
                 for (const [size, data] of Object.entries(attachment.sizes ?? {})) {
                     if (data?.url) this.attachmentUrls[`${attachment.id}:${size}`] = data.url;
                 }
@@ -280,6 +293,27 @@ document.addEventListener('alpine:init', () => {
             });
 
             frame.open();
+        },
+
+        /**
+         * Name, extension, size and icon of an attachment (File field). Fetched
+         * once through wp.media when the value was saved before this page load.
+         */
+        fileInfo(id) {
+            id = Number(id);
+            if (!id) return {};
+            if (!(id in this.fileInfos)) {
+                this.fileInfos[id] = { name: '…', loading: true };
+                const model = globalThis.wp?.media?.attachment?.(id);
+                if (model) {
+                    model.fetch()
+                        .then(() => { this.fileInfos[id] = fileInfoFrom(model.toJSON()); })
+                        .catch(() => { this.fileInfos[id] = { name: `#${id}`, missing: true }; });
+                } else {
+                    this.fileInfos[id] = { name: `#${id}` };
+                }
+            }
+            return this.fileInfos[id];
         },
 
         /**

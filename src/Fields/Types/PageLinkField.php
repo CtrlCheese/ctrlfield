@@ -12,11 +12,13 @@ use CtrlField\Fields\FieldDefinition;
  * Pick a page (or any post type). Stores post IDs; returns permalinks by
  * default, like ACF's Page Link. ->returnFormat('id') returns the IDs.
  */
-final class PageLinkField extends FieldDefinition implements FieldSanitizerInterface
+final class PageLinkField extends FieldDefinition implements FieldSanitizerInterface, \CtrlField\Fields\Contracts\CollectionConstraintsInterface
 {
     /** @var string[] */
     private array $postTypes = ['page'];
     private bool  $multiple  = false;
+    private ?int  $minItems  = null;
+    private ?int  $maxItems  = null;
 
     public function __construct(string $key)
     {
@@ -40,6 +42,30 @@ final class PageLinkField extends FieldDefinition implements FieldSanitizerInter
     {
         $this->multiple = $multiple;
         return $this;
+    }
+
+    /** At least this many pages (multiple): fewer shows an error, and saving is refused. */
+    public function minItems(int $min): static
+    {
+        $this->minItems = max(0, $min);
+        return $this;
+    }
+
+    /** At most this many pages (multiple): the picker hides at the limit. */
+    public function maxItems(int $max): static
+    {
+        $this->maxItems = max(1, $max);
+        return $this;
+    }
+
+    public function getMinItems(): ?int
+    {
+        return $this->minItems ?: null;
+    }
+
+    public function getMaxItems(): ?int
+    {
+        return $this->multiple ? $this->maxItems : null;
     }
 
     /** @return string[] */
@@ -71,6 +97,8 @@ final class PageLinkField extends FieldDefinition implements FieldSanitizerInter
         return array_merge(parent::getDefinition(), [
             'post_type' => $this->postTypes,
             'multiple'  => $this->multiple,
+            'min_items' => $this->minItems,
+            'max_items' => $this->maxItems,
         ]);
     }
 }
