@@ -38,6 +38,7 @@ final class FieldGroupsServiceProvider extends ServiceProvider
         add_action('admin_enqueue_scripts', [$page, 'enqueueAssets']);
         add_action('admin_post_ctrlfield_save_field_group', [$page, 'handleSave']);
         add_action('admin_post_ctrlfield_delete_field_group', [$page, 'handleDelete']);
+        add_action('admin_post_ctrlfield_save_field_group_php', [$page, 'handleSavePhp']);
     }
 
     public function registerJsonGroups(): void

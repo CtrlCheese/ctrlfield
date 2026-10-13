@@ -665,9 +665,7 @@ final class SchemaInspectorRenderer
         };
         if ($message !== '') {
             // The plugin's own message (not a WP .notice, which core moves above the page title).
-            $close = '<button type="button" class="ctrlf-message__close" @click="$root.remove()" aria-label="' . esc_attr__('Dismiss', 'ctrlfield') . '">'
-                . '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>';
-            echo '<div class="ctrlf-insp-notice" x-data>' . MessageRenderer::box($dry ? 'info' : 'success', esc_html($message), $close) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
+            echo MessageRenderer::dismissible($dry ? 'info' : 'success', esc_html($message)); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped
         }
     }
 

@@ -47,4 +47,14 @@ final class MessageRenderer extends AbstractRenderer
         return '<div class="ctrlf-message ctrlf-message--' . $type . '" role="' . $role . '">' . $icon
             . '<div class="ctrlf-message__body">' . $body . '</div>' . $extra . '</div>';
     }
+
+    /** A box with a close button (needs Alpine on the page), for admin notices. */
+    public static function dismissible(string $type, string $safeHtml): string
+    {
+        $label = function_exists('esc_attr__') ? esc_attr__('Dismiss', 'ctrlfield') : 'Dismiss';
+        $close = '<button type="button" class="ctrlf-message__close" @click="$root.remove()" aria-label="' . $label . '">'
+            . '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>';
+
+        return '<div class="ctrlf-notice" x-data>' . self::box($type, $safeHtml, $close) . '</div>';
+    }
 }
