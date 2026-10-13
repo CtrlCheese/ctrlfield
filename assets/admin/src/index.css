@@ -1274,6 +1274,11 @@ body.ctrlf-is-sorting * {
 
 .ctrlf-message__icon { flex: none; margin-top: 1px; color: var(--ctrlf-msg); }
 .ctrlf-message__body { min-width: 0; > :first-child { margin-top: 0; } > :last-child { margin-bottom: 0; } }
+.ctrlf-message__body { flex: 1; }
+.ctrlf-message__close { flex: none; display: grid; place-items: center; width: 24px; height: 24px; margin: -2px -6px -2px 0; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--ctrlf-muted); cursor: pointer;
+    &:hover, &:focus-visible { background: color-mix(in srgb, var(--ctrlf-msg) 14%, transparent); color: var(--ctrlf-ink); outline: none; }
+}
+.ctrlf-insp-notice { margin: 16px 0; }
 
 /* ── Map: search, results, address, preview, coordinates ─────────────── */
 
