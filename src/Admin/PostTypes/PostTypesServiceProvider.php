@@ -44,6 +44,12 @@ final class PostTypesServiceProvider extends ServiceProvider
         add_action('admin_post_ctrlfield_save_taxonomy', [$page, 'handleSaveTaxonomy']);
         add_action('admin_post_ctrlfield_delete_taxonomy', [$page, 'handleDeleteTaxonomy']);
         add_action('admin_enqueue_scripts', [$page, 'enqueueAssets']);
+
+        // CtrlField → Visual Builder: post type + taxonomies + field group in one go.
+        $wizard = new ContentModelWizard(new PostTypeRepository(), new \CtrlField\Admin\FieldGroups\FieldGroupRepository());
+        add_action('admin_menu', [$wizard, 'registerMenu'], 21);
+        add_action('admin_enqueue_scripts', [$wizard, 'enqueueAssets']);
+        add_action('admin_post_ctrlfield_create_content_model', [$wizard, 'handleCreate']);
     }
 
     public function registerAdminPostTypes(): void

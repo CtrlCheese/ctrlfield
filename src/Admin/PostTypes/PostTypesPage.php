@@ -115,6 +115,7 @@ final class PostTypesPage
         ?>
         <h1 class="wp-heading-inline"><?php esc_html_e('Post Types', 'ctrlfield'); ?></h1>
         <a href="<?php echo esc_url($this->url(['action' => 'new'], $tab)); ?>" class="page-title-action"><?php echo esc_html($isTax ? __('Add New Taxonomy', 'ctrlfield') : __('Add New Post Type', 'ctrlfield')); ?></a>
+        <a href="<?php echo esc_url(add_query_arg(['page' => ContentModelWizard::SLUG], admin_url('admin.php'))); ?>" class="page-title-action"><?php esc_html_e('New Content Model', 'ctrlfield'); ?></a>
         <hr class="wp-header-end">
         <nav class="nav-tab-wrapper ctrlf-types__tabs">
             <a href="<?php echo esc_url($this->url([], 'post_types')); ?>" class="nav-tab<?php echo $isTax ? '' : ' nav-tab-active'; ?>">

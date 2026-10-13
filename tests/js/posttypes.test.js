@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { slugify, keyProblem } from '../../assets/admin/src/posttypes.js';
+import { slugify, keyProblem, groupKeyFor } from '../../assets/admin/src/posttypes.js';
 
 describe('slugify', () => {
     it('makes a key from a name', () => {
@@ -23,4 +23,8 @@ describe('keyProblem', () => {
         expect(keyProblem('year', opts)).toBe('reserved');
         expect(keyProblem('event', opts)).toBe('taken');
     });
+});
+
+describe('groupKeyFor', () => {
+    it('makes a field group key without dashes', () => expect(groupKeyFor('team-member')).toBe('team_member_fields'));
 });

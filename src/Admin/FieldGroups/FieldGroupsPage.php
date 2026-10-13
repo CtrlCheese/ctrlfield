@@ -1015,6 +1015,11 @@ HTML;
                 sanitize_key(wp_unslash((string) $_GET['php_moved'])) . '.php'
             ),
             isset($_GET['deleted'])   => __('Field group deleted.', 'ctrlfield'),
+            isset($_GET['model'])     => sprintf(
+                /* translators: %s: post type key */
+                __('Content model created: the post type "%s", its taxonomies and this field group. Add the fields below and save.', 'ctrlfield'),
+                sanitize_key(wp_unslash((string) $_GET['model']))
+            ),
             default                   => '',
         };
         // phpcs:enable
