@@ -139,6 +139,7 @@ final class PostTypesPage
             $this->taxonomyRows($taxes);
         } else {
             $this->postTypeRows($types);
+            $this->menuFolderSwitch();
         }
     }
 
@@ -217,6 +218,33 @@ final class PostTypesPage
             }
             echo '</ul>';
         }
+    }
+
+    /** The "CPTs" menu folder (CptMenuFolder): on by default, from two post types. */
+    private function menuFolderSwitch(): void
+    {
+        $on = (bool) get_option(CptMenuFolder::OPTION, true);
+        ?>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="ctrlf-types__setting">
+            <input type="hidden" name="action" value="ctrlfield_cpt_menu_folder">
+            <?php wp_nonce_field('ctrlfield_cpt_menu_folder'); ?>
+            <label class="ctrlf-typeform__toggle">
+                <input type="checkbox" name="on" value="1" <?php checked($on); ?> onchange="this.form.submit()">
+                <span>
+                    <strong><?php esc_html_e('Group post types in a "CPTs" menu', 'ctrlfield'); ?></strong>
+                    <span><?php esc_html_e('From two post types on, they share one menu item, sorted alphabetically, with their taxonomies under each — instead of one menu item each. Post types of other plugins keep their own.', 'ctrlfield'); ?></span>
+                </span>
+            </label>
+        </form>
+        <?php
+    }
+
+    public function handleMenuFolder(): void
+    {
+        $this->guard('ctrlfield_cpt_menu_folder');
+        update_option(CptMenuFolder::OPTION, ! empty($_POST['on']) ? 1 : 0, true); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by guard()
+        wp_safe_redirect($this->url([], 'post_types'));
+        exit;
     }
 
     /** @param array<string, TaxonomyDefinition> $defs */

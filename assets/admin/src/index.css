@@ -2908,3 +2908,43 @@ a.ctrlf-insp__card:hover { border-color: var(--ctrlf-accent-strong); }
     .ctrlf-wizard__steps { grid-template-columns: 1fr 1fr; li:nth-child(3) { border-left: 0; } li:nth-child(n+3) { border-top: 1px solid var(--ctrlf-line-soft); } }
     .ctrlf-wizard__tax { grid-template-columns: 1fr 28px; .ctrlf-input, .ctrlf-button-group { grid-column: 1; } .ctrlf-wizard__remove { grid-column: 2; grid-row: 1; } }
 }
+
+/* ── "CPTs" menu folder: setting and overview ───────────────────────── */
+
+.ctrlf-types__setting { margin-top: 20px; border: 1px solid var(--ctrlf-line); background: #fff; .ctrlf-typeform__toggle { border-top: 0; } }
+.ctrlf-cpts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--ctrlf-line);
+    border-left: 1px solid var(--ctrlf-line);
+}
+.ctrlf-cpts__item {
+    margin: 0;
+    border-right: 1px solid var(--ctrlf-line);
+    border-bottom: 1px solid var(--ctrlf-line);
+    background: #fff;
+}
+.ctrlf-cpts__main {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 16px;
+    color: inherit;
+    text-decoration: none;
+
+    strong { display: block; color: var(--ctrlf-ink); font-size: 14px; }
+    &:hover strong, &:focus strong { color: var(--ctrlf-accent-strong); }
+    &:focus-visible { outline: 2px solid var(--ctrlf-accent); outline-offset: -2px; }
+}
+.ctrlf-cpts__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    padding: 0 16px 14px 68px;
+    font-size: 12px;
+
+    a { text-decoration: none; }
+}

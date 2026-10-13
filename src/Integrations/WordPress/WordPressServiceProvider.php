@@ -46,19 +46,30 @@ class WordPressServiceProvider extends ServiceProvider
 
     public function registerCpts(): void
     {
-        foreach (CPT::all() as $cpt) {
+        // Two or more with their own menu: one "CPTs" folder, alphabetically (CptMenuFolder).
+        $folder = \CtrlField\Admin\PostTypes\CptMenuFolder::grouped(CPT::all());
+        $cpts   = CPT::all();
+        $order  = [...array_intersect_key(array_flip($folder), $cpts), ...$cpts];
+
+        foreach (array_keys($order) as $key) {
+            $cpt      = $cpts[$key];
             $singular = $cpt->getSingularLabel() ?: ucfirst($cpt->getPostType());
             $plural   = $cpt->getPluralLabel()   ?: $singular . 's';
+            $inFolder = in_array($cpt->getPostType(), $folder, true);
+            $labels   = self::postTypeLabels($singular, $plural);
+            if ($inFolder) {
+                $labels['all_items'] = $plural; // the folder's sub-menu shows "Projects", not "All Projects"
+            }
 
             register_post_type($cpt->getPostType(), [
-                'labels'              => self::postTypeLabels($singular, $plural),
+                'labels'              => $labels,
                 'description'         => $cpt->getDescription(),
                 'public'              => $cpt->isPublic(),
                 'hierarchical'        => $cpt->isHierarchical(),
                 'exclude_from_search' => $cpt->isExcludeFromSearch(),
                 'publicly_queryable'  => $cpt->isPubliclyQueryable(),
                 'show_ui'             => $cpt->isShowUi(),
-                'show_in_menu'        => $cpt->getShowInMenu(),
+                'show_in_menu'        => $inFolder ? \CtrlField\Admin\PostTypes\CptMenuFolder::SLUG : $cpt->getShowInMenu(),
                 'show_in_nav_menus'   => $cpt->isPublic(),
                 'show_in_admin_bar'   => $cpt->isShowInAdminBar(),
                 'show_in_rest'        => $cpt->isShowInRest(),
