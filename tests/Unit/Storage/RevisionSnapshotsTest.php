@@ -80,6 +80,23 @@ final class RevisionSnapshotsTest extends TestCase
         $this->assertSame(0, $raw['schema_version']); // migrated on read like any old post
     }
 
+    public function test_restoring_rewrites_the_index_rows_and_revisions_get_none(): void
+    {
+        \CtrlField\Registry\FieldRegistry::reset();
+        \CtrlField\Builder\FieldGroup::make('g')->fields([\CtrlField\Fields\Field::text('status')->setIndex(), \CtrlField\Fields\Field::text('title')])->register();
+        $this->adapter->save(10, ['status' => 'draft', 'title' => 'New'], 1, ['status' => 'draft']);
+        $this->adapter->save(11, ['status' => 'live', 'title' => 'Old'], 1);
+
+        $this->revisions->onRevisionCreated(9);
+        $this->assertSame('', $this->driver->get(9, PostMetaAdapter::INDEX_KEY_PREFIX . 'status'));
+
+        $this->revisions->onRevisionRestored(10, 11);
+
+        $this->assertSame('live', $this->driver->get(10, PostMetaAdapter::INDEX_KEY_PREFIX . 'status'));
+        $this->assertSame('', $this->driver->get(10, PostMetaAdapter::INDEX_KEY_PREFIX . 'title'));
+        \CtrlField\Registry\FieldRegistry::reset();
+    }
+
     private function post(int $id, int $parent, string $dateGmt = ''): \WP_Post
     {
         $post                = new \WP_Post();

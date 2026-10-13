@@ -117,8 +117,13 @@ final class ReturnFormatDecorator
         return (array) $value;
     }
 
-    /** @return array<string, mixed>|null */
-    private static function userArray(mixed $id): ?array
+    /**
+     * A user as ACF's user field returns it with return_format 'array' — the
+     * same shape for ctrlfield_get() and get_field(). Null when the user is gone.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function userArray(mixed $id): ?array
     {
         $user = function_exists('get_userdata') ? get_userdata((int) $id) : false;
         if (! is_object($user)) {
@@ -126,14 +131,17 @@ final class ReturnFormatDecorator
         }
 
         return [
-            'ID'             => (int) $user->ID,
-            'display_name'   => (string) ($user->display_name ?? ''),
-            'user_nicename'  => (string) ($user->user_nicename ?? ''),
-            'user_email'     => (string) ($user->user_email ?? ''),
-            'user_url'       => (string) ($user->user_url ?? ''),
-            'user_firstname' => (string) ($user->first_name ?? ''),
-            'user_lastname'  => (string) ($user->last_name ?? ''),
-            'user_avatar'    => function_exists('get_avatar_url') ? (string) get_avatar_url((int) $user->ID) : '',
+            'ID'               => (int) $user->ID,
+            'user_firstname'   => (string) ($user->user_firstname ?? ''),
+            'user_lastname'    => (string) ($user->user_lastname ?? ''),
+            'nickname'         => (string) ($user->nickname ?? ''),
+            'user_nicename'    => (string) ($user->user_nicename ?? ''),
+            'display_name'     => (string) ($user->display_name ?? ''),
+            'user_email'       => (string) ($user->user_email ?? ''),
+            'user_url'         => (string) ($user->user_url ?? ''),
+            'user_registered'  => (string) ($user->user_registered ?? ''),
+            'user_description' => (string) ($user->user_description ?? ''),
+            'user_avatar'      => function_exists('get_avatar') ? (string) get_avatar((int) $user->ID) : '',
         ];
     }
 

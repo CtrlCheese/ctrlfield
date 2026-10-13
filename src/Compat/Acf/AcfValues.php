@@ -440,12 +440,7 @@ final class AcfValues
             return $user;
         }
 
-        return [
-            'ID' => $user->ID, 'user_firstname' => $user->user_firstname, 'user_lastname' => $user->user_lastname,
-            'nickname' => $user->nickname, 'user_nicename' => $user->user_nicename, 'display_name' => $user->display_name,
-            'user_email' => $user->user_email, 'user_url' => $user->user_url, 'user_registered' => $user->user_registered,
-            'user_description' => $user->user_description, 'user_avatar' => get_avatar($user->ID),
-        ];
+        return \CtrlField\Data\ReturnFormatDecorator::userArray($user->ID);
     }
 
     private static function formatDate(string $value, FieldType $type, string $rf): mixed

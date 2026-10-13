@@ -101,7 +101,7 @@ final class TypesGenerator
         $one = match ($rf) {
             'object' => $type === 'user' ? '\\WP_User' : '\\WP_Term',
             'array'  => $type === 'user'
-                ? 'array{ID: int, display_name: string, user_nicename: string, user_email: string, user_url: string, user_firstname: string, user_lastname: string, user_avatar: string}'
+                ? 'array{ID: int, user_firstname: string, user_lastname: string, nickname: string, user_nicename: string, display_name: string, user_email: string, user_url: string, user_registered: string, user_description: string, user_avatar: string}'
                 : 'array{term_id: int, name: string, slug: string, taxonomy: string, description: string, count: int, url: string}',
             default  => 'int',
         };
@@ -165,7 +165,7 @@ final class TypesGenerator
             $type === 'link'                                               => $multiple ? "Array<{$link}>" : ($rf === 'url' ? 'string' : $link . ' | null'),
             $type === 'page_link'                                          => $multiple ? 'string[]' : 'string',
             in_array($type, ['post_object', 'relationship'], true)         => ($multiple || $type === 'relationship') ? 'number[]' : 'number | null',
-            $type === 'user' && $rf === 'array'                            => $multiple ? 'Array<{ ID: number; display_name: string; user_email: string; user_url: string; user_avatar: string }>' : '{ ID: number; display_name: string; user_email: string; user_url: string; user_avatar: string } | null',
+            $type === 'user' && $rf === 'array'                            => $multiple ? 'Array<{ ID: number; user_firstname: string; user_lastname: string; nickname: string; user_nicename: string; display_name: string; user_email: string; user_url: string; user_registered: string; user_description: string; user_avatar: string }>' : '{ ID: number; user_firstname: string; user_lastname: string; nickname: string; user_nicename: string; display_name: string; user_email: string; user_url: string; user_registered: string; user_description: string; user_avatar: string } | null',
             $type === 'taxonomy_term' && $rf === 'array'                   => $multiple ? 'Array<{ term_id: number; name: string; slug: string; taxonomy: string; url: string }>' : '{ term_id: number; name: string; slug: string; taxonomy: string; url: string } | null',
             $type === 'user', $type === 'taxonomy_term'                    => $multiple ? 'number[]' : 'number | null',
             $type === 'map'                                                => '{ lat: number; lng: number; zoom: number; address: string } | null',
