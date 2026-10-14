@@ -7,6 +7,7 @@ namespace CtrlField\Admin\FieldGroups;
 use CtrlField\Admin\MetaBox\MetaBoxServiceProvider;
 use CtrlField\Builder\OptionsPage;
 use CtrlField\Fields\Field;
+use CtrlField\Fields\Renderers\MessageRenderer;
 use CtrlField\Registry\FieldRegistry;
 use CtrlField\Schema\JsonGroup;
 
@@ -43,6 +44,11 @@ final class FieldGroupsPage
 
     public function enqueueAssets(string $hook): void
     {
+        // Every CtrlField page (Inspector, Post Types, Map, License, ACF import…)
+        // gets the stylesheet, so its buttons and links wear the plugin's colour.
+        if (str_contains($hook, 'ctrlfield')) {
+            wp_enqueue_style('ctrlfield-admin', CTRLFIELD_URL . 'assets/admin/ctrlfield.css', [], MetaBoxServiceProvider::assetVersion('ctrlfield.css'));
+        }
         if ($this->hook === '' || $hook !== $this->hook) {
             return;
         }
@@ -153,7 +159,9 @@ final class FieldGroupsPage
                         </div>
                     </td>
                     <td><code><?php echo esc_html($key); ?></code></td>
-                    <td><?php echo esc_html($this->locationSummary($group['location'])); ?></td>
+                    <td><?php echo ! empty($group['library'])
+                        ? '<span class="ctrlf-badge ctrlf-badge--json">' . esc_html__('Library', 'ctrlfield') . '</span> <span class="description">' . esc_html__('reused with Clone', 'ctrlfield') . '</span>'
+                        : esc_html($this->locationSummary($group['location'])); ?></td>
                     <td><?php echo esc_html((string) count($group['fields'])); ?></td>
                     <td><?php echo $group['_source'] === FieldGroupRepository::SOURCE_FILE
                         ? '<code>' . esc_html($key) . '.json</code>'
@@ -203,10 +211,16 @@ final class FieldGroupsPage
         $isNew  = $group === null;
         $flash  = $this->takeErrors();
         $errors = $flash['errors'] ?? [];
+        // "+ New field group for Projects" (Post Types): title and location filled in.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- prefills a new form
+        $for    = $isNew && isset($_GET['for_post_type']) ? sanitize_key(wp_unslash((string) $_GET['for_post_type'])) : '';
+        $forObj = $for !== '' ? get_post_type_object($for) : null;
         $values = $flash['input'] ?? $group ?? [
-            'key' => '', 'title' => '', 'active' => true, 'position' => 'normal', 'style' => 'default',
+            'key' => $for !== '' ? str_replace('-', '_', $for) . '_fields' : '',
+            'title' => $forObj !== null ? (string) $forObj->labels->singular_name : '',
+            'active' => true, 'position' => 'normal', 'style' => 'default',
             'labelPlacement' => 'top', 'fields' => [],
-            'location' => [['key' => 'post_type', 'operator' => '==', 'value' => 'post']],
+            'location' => [['key' => 'post_type', 'operator' => '==', 'value' => $for !== '' ? $for : 'post']],
         ];
         unset($values['_source'], $values['_errors']);
         if ($group !== null && $group['_errors'] !== [] && $errors === []) {
@@ -323,7 +337,13 @@ final class FieldGroupsPage
             </div>
 
             <h2><?php esc_html_e('Location', 'ctrlfield'); ?></h2>
-            <p class="description"><?php esc_html_e('Show this group when all of these rules match.', 'ctrlfield'); ?></p>
+            <fieldset class="ctrlf-fg-where">
+                <label><input type="radio" :value="false" :checked="!group.library" @change="group.library = false; if (!group.location.length) addRule()">
+                    <?php esc_html_e('Show this group where all of these rules match', 'ctrlfield'); ?></label>
+                <label><input type="radio" :value="true" :checked="group.library" @change="group.library = true">
+                    <?php esc_html_e('Nowhere on its own — a library group, reused in other groups with a Clone field', 'ctrlfield'); ?></label>
+            </fieldset>
+            <div x-show="!group.library">
             <table class="widefat" style="max-width:960px;margin-top:8px">
                 <tbody>
                 <template x-for="(rule, index) in group.location" :key="index">
@@ -360,6 +380,7 @@ final class FieldGroupsPage
                 </tbody>
             </table>
             <p><button type="button" class="button" @click="addRule()">+ <?php esc_html_e('Add rule', 'ctrlfield'); ?></button></p>
+            </div>
             <div x-show="group.locationAny.length > 0" class="notice notice-info inline" style="max-width:930px">
                 <p>
                     <?php esc_html_e('Also shown when any of these rules matches (imported from ACF; kept as is, edit them in PHP):', 'ctrlfield'); ?>
@@ -438,6 +459,10 @@ final class FieldGroupsPage
         $row('allowNull', __('Allow empty', 'ctrlfield'), $check('allowNull', __('No choice selected is allowed', 'ctrlfield')));
         $row('default', __('Default value', 'ctrlfield'), $text('default'));
         $row('placeholder', __('Placeholder', 'ctrlfield'), $text('placeholder'));
+        $row('prepend', __('Before the input', 'ctrlfield'), $text('prepend'), __('Fixed text shown before the field, e.g. "R$" or "https://". Not stored.', 'ctrlfield'));
+        $row('append', __('After the input', 'ctrlfield'), $text('append'), __('Fixed text shown after the field, e.g. "%" or "px". Not stored.', 'ctrlfield'));
+        $row('maxLength', __('Character limit', 'ctrlfield'), $text('maxLength', 'number'), __('Shows a counter and stops at the limit. Empty: no limit.', 'ctrlfield'));
+        $row('rows', __('Rows', 'ctrlfield'), $text('rows', 'number'), __('Visible lines. Empty: 5.', 'ctrlfield'));
         $row('min', __('Minimum', 'ctrlfield'), $text('min', 'number'));
         $row('max', __('Maximum', 'ctrlfield'), $text('max', 'number'));
         $row('step', __('Step', 'ctrlfield'), $text('step', 'number'));
@@ -475,6 +500,12 @@ final class FieldGroupsPage
         $row('accordionStyle', __('Accordion style', 'ctrlfield'), $select('accordionStyle', [
             'horizontal' => __('Horizontal — panels side by side', 'ctrlfield'), 'side' => __('Side — titles on the left', 'ctrlfield'),
         ]), __('Empty: Stacked. Consecutive accordions follow the first one; horizontal and side keep one open at a time.', 'ctrlfield'));
+        $row('themePalette', __('Palette', 'ctrlfield'), $check('themePalette', __("Offer the theme's colours (theme.json)", 'ctrlfield')));
+        $row('enableAlpha', __('Transparency', 'ctrlfield'), $check('enableAlpha', __('Allow transparent colours', 'ctrlfield')));
+        $row('horizontal', __('Direction', 'ctrlfield'), $check('horizontal', __('Side by side (instead of one per line)', 'ctrlfield')));
+        $row('cards', __('Cards', 'ctrlfield'), $check('cards', __('A framed box per choice', 'ctrlfield')), __('Good for a few short options.', 'ctrlfield'));
+        $row('toggleAll', __('Select all', 'ctrlfield'), $check('toggleAll', __('Show a "Select all" choice', 'ctrlfield')));
+        $row('searchable', __('Search', 'ctrlfield'), $check('searchable', __('Always show the search box', 'ctrlfield')), __('Lists with 8 or more options get it anyway.', 'ctrlfield'));
         $row('appearance', __('Appearance', 'ctrlfield'), $select('appearance', [
             'select' => __('Dropdown', 'ctrlfield'), 'checkbox' => __('Checkboxes', 'ctrlfield'), 'radio' => __('Radio buttons', 'ctrlfield'),
         ]));
@@ -493,11 +524,22 @@ final class FieldGroupsPage
             'html' => 'HTML', 'css' => 'CSS', 'javascript' => 'JavaScript', 'php' => 'PHP', 'json' => 'JSON',
         ]));
         $row('layouts', __('Layouts', 'ctrlfield'), $this->layoutsEditor(), __('Each layout is one kind of section, with its own fields. Editors pick them with "+ Add".', 'ctrlfield'));
+        // Only library groups (no location rules) can be cloned.
         $groupChoices = [];
         foreach (FieldRegistry::all() as $gk => $g) {
-            $groupChoices[$gk] = ($g->getTitle() !== '' ? $g->getTitle() : $gk) . ' (' . $gk . ')';
+            if (JsonGroup::isLibrary($g)) {
+                $groupChoices[$gk] = ($g->getTitle() !== '' ? $g->getTitle() : $gk) . ' (' . $gk . ')';
+            }
         }
-        $row('cloneFrom', __('Clone from', 'ctrlfield'), $select('cloneFrom', $groupChoices), __('The fields of this group are inserted here. The group should have no location rules of its own (a library group).', 'ctrlfield'));
+        foreach ($this->repo->all() as $gk => $g) {
+            if (! empty($g['library']) && ! isset($groupChoices[$gk])) {
+                $groupChoices[$gk] = ($g['title'] !== '' ? $g['title'] : $gk) . ' (' . $gk . ')';
+            }
+        }
+        $row('cloneFrom', __('Clone from', 'ctrlfield'), $groupChoices !== []
+            ? $select('cloneFrom', $groupChoices)
+            : '<p class="description">' . esc_html__('No library group yet: create a field group with Location "Nowhere on its own — a library group".', 'ctrlfield') . '</p>',
+            __('A library group: its fields are inserted here.', 'ctrlfield'));
         $row('clonePrefix', __('Key prefix', 'ctrlfield'), $text('clonePrefix'), __('Prepended to every cloned key. Empty: this field\'s key.', 'ctrlfield'));
         $row('cloneDisplay', __('Display', 'ctrlfield'), $select('cloneDisplay', [
             'seamless' => __('Seamless (the fields appear inline)', 'ctrlfield'),
@@ -612,12 +654,83 @@ HTML;
     /** @param array<string, mixed> $group */
     private function renderCode(array $group): void
     {
+        $key     = (string) $group['key'];
+        $writer  = new PhpFileWriter();
+        $problem = $writer->problem();
+        $path    = $writer->path($key);
+        $exists  = $writer->exists($key);
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- display of an action's result
+        $error   = isset($_GET['php_error']) ? sanitize_key(wp_unslash((string) $_GET['php_error'])) : '';
+        $saved   = isset($_GET['php_saved']);
+        // phpcs:enable
         ?>
         <h1><?php echo esc_html(sprintf(__('Export PHP: %s', 'ctrlfield'), $group['title'])); ?></h1>
         <p><a href="<?php echo esc_url($this->url()); ?>">&larr; <?php esc_html_e('All field groups', 'ctrlfield'); ?></a></p>
-        <p class="description"><?php esc_html_e('Save this code as a PHP file in your schema folder, then delete the group here: groups defined in code take precedence.', 'ctrlfield'); ?></p>
-        <textarea class="large-text code" rows="24" readonly onclick="this.select()"><?php echo esc_textarea(JsonGroup::toPhp($group)); ?></textarea>
         <?php
+        if ($saved) {
+            $text = sprintf(
+                /* translators: %s: file path */
+                __('Saved as %s. Groups defined in code take precedence, so this JSON group is no longer used — delete it when you are done.', 'ctrlfield'),
+                $path !== null ? $this->relativePath($path) : $key . '.php'
+            );
+            echo MessageRenderer::box('success', esc_html($text)); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped
+        } elseif ($error !== '' && $error !== PhpFileWriter::ERR_EXISTS) {
+            echo MessageRenderer::box('error', esc_html($this->phpProblemText($error))); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped
+        }
+        ?>
+        <div class="ctrlf-php-export" x-data="{ copied: false }">
+            <div class="ctrlf-php-export__bar">
+                <strong><?php echo esc_html($key . '.php'); ?></strong>
+                <button type="button" class="button button-small" @click="navigator.clipboard.writeText($root.querySelector('code').textContent); copied = true; setTimeout(() => copied = false, 1500)">
+                    <span x-text="copied ? <?php echo esc_attr((string) wp_json_encode(__('Copied', 'ctrlfield'))); ?> : <?php echo esc_attr((string) wp_json_encode(__('Copy', 'ctrlfield'))); ?>"><?php esc_html_e('Copy', 'ctrlfield'); ?></span>
+                </button>
+            </div>
+            <pre><code><?php echo esc_html(JsonGroup::toPhp($group)); ?></code></pre>
+        </div>
+
+        <div class="ctrlf-php-save">
+            <h2><?php esc_html_e('Save as PHP file', 'ctrlfield'); ?></h2>
+            <?php if ($problem !== null): ?>
+                <?php echo MessageRenderer::box('info', esc_html($this->phpProblemText($problem))); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped ?>
+            <?php else: ?>
+                <p class="description"><?php echo esc_html(sprintf(
+                    /* translators: %s: schema folder */
+                    __('Writes the code above into the schema folder (%s), which is loaded before JSON groups: the file takes over this group. Values already saved in posts stay, since the keys are the same.', 'ctrlfield'),
+                    $this->relativePath((string) $writer->directory())
+                )); ?></p>
+                <?php if ($exists): ?>
+                    <?php
+                    $text = sprintf(
+                        /* translators: %s: file path */
+                        __('%s already exists. Saving replaces it — changes made to that file by hand are lost.', 'ctrlfield'),
+                        $this->relativePath((string) $path)
+                    );
+                    echo MessageRenderer::box('warning', esc_html($text)); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped
+                    ?>
+                <?php endif; ?>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"
+                    <?php if ($exists): ?>onsubmit="return confirm(<?php echo esc_attr((string) wp_json_encode(__('Replace the existing file?', 'ctrlfield'))); ?>)"<?php endif; ?>>
+                    <input type="hidden" name="action" value="ctrlfield_save_field_group_php">
+                    <input type="hidden" name="<?php echo esc_attr(self::ARG); ?>" value="<?php echo esc_attr($key); ?>">
+                    <?php if ($exists): ?><input type="hidden" name="overwrite" value="1"><?php endif; ?>
+                    <?php wp_nonce_field('ctrlfield_save_field_group_php_' . $key); ?>
+                    <p><label><input type="checkbox" name="remove_json" value="1" checked> <?php esc_html_e('Then delete this JSON group (the file replaces it)', 'ctrlfield'); ?></label></p>
+                    <p><button type="submit" class="button button-primary"><?php echo esc_html($exists ? __('Replace PHP file', 'ctrlfield') : __('Save as PHP file', 'ctrlfield')); ?></button></p>
+                </form>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    private function phpProblemText(string $code): string
+    {
+        return match ($code) {
+            PhpFileWriter::ERR_DISABLED     => __('File changes are turned off on this site (DISALLOW_FILE_MODS). Copy the code into your schema folder instead.', 'ctrlfield'),
+            PhpFileWriter::ERR_NO_FOLDER    => __('No schema folder is set up. Define CTRLFIELD_SCHEMA_PATH in wp-config.php (or add a folder with the ctrlfield/schema_paths filter) to save groups as PHP files.', 'ctrlfield'),
+            PhpFileWriter::ERR_NOT_WRITABLE => __('The schema folder is not writable by WordPress. Copy the code into it instead.', 'ctrlfield'),
+            PhpFileWriter::ERR_INVALID      => __('The generated code could not be checked, so it was not written.', 'ctrlfield'),
+            default                         => __('The file could not be written.', 'ctrlfield'),
+        };
     }
 
     // -------------------------------------------------------------------------
@@ -637,6 +750,17 @@ HTML;
 
         [$group, $errors] = JsonGroup::normalize(is_array($raw) ? $raw : []);
         $key = (string) $group['key'];
+
+        // Clone fields must point at an existing library group (registered, or saved here as one).
+        if ($errors === []) {
+            $saved  = $this->repo->all();
+            $errors = array_values(JsonGroup::cloneProblems($group, static function (string $source) use ($saved): ?\CtrlField\Builder\FieldGroup {
+                if (isset($saved[$source]) && ! empty($saved[$source]['library'])) {
+                    return \CtrlField\Builder\FieldGroup::make($source); // a library group made here
+                }
+                return FieldRegistry::has($source) ? FieldRegistry::get($source) : null;
+            }));
+        }
 
         if ($errors === [] && $key !== $previousKey) {
             if ($this->repo->get($key) !== null) {
@@ -662,6 +786,36 @@ HTML;
             self::ARG => $key,
             'saved'   => $where,
         ]));
+        exit;
+    }
+
+    public function handleSavePhp(): void
+    {
+        if (! current_user_can(self::CAP)) {
+            wp_die(esc_html__('You do not have permission to do this.', 'ctrlfield'), 403);
+        }
+        $key = sanitize_key(wp_unslash((string) ($_POST[self::ARG] ?? '')));
+        check_admin_referer('ctrlfield_save_field_group_php_' . $key);
+
+        $group = $this->repo->get($key);
+        if ($group === null) {
+            wp_safe_redirect($this->url());
+            exit;
+        }
+
+        try {
+            $path = (new PhpFileWriter())->write($key, JsonGroup::toPhp($group), ! empty($_POST['overwrite']));
+        } catch (\RuntimeException $e) {
+            wp_safe_redirect($this->url(['action' => 'code', self::ARG => $key, 'php_error' => $e->getMessage()]));
+            exit;
+        }
+
+        if (! empty($_POST['remove_json'])) {
+            $this->repo->delete($key);
+            wp_safe_redirect($this->url(['php_moved' => $key]));
+            exit;
+        }
+        wp_safe_redirect($this->url(['action' => 'code', self::ARG => $key, 'php_saved' => 1]));
         exit;
     }
 
@@ -887,14 +1041,30 @@ HTML;
 
     private function renderNotice(): void
     {
-        if (isset($_GET['saved'])) {
-            $msg = $_GET['saved'] === FieldGroupRepository::SOURCE_OPTION
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- display of an action's result
+        $text = match (true) {
+            isset($_GET['saved'])     => $_GET['saved'] === FieldGroupRepository::SOURCE_OPTION
                 ? __('Field group saved in the database (the JSON folder is not writable).', 'ctrlfield')
-                : __('Field group saved.', 'ctrlfield');
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($msg) . '</p></div>';
-        } elseif (isset($_GET['deleted'])) {
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Field group deleted.', 'ctrlfield') . '</p></div>';
+                : __('Field group saved.', 'ctrlfield'),
+            isset($_GET['php_moved']) => sprintf(
+                /* translators: %s: file name */
+                __('Saved as %s in the schema folder; the JSON group was deleted. The group is now defined in code.', 'ctrlfield'),
+                sanitize_key(wp_unslash((string) $_GET['php_moved'])) . '.php'
+            ),
+            isset($_GET['deleted'])   => __('Field group deleted.', 'ctrlfield'),
+            isset($_GET['model'])     => sprintf(
+                /* translators: %s: post type key */
+                __('Content model created: the post type "%s", its taxonomies and this field group. Add the fields below and save.', 'ctrlfield'),
+                sanitize_key(wp_unslash((string) $_GET['model']))
+            ),
+            default                   => '',
+        };
+        // phpcs:enable
+        if ($text === '') {
+            return;
         }
+        // The plugin's own message (a WP .notice would be moved above the page title).
+        echo MessageRenderer::dismissible('success', esc_html($text)); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped
     }
 
     /** @return array{errors?: list<string>, input?: array<string, mixed>} */

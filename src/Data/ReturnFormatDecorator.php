@@ -64,7 +64,7 @@ final class ReturnFormatDecorator
         return (string) $value;
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, mixed>|list<array<string, mixed>> */
     private static function toArray(mixed $value, FieldType $type): array
     {
         if ($type === FieldType::IMAGE) {
@@ -104,7 +104,65 @@ final class ReturnFormatDecorator
             ];
         }
 
+        // USER / TAXONOMY_TERM store an ID (or a list with ->multiple()):
+        // the ACF-like array of each one; ones that no longer exist drop out.
+        if ($type === FieldType::USER || $type === FieldType::TAXONOMY_TERM) {
+            $one = $type === FieldType::USER ? self::userArray(...) : self::termArray(...);
+            if (is_array($value)) {
+                return array_values(array_filter(array_map($one, $value)));
+            }
+            return $one($value) ?? [];
+        }
+
         return (array) $value;
+    }
+
+    /**
+     * A user as ACF's user field returns it with return_format 'array' — the
+     * same shape for ctrlfield_get() and get_field(). Null when the user is gone.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function userArray(mixed $id): ?array
+    {
+        $user = function_exists('get_userdata') ? get_userdata((int) $id) : false;
+        if (! is_object($user)) {
+            return null;
+        }
+
+        return [
+            'ID'               => (int) $user->ID,
+            'user_firstname'   => (string) ($user->user_firstname ?? ''),
+            'user_lastname'    => (string) ($user->user_lastname ?? ''),
+            'nickname'         => (string) ($user->nickname ?? ''),
+            'user_nicename'    => (string) ($user->user_nicename ?? ''),
+            'display_name'     => (string) ($user->display_name ?? ''),
+            'user_email'       => (string) ($user->user_email ?? ''),
+            'user_url'         => (string) ($user->user_url ?? ''),
+            'user_registered'  => (string) ($user->user_registered ?? ''),
+            'user_description' => (string) ($user->user_description ?? ''),
+            'user_avatar'      => function_exists('get_avatar') ? (string) get_avatar((int) $user->ID) : '',
+        ];
+    }
+
+    /** @return array<string, mixed>|null */
+    private static function termArray(mixed $id): ?array
+    {
+        $term = function_exists('get_term') ? get_term((int) $id) : null;
+        if (! $term instanceof \WP_Term) {
+            return null;
+        }
+        $link = function_exists('get_term_link') ? get_term_link($term) : '';
+
+        return [
+            'term_id'     => (int) $term->term_id,
+            'name'        => (string) $term->name,
+            'slug'        => (string) $term->slug,
+            'taxonomy'    => (string) $term->taxonomy,
+            'description' => $term->description,
+            'count'       => $term->count,
+            'url'         => is_string($link) ? $link : '',
+        ];
     }
 
     private static function toObject(mixed $value, FieldType $type): mixed
@@ -131,6 +189,16 @@ final class ReturnFormatDecorator
                     array_map(static fn(mixed $id) => get_post((int) $id), $ids),
                 )
             );
+        }
+
+        if ($type === FieldType::USER || $type === FieldType::TAXONOMY_TERM) {
+            $one = $type === FieldType::USER
+                ? static fn (mixed $id): mixed => function_exists('get_userdata') ? (get_userdata((int) $id) ?: null) : null
+                : static function (mixed $id): mixed {
+                    $term = function_exists('get_term') ? get_term((int) $id) : null;
+                    return is_object($term) && ! (function_exists('is_wp_error') && is_wp_error($term)) ? $term : null;
+                };
+            return is_array($value) ? array_values(array_filter(array_map($one, $value))) : $one($value);
         }
 
         return $value;

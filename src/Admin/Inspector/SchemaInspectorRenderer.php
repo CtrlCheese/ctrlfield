@@ -4,345 +4,712 @@ declare(strict_types=1);
 
 namespace CtrlField\Admin\Inspector;
 
+use CtrlField\Admin\FieldGroups\FieldGroupsPage;
+use CtrlField\Admin\FieldGroups\FieldGroupsServiceProvider;
 use CtrlField\Builder\FieldGroup;
-use CtrlField\Core\Migration\SchemaVersion;
-use CtrlField\Data\CsvExporter;
-use CtrlField\Data\CsvImporter;
+use CtrlField\Components\ComponentRegistry;
+use CtrlField\Data\FieldDataService;
+use CtrlField\Fields\Renderers\MessageRenderer;
+use CtrlField\Storage\PostMetaAdapter;
+use CtrlField\Storage\Drivers\WpPostMetaDriver;
 use CtrlField\Registry\FieldRegistry;
+use CtrlField\Schema\SchemaErrors;
 
 /**
- * Renders the Schema Inspector admin page.
- * 100% read-only — no forms, no save actions.
- * Excluded from PHPStan — references WP global $wpdb and WP functions.
+ * The Schema Inspector page: what is registered, where it shows, how much it
+ * is used, and what is wrong with it.
+ *
+ *   Overview       summary, search / filters, one card per group with its whole field tree,
+ *                  how often each field is filled in, and PHP / TypeScript types for templates
+ *   Post values    one post's stored values next to what ctrlfield_get() returns
+ *   Components     what ComponentRegistry discovered, and the posts using each one
+ *   Health         problems of the schema and of the stored data, with their fixes
+ *   Import/Export  CSV per post type
+ *
+ * Excluded from PHPStan — WP admin functions and $wpdb (through InspectorData).
  */
 final class SchemaInspectorRenderer
 {
+    private const TABS = ['overview', 'values', 'components', 'health', 'io'];
+
+    /** @var array<string, FieldGroup> */
+    private array $groups;
+
+    private SchemaAnalyzer $analyzer;
+
+    private InspectorData $data;
+
+    /** @var array<string, array{total: int, keys: array<string, int>}> post type => usage, read once */
+    private array $usage = [];
+
+    public function __construct()
+    {
+        $this->groups   = FieldRegistry::all();
+        $acf            = class_exists(\CtrlField\Compat\Acf\AcfApi::class) ? \CtrlField\Compat\Acf\AcfApi::registeredKeys() : [];
+        $this->analyzer = new SchemaAnalyzer($this->groups, FieldGroupsServiceProvider::registered(), $acf);
+        $this->data     = new InspectorData();
+    }
+
     public function render(): void
     {
-        $groups       = FieldRegistry::all();
-        $totalMismatch = 0;
+        $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash((string) $_GET['tab'])) : 'overview'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which tab to show
+        $tab = in_array($tab, self::TABS, true) ? $tab : 'overview';
 
-        echo '<div class="wrap">';
-        echo '<h1>CtrlField — Schema Inspector</h1>';
+        $issues   = $this->analyzer->issues();
+        $schema   = SchemaErrors::all();
+        $stale    = $this->data->stalePosts();
+        $orphans  = $this->data->orphans($this->groups);
+        $problems = count($schema) + count(array_filter($issues, static fn (array $i): bool => $i['level'] !== 'info'))
+            + ($stale !== [] ? 1 : 0) + count($orphans);
 
-        if (empty($groups)) {
-            echo '<p>No field groups registered. Define groups in PHP and include them via <code>SchemaLoader</code> or your theme\'s <code>functions.php</code>.</p>';
-            echo '</div>';
-            return;
-        }
+        echo '<div class="wrap ctrlf-insp">';
+        echo '<h1 class="wp-heading-inline">' . esc_html__('Schema Inspector', 'ctrlfield') . '</h1>';
+        echo '<p class="ctrlf-insp__lead">' . esc_html__('Every field group CtrlField knows, where it shows, how much it is used — and what needs attention.', 'ctrlfield') . '</p>';
 
-        // Gather mismatch data for the global banner
-        $groupData = [];
-        foreach ($groups as $key => $group) {
-            $data = $this->analyzeGroup($group);
-            $groupData[$key] = $data;
-            $totalMismatch += $data['mismatch_count'];
-        }
-
-        // Version mismatch banner
-        if ($totalMismatch > 0) {
+        $labels = [
+            'overview'   => __('Overview', 'ctrlfield'),
+            'values'     => __('Post values', 'ctrlfield'),
+            'components' => __('Components', 'ctrlfield'),
+            /* translators: %d: number of problems */
+            'health'   => $problems > 0 ? sprintf(__('Health (%d)', 'ctrlfield'), $problems) : __('Health', 'ctrlfield'),
+            'io'       => __('Import / Export', 'ctrlfield'),
+        ];
+        echo '<nav class="nav-tab-wrapper ctrlf-insp__tabs">';
+        foreach ($labels as $key => $label) {
             printf(
-                '<div class="notice notice-warning"><p><strong>⚠ %d post%s with schema_version mismatch detected.</strong> Run <code>wp ctrlfield migrate</code> to update.</p></div>',
-                $totalMismatch,
-                $totalMismatch === 1 ? '' : 's',
+                '<a href="%s" class="nav-tab%s%s">%s</a>',
+                esc_url(add_query_arg(['page' => 'ctrlfield', 'tab' => $key], admin_url('admin.php'))),
+                $key === $tab ? ' nav-tab-active' : '',
+                $key === 'health' && $problems > 0 ? ' ctrlf-insp__tab--alert' : '',
+                esc_html($label)
             );
         }
+        echo '</nav>';
 
-        // Field Groups table
-        $this->renderCsvAjaxHandler();
+        match ($tab) {
+            'health'     => $this->health($issues, $schema, $stale, $orphans),
+            'io'         => $this->importExport(),
+            'values'     => $this->values(),
+            'components' => $this->components($schema),
+            default  => $this->overview($problems),
+        };
 
-        echo '<table class="wp-list-table widefat fixed striped" style="margin-top:16px">';
-        echo '<thead><tr>';
-        echo '<th>Group Key</th><th>Title</th><th>Context</th><th>Fields</th><th>Coverage</th><th>Version Status</th><th>CSV</th>';
-        echo '</tr></thead><tbody>';
-
-        foreach ($groups as $key => $group) {
-            $data = $groupData[$key];
-            $this->renderGroupRow($key, $group, $data);
-        }
-
-        echo '</tbody></table>';
         echo '</div>';
     }
 
-    // -------------------------------------------------------------------------
+    // ── Overview ─────────────────────────────────────────────────────────────
 
-    /** @return array{post_type: ?string, coverage: string, mismatch_count: int, mismatch_display: string} */
-    private function analyzeGroup(FieldGroup $group): array
+    private function overview(int $problems): void
     {
-        $postType = null;
-        foreach ($group->getAndConditions() as $condition) {
-            if ($condition['key'] === 'post_type' && $condition['operator'] === '==') {
-                $postType = (string) $condition['value'];
-                break;
-            }
+        $fieldCount = 0;
+        $trees      = [];
+        foreach ($this->groups as $key => $group) {
+            $trees[$key] = SchemaAnalyzer::tree(array_values($group->getFields()));
+            $fieldCount += SchemaAnalyzer::count($trees[$key]);
         }
 
-        $coverage       = '—';
-        $mismatchCount  = 0;
-        $mismatchDisplay = '✓ Current';
-
-        if ($postType !== null) {
-            $coverage = $this->queryCoverage($postType);
-            [$mismatchCount, $mismatchDisplay] = $this->queryVersionMismatch($postType);
-        } elseif ($this->groupIsOptionsPage($group)) {
-            $coverage = '— (options page)';
-        }
-
-        return [
-            'post_type'        => $postType,
-            'coverage'         => $coverage,
-            'mismatch_count'   => $mismatchCount,
-            'mismatch_display' => $mismatchDisplay,
+        $healthUrl = esc_url(add_query_arg(['page' => 'ctrlfield', 'tab' => 'health'], admin_url('admin.php')));
+        $cards     = [
+            [__('Field groups', 'ctrlfield'), count($this->groups), '', false],
+            [__('Fields', 'ctrlfield'), $fieldCount, __('sub-fields and layouts included', 'ctrlfield'), false],
+            [__('Posts with data', 'ctrlfield'), $this->data->postsWithData(), '', false],
+            [__('Problems', 'ctrlfield'), $problems, $problems > 0 ? __('see Health', 'ctrlfield') : __('nothing to fix', 'ctrlfield'), true],
         ];
+        echo '<div class="ctrlf-insp__cards">';
+        foreach ($cards as [$label, $value, $note, $isProblems]) {
+            $inner = '<span class="ctrlf-insp__card-value">' . esc_html(number_format_i18n((int) $value)) . '</span>'
+                . '<span class="ctrlf-insp__card-label">' . esc_html($label) . '</span>'
+                . ($note !== '' ? '<span class="ctrlf-insp__card-note">' . esc_html($note) . '</span>' : '');
+            echo $isProblems
+                ? '<a href="' . $healthUrl . '" class="ctrlf-insp__card' . ($value > 0 ? ' is-alert' : ' is-ok') . '">' . $inner . '</a>' // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
+                : '<div class="ctrlf-insp__card">' . $inner . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
+        }
+        echo '</div>';
+
+        if ($this->groups === []) {
+            echo '<p class="ctrlf-insp__empty">' . esc_html__('No field groups yet. Create one in Field Groups, or define them in PHP.', 'ctrlfield') . '</p>';
+            return;
+        }
+
+        $sources = ['code' => __('Code (PHP)', 'ctrlfield'), 'json' => __('Field Groups (JSON)', 'ctrlfield'), 'acf' => __('ACF', 'ctrlfield'), 'block' => __('Global blocks', 'ctrlfield')];
+        $places  = ['post' => __('Posts and pages', 'ctrlfield'), 'options' => __('Options pages', 'ctrlfield'), 'term' => __('Terms', 'ctrlfield'), 'user' => __('Users', 'ctrlfield'), 'comment' => __('Comments', 'ctrlfield'), 'other' => __('Other', 'ctrlfield')];
+
+        echo '<div class="ctrlf-insp__list" x-data="{ q: \'\', source: \'\', place: \'\', shown(el) { const q = this.q.trim().toLowerCase(); return (!q || el.dataset.search.includes(q)) && (!this.source || el.dataset.source === this.source) && (!this.place || el.dataset.place === this.place); } }">';
+        echo '<div class="ctrlf-insp__filters">';
+        printf('<input type="search" class="ctrlf-input" x-model="q" placeholder="%1$s" aria-label="%1$s">', esc_attr__('Search groups and fields (key or label)…', 'ctrlfield'));
+        $this->select('source', __('All origins', 'ctrlfield'), $sources);
+        $this->select('place', __('All places', 'ctrlfield'), $places);
+        echo '</div>';
+
+        foreach ($this->groups as $key => $group) {
+            $this->groupCard((string) $key, $group, $trees[$key], $sources, $places);
+        }
+        echo '<p class="ctrlf-insp__empty" x-show="![...$el.parentElement.querySelectorAll(\'.ctrlf-insp-group\')].some((g) => shown(g))">' . esc_html__('No group matches.', 'ctrlfield') . '</p>';
+        echo '</div>';
     }
 
-    private function renderGroupRow(string $key, FieldGroup $group, array $data): void
+    /** @param array<string, string> $choices */
+    private function select(string $model, string $all, array $choices): void
     {
-        $context    = $this->buildContextLabel($group);
-        $fieldCount = count($group->getFields());
-        $postType   = $data['post_type'];
-
-        $csvCell = '—';
-        if ($postType !== null) {
-            $exportUrl = add_query_arg([
-                'page'          => 'ctrlfield-inspector',
-                'action'        => 'ctrlfield_export_csv',
-                'group'         => $key,
-                '_ctrlfield_nonce' => wp_create_nonce('ctrlfield_csv_export_' . $key),
-            ], admin_url('admin.php'));
-
-            $csvCell = sprintf(
-                '<a href="%s" class="button button-small">Export CSV</a>'
-                . ' <label class="button button-small" style="cursor:pointer;margin:0">'
-                . 'Import CSV'
-                . '<input type="file" accept=".csv" style="display:none" data-ctrlf-group="%s" data-ctrlf-nonce="%s">'
-                . '</label>',
-                esc_url($exportUrl),
-                esc_attr($key),
-                esc_attr((string) wp_create_nonce('ctrlfield_csv_import_' . $key)),
-            );
+        echo '<select class="ctrlf-input" x-model="' . esc_attr($model) . '"><option value="">' . esc_html($all) . '</option>';
+        foreach ($choices as $value => $label) {
+            echo '<option value="' . esc_attr($value) . '">' . esc_html($label) . '</option>';
         }
+        echo '</select>';
+    }
+
+    /**
+     * @param list<array<string, mixed>> $tree
+     * @param array<string, string>      $sources
+     * @param array<string, string>      $places
+     */
+    private function groupCard(string $key, FieldGroup $group, array $tree, array $sources, array $places): void
+    {
+        $source = $this->analyzer->source($key, $group);
+        $place  = SchemaAnalyzer::place($group);
+        $types  = SchemaAnalyzer::postTypes($group);
+        $count  = SchemaAnalyzer::count($tree);
+        $search = strtolower($key . ' ' . $group->getTitle() . ' ' . $this->searchText($tree));
+        $where  = SchemaAnalyzer::where($group, static function (string $type): string {
+            $object = get_post_type_object($type);
+            return $object !== null ? (string) $object->labels->singular_name : $type;
+        });
 
         printf(
-            '<tr><td><code>%s</code></td><td>%s</td><td>%s</td><td>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>',
-            esc_html($key),
-            esc_html($group->getTitle() ?: '—'),
-            esc_html($context),
-            $fieldCount,
-            esc_html($data['coverage']),
-            esc_html($data['mismatch_display']),
-            $csvCell,
+            '<details class="ctrlf-insp-group" data-search="%s" data-source="%s" data-place="%s" x-show="shown($el)">',
+            esc_attr($search),
+            esc_attr($source),
+            esc_attr($place)
+        );
+        echo '<summary class="ctrlf-insp-group__head">';
+        echo '<span class="ctrlf-insp-group__title"><strong>' . esc_html($group->getTitle() !== '' ? $group->getTitle() : $key) . '</strong>'
+            . ' <code>' . esc_html($key) . '</code></span>';
+        echo '<span class="ctrlf-insp-group__meta">'
+            . '<span class="ctrlf-badge ctrlf-badge--' . esc_attr($source) . '">' . esc_html($sources[$source] ?? $source) . '</span>'
+            . '<span class="ctrlf-badge">' . esc_html($places[$place] ?? $place) . '</span>'
+            /* translators: %d: number of fields */
+            . '<span class="ctrlf-insp-group__count">' . esc_html(sprintf(_n('%d field', '%d fields', $count, 'ctrlfield'), $count)) . '</span>'
+            . '</span>';
+        echo '<span class="ctrlf-insp-group__where">' . esc_html($where) . '</span>';
+
+        // Coverage: posts of each type that have CtrlField data.
+        foreach ($types as $type) {
+            [$with, $total] = $this->data->coverage($type);
+            $pct    = $total > 0 ? (int) round($with / $total * 100) : 0;
+            $object = get_post_type_object($type);
+            printf(
+                '<span class="ctrlf-insp-cover" title="%4$s"><span class="ctrlf-insp-cover__label">%1$s</span><span class="ctrlf-insp-cover__bar"><span style="width:%2$d%%"></span></span><span class="ctrlf-insp-cover__value">%3$s</span></span>',
+                esc_html($object !== null ? (string) $object->labels->name : $type),
+                (int) $pct,
+                esc_html(sprintf('%d / %d', $with, $total)),
+                /* translators: 1: posts with data, 2: published posts, 3: post type */
+                esc_attr(sprintf(__('%1$d of %2$d published %3$s have CtrlField data', 'ctrlfield'), $with, $total, $type))
+            );
+        }
+        echo '</summary>';
+
+        $usage = null;
+        foreach ($types as $type) {
+            $this->usage[$type] ??= $this->data->usage($type);
+            $usage ??= ['total' => 0, 'keys' => []];
+            $usage['total'] += $this->usage[$type]['total'];
+            foreach ($this->usage[$type]['keys'] as $k => $n) {
+                $usage['keys'][$k] = ($usage['keys'][$k] ?? 0) + $n;
+            }
+        }
+
+        echo '<div class="ctrlf-insp-group__body" x-data="{ types: false, lang: \'php\' }"><p class="ctrlf-insp-group__actions">';
+        if ($source === 'json') {
+            printf('<a class="button button-small" href="%s">%s</a> ', esc_url($this->fieldGroupsUrl(['action' => 'edit', 'group' => $key])), esc_html__('Edit', 'ctrlfield'));
+            printf('<a class="button button-small" href="%s">%s</a> ', esc_url($this->fieldGroupsUrl(['action' => 'code', 'group' => $key])), esc_html__('Export PHP', 'ctrlfield'));
+        }
+        printf('<a class="button button-small" href="%s">%s</a> ', esc_url($this->fieldGroupsUrl(['action' => 'usage', 'group' => $key])), esc_html__('Template code', 'ctrlfield'));
+        printf('<button type="button" class="button button-small" :class="{ \'is-active\': types }" :aria-expanded="types" @click="types = !types">%s</button>', esc_html__('Types (PHP / TypeScript)', 'ctrlfield'));
+        echo '</p>';
+        $this->typesPanel($group);
+
+        echo '<table class="ctrlf-insp-fields"><thead><tr>'
+            . '<th>' . esc_html__('Field', 'ctrlfield') . '</th>'
+            . '<th>' . esc_html__('Key', 'ctrlfield') . '</th>'
+            . '<th>' . esc_html__('Type', 'ctrlfield') . '</th>'
+            . '<th>' . esc_html__('Settings', 'ctrlfield') . '</th>'
+            . ($usage !== null ? '<th title="' . esc_attr__('Posts with data where the field has a value', 'ctrlfield') . '">' . esc_html__('Filled', 'ctrlfield') . '</th>' : '')
+            . '</tr></thead><tbody>';
+        $this->rows($tree, 0, $usage);
+        echo '</tbody></table></div></details>';
+    }
+
+    /**
+     * @param list<array<string, mixed>>                          $tree
+     * @param array{total: int, keys: array<string, int>}|null $usage top-level fields only
+     */
+    private function rows(array $tree, int $depth, ?array $usage = null): void
+    {
+        $copy = esc_attr__('Copy the key', 'ctrlfield');
+        foreach ($tree as $node) {
+            $flags = array_filter([
+                $node['required'] ? __('required', 'ctrlfield') : '',
+                $node['width'] !== null ? $node['width'] . '%' : '',
+                /* translators: %s: return format */
+                $node['return'] !== '' ? sprintf(__('returns %s', 'ctrlfield'), $node['return']) : '',
+                (string) $node['condition'],
+            ]);
+            printf(
+                '<tr class="%1$s"><td style="--depth:%2$d"><span class="ctrlf-insp-fields__label">%3$s</span></td>'
+                . '<td><code>%4$s</code> <button type="button" class="ctrlf-insp-copy" title="%5$s" aria-label="%5$s" data-copy="%4$s"'
+                . ' @click="navigator.clipboard.writeText($el.dataset.copy); $el.classList.add(\'is-done\'); setTimeout(() => $el.classList.remove(\'is-done\'), 1200)">'
+                . '<svg viewBox="0 0 20 20" width="12" height="12" aria-hidden="true"><rect x="6.5" y="6.5" width="10" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M13.5 4.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v8A1.5 1.5 0 0 0 4 13.5h.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'
+                . '</button></td><td><span class="ctrlf-badge">%6$s</span></td><td class="ctrlf-insp-fields__flags">%7$s</td>%8$s</tr>',
+                $node['ui'] ? 'is-ui' : '',
+                (int) $depth,
+                esc_html($node['label'] !== '' ? $node['label'] : '—'),
+                esc_html($node['key']),
+                $copy, // phpcs:ignore WordPress.Security.EscapeOutput -- esc_attr__()
+                esc_html($node['type']),
+                esc_html(implode(' · ', $flags)),
+                $usage !== null ? '<td>' . $this->filledCell($node, $depth, $usage) . '</td>' : '' // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
+            );
+            $this->rows($node['children'], $depth + 1, $usage !== null ? ['total' => 0, 'keys' => []] : null);
+            foreach ($node['layouts'] as $layout) {
+                printf(
+                    '<tr class="is-layout"><td style="--depth:%1$d" colspan="%4$d"><span class="ctrlf-badge ctrlf-badge--layout">%2$s</span> %3$s</td></tr>',
+                    (int) ($depth + 1),
+                    esc_html__('Layout', 'ctrlfield'),
+                    esc_html(($layout['label'] !== '' ? $layout['label'] . ' · ' : '') . $layout['key']),
+                    $usage !== null ? 5 : 4
+                );
+                $this->rows($layout['fields'], $depth + 2, $usage !== null ? ['total' => 0, 'keys' => []] : null);
+            }
+        }
+    }
+
+    /**
+     * "12 / 15" with a bar, for a top-level field that stores a value.
+     *
+     * @param array<string, mixed>                          $node
+     * @param array{total: int, keys: array<string, int>} $usage
+     */
+    private function filledCell(array $node, int $depth, array $usage): string
+    {
+        if ($depth > 0 || $node['ui'] || $usage['total'] === 0) {
+            return '';
+        }
+        $n   = $usage['keys'][$node['key']] ?? 0;
+        $pct = (int) round($n / $usage['total'] * 100);
+
+        return sprintf(
+            '<span class="ctrlf-insp-filled%4$s" title="%3$s"><span class="ctrlf-insp-cover__bar"><span style="width:%1$d%%"></span></span>%2$s</span>',
+            $pct,
+            esc_html($n . ' / ' . $usage['total']),
+            /* translators: 1: posts with a value, 2: posts with data */
+            esc_attr(sprintf(__('%1$d of %2$d posts have a value', 'ctrlfield'), $n, $usage['total'])),
+            $n === 0 ? ' is-empty' : ''
+        );
+    }
+
+    /** The group as a PHP array shape and a TypeScript interface, for editors' autocompletion. */
+    private function typesPanel(FieldGroup $group): void
+    {
+        $types = new TypesGenerator();
+        echo '<div class="ctrlf-insp-types" x-show="types" x-cloak>';
+        echo '<div class="ctrlf-insp-types__bar"><div class="ctrlf-insp-types__tabs" role="tablist">'
+            . '<button type="button" role="tab" :aria-selected="lang === \'php\'" @click="lang = \'php\'">PHP</button>'
+            . '<button type="button" role="tab" :aria-selected="lang === \'ts\'" @click="lang = \'ts\'">TypeScript</button></div>'
+            . '<span class="ctrlf-insp-types__hint" x-show="lang === \'php\'">' . esc_html__('Put it above the template code — PhpStorm, PHPStan and Intelephense complete the keys.', 'ctrlfield') . '</span>'
+            . '<button type="button" class="button button-small" @click="navigator.clipboard.writeText($el.closest(\'.ctrlf-insp-types\').querySelector(\'pre:not([style*=none]) code\').textContent); $el.textContent = ' . esc_attr((string) wp_json_encode(__('Copied', 'ctrlfield'))) . '">' . esc_html__('Copy', 'ctrlfield') . '</button></div>';
+        echo '<pre x-show="lang === \'php\'"><code>' . esc_html($types->php($group)) . '</code></pre>';
+        echo '<pre x-show="lang === \'ts\'"><code>' . esc_html($types->typescript($group)) . '</code></pre>';
+        echo '</div>';
+    }
+
+    /** @param list<array<string, mixed>> $tree */
+    private function searchText(array $tree): string
+    {
+        $parts = [];
+        foreach ($tree as $node) {
+            $parts[] = $node['key'] . ' ' . $node['label'];
+            $parts[] = $this->searchText($node['children']);
+            foreach ($node['layouts'] as $layout) {
+                $parts[] = $layout['key'] . ' ' . $layout['label'] . ' ' . $this->searchText($layout['fields']);
+            }
+        }
+
+        return implode(' ', $parts);
+    }
+
+    /** @param array<string, string> $args */
+    private function fieldGroupsUrl(array $args): string
+    {
+        return add_query_arg(['page' => FieldGroupsPage::SLUG] + $args, admin_url('admin.php'));
+    }
+
+    // ── Post values ──────────────────────────────────────────────────────────
+
+    /**
+     * One post: what is stored, and what ctrlfield_get() hands templates
+     * (return formats applied, links resolved, global blocks expanded).
+     */
+    private function values(): void
+    {
+        $postId = isset($_GET['post']) ? absint(wp_unslash((string) $_GET['post'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which post to show
+        $types  = [];
+        foreach ($this->groups as $group) {
+            $types = [...$types, ...SchemaAnalyzer::postTypes($group)];
+        }
+        $types = array_values(array_unique($types));
+
+        echo '<p class="ctrlf-insp__lead">' . esc_html__('Pick a post to see what is stored for it next to what ctrlfield_get() returns in templates.', 'ctrlfield') . '</p>';
+        printf(
+            '<div class="ctrlf-insp-post" x-data="ctrlfInspectorPost(%s)">'
+            . '<input type="search" class="ctrlf-input" x-model="q" @input.debounce.250ms="search()" @focus="open = true; if (!results.length) search()" @keydown.escape="open = false" placeholder="%s" aria-label="%2$s">'
+            . '<ul class="ctrlf-insp-post__results" x-show="open && (results.length || loading)" @click.outside="open = false">'
+            . '<li x-show="loading" class="is-muted">%s</li>'
+            . '<template x-for="item in results" :key="item.id"><li><a :href="link(item.id)"><strong x-text="item.title"></strong> <span x-text="item.meta"></span><span class="ctrlf-insp-post__date" x-text="item.date"></span></a></li></template>'
+            . '</ul></div>',
+            esc_attr((string) wp_json_encode([
+                'source' => 'post:' . implode(',', $types !== [] ? $types : ['post', 'page']),
+                'url'    => add_query_arg(['page' => 'ctrlfield', 'tab' => 'values'], admin_url('admin.php')),
+            ])),
+            esc_attr__('Search posts…', 'ctrlfield'),
+            esc_html__('Searching…', 'ctrlfield')
         );
 
-        // Expandable field detail row
-        echo '<tr><td colspan="7" style="padding:0">';
-        echo '<details style="padding:8px 12px;background:#f9f9f9">';
-        echo '<summary style="cursor:pointer;font-weight:600">Field details</summary>';
-        echo '<table style="width:100%;margin-top:8px;border-collapse:collapse">';
-        echo '<thead><tr style="border-bottom:1px solid #ddd">';
-        echo '<th style="text-align:left;padding:4px 8px">Key</th>';
-        echo '<th style="text-align:left;padding:4px 8px">Label</th>';
-        echo '<th style="text-align:left;padding:4px 8px">Type</th>';
-        echo '<th style="text-align:left;padding:4px 8px">Index</th>';
-        echo '<th style="text-align:left;padding:4px 8px">REST</th>';
-        echo '<th style="text-align:left;padding:4px 8px">Column</th>';
-        echo '<th style="text-align:left;padding:4px 8px">Translatable</th>';
-        echo '<th style="text-align:left;padding:4px 8px">Condition</th>';
-        echo '</tr></thead><tbody>';
+        $post = $postId > 0 ? get_post($postId) : null;
+        if ($post === null) {
+            return;
+        }
+        if (! current_user_can('edit_post', $post->ID)) {
+            echo '<p class="ctrlf-insp__empty">' . esc_html__('You cannot edit this post.', 'ctrlfield') . '</p>';
+            return;
+        }
 
-        foreach ($group->getFields() as $field) {
-            $def = $field->getDefinition();
-            $cg  = $field->getConditionGroup();
+        $raw    = (new PostMetaAdapter(new WpPostMetaDriver()))->loadRaw($post->ID);
+        $stored = $raw['fields'] ?? [];
+        $object = get_post_type_object($post->post_type);
+        printf(
+            '<div class="ctrlf-insp-post__head"><strong>%s</strong> <span class="ctrlf-badge">%s</span> <code>#%d</code> %s <a class="button button-small" href="%s">%s</a></div>',
+            esc_html($post->post_title !== '' ? $post->post_title : __('(no title)', 'ctrlfield')),
+            esc_html($object !== null ? (string) $object->labels->singular_name : $post->post_type),
+            (int) $post->ID,
+            $raw !== null
+                /* translators: %d: schema version */
+                ? '<span class="ctrlf-insp-post__version">' . esc_html(sprintf(__('schema version %d', 'ctrlfield'), $raw['schema_version'])) . '</span>'
+                : '',
+            esc_url((string) get_edit_post_link($post->ID)),
+            esc_html__('Edit', 'ctrlfield')
+        );
 
-            $conditionText = '—';
-            if ($cg !== null) {
-                $parts = [];
-                foreach ($cg->getConditions() as $c) {
-                    $parts[] = "{$c[0]} {$c[1]} {$c[2]}";
-                }
-                $conditionText = strtoupper($cg->getType()) . ': ' . implode(', ', $parts);
+        if ($raw === null) {
+            echo '<p class="ctrlf-insp__empty">' . esc_html__('Nothing is stored for this post yet.', 'ctrlfield') . '</p>';
+            return;
+        }
+
+        $service = FieldDataService::getInstance();
+        $shown   = [];
+        foreach ($this->groups as $key => $group) {
+            $applies = in_array($post->post_type, SchemaAnalyzer::postTypes($group), true);
+            $fields  = array_values(array_filter($group->getFields(), static fn ($f): bool => ! $f->isUiOnly()));
+            $hasData = array_filter($fields, static fn ($f): bool => array_key_exists($f->getKey(), $stored)) !== [];
+            if ($fields === [] || (! $applies && ! $hasData)) {
+                continue;
             }
+            $rows = '';
+            foreach ($fields as $field) {
+                $k         = $field->getKey();
+                $shown[$k] = true;
+                $isStored  = array_key_exists($k, $stored);
+                $resolved  = $isStored ? $service->get($k, $post->ID) : null;
+                $a         = self::preview($stored[$k] ?? null);
+                $b         = self::preview($resolved);
+                $rows     .= sprintf(
+                    '<tr><td><span class="ctrlf-insp-fields__label">%s</span><code>%s</code> <span class="ctrlf-badge">%s</span></td><td>%s</td><td>%s%s</td></tr>',
+                    esc_html((string) ($field->getDefinition()['label'] ?? '') !== '' ? (string) $field->getDefinition()['label'] : $k),
+                    esc_html($k),
+                    esc_html($field->getType()->value),
+                    $isStored ? '<pre class="ctrlf-insp-value">' . esc_html($a) . '</pre>' : '<span class="ctrlf-insp-value is-missing">' . esc_html__('not stored', 'ctrlfield') . '</span>',
+                    $isStored ? '<pre class="ctrlf-insp-value">' . esc_html($b) . '</pre>' : '',
+                    $isStored && $a !== $b ? '<span class="ctrlf-badge ctrlf-badge--layout">' . esc_html__('transformed', 'ctrlfield') . '</span>' : ''
+                );
+            }
+            $this->valuesTable($group->getTitle() !== '' ? $group->getTitle() : (string) $key, (string) $key, $rows);
+        }
 
+        $left = array_diff_key($stored, $shown);
+        if ($left !== []) {
+            $rows = '';
+            foreach ($left as $k => $value) {
+                $rows .= sprintf('<tr><td><code>%s</code></td><td><pre class="ctrlf-insp-value">%s</pre></td><td><span class="ctrlf-insp-value is-missing">%s</span></td></tr>', esc_html((string) $k), esc_html(self::preview($value)), esc_html__('no field — never shown', 'ctrlfield'));
+            }
+            $this->valuesTable(__('Stored without a field', 'ctrlfield'), '', $rows);
+        }
+    }
+
+    private function valuesTable(string $title, string $key, string $rows): void
+    {
+        echo '<h3 class="ctrlf-insp-values__title">' . esc_html($title) . ($key !== '' ? ' <code>' . esc_html($key) . '</code>' : '') . '</h3>';
+        echo '<table class="ctrlf-insp-fields ctrlf-insp-values"><thead><tr><th>' . esc_html__('Field', 'ctrlfield') . '</th><th>'
+            . esc_html__('Stored', 'ctrlfield') . '</th><th>' . esc_html__('ctrlfield_get()', 'ctrlfield') . '</th></tr></thead><tbody>'
+            . $rows . '</tbody></table>'; // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts
+    }
+
+    /** A value as readable text: JSON for arrays, a short description for objects. */
+    public static function preview(mixed $value): string
+    {
+        $plain = self::plain($value);
+        if (is_string($plain)) {
+            $text = $plain === '' ? '""' : $plain;
+        } else {
+            $text = (string) json_encode($plain, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+
+        return mb_strlen($text) > 3000 ? mb_substr($text, 0, 3000) . "\n…" : $text;
+    }
+
+    private static function plain(mixed $value): mixed
+    {
+        return match (true) {
+            is_array($value)                       => array_map([self::class, 'plain'], $value),
+            $value instanceof \WP_Post            => sprintf('WP_Post #%d “%s”', $value->ID, $value->post_title),
+            $value instanceof \WP_Term            => sprintf('WP_Term #%d “%s”', $value->term_id, $value->name),
+            $value instanceof \WP_User            => sprintf('WP_User #%d “%s”', $value->ID, $value->display_name),
+            $value instanceof \DateTimeInterface  => get_class($value) . ' ' . $value->format('Y-m-d H:i:s T'),
+            is_object($value)                      => get_class($value),
+            default                                => $value,
+        };
+    }
+
+    // ── Components ───────────────────────────────────────────────────────────
+
+    /** @param array<string, string> $schema file => error */
+    private function components(array $schema): void
+    {
+        $components = ComponentRegistry::all();
+        if ($components === []) {
+            echo '<p class="ctrlf-insp__empty">' . esc_html__('No components discovered. A theme registers them with ComponentRegistry::discover( get_template_directory() . \'/components\' ) on init.', 'ctrlfield') . '</p>';
+            return;
+        }
+
+        $usedBy = $this->data->layoutUsage();
+        echo '<p class="ctrlf-insp__lead">' . esc_html__('Components found by ComponentRegistry::discover(): their files, and the posts whose flexible content uses them.', 'ctrlfield') . '</p>';
+        echo '<table class="wp-list-table widefat striped ctrlf-insp-comp"><thead><tr><th>' . esc_html__('Component', 'ctrlfield') . '</th><th>'
+            . esc_html__('Files', 'ctrlfield') . '</th><th>' . esc_html__('Used on', 'ctrlfield') . '</th></tr></thead><tbody>';
+        foreach ($components as $key => $c) {
+            $errors = array_filter($schema, static fn (string $file): bool => str_starts_with($file, rtrim($c->path, '/') . '/'), ARRAY_FILTER_USE_KEY);
+            $files  = array_filter([
+                $c->fieldsFile !== '' ? basename($c->fieldsFile) : '',
+                $c->templatePath !== null ? basename($c->templatePath) : '',
+                $c->hasScript ? 'script.js' : '',
+                $c->hasFunctions ? 'functions.php' : '',
+            ]);
+            $posts  = $usedBy[$key] ?? [];
+            $links  = array_map(static function (int $id): string {
+                $title = get_the_title($id);
+                return '<a href="' . esc_url((string) get_edit_post_link($id)) . '">' . esc_html($title !== '' ? $title : '#' . $id) . '</a>';
+            }, array_slice($posts, 0, 5));
+
+            // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- every part is escaped where it is built
             printf(
-                '<tr style="border-bottom:1px solid #eee">'
-                . '<td style="padding:4px 8px"><code>%s</code></td>'
-                . '<td style="padding:4px 8px">%s</td>'
-                . '<td style="padding:4px 8px"><code>%s</code></td>'
-                . '<td style="padding:4px 8px">%s</td>'
-                . '<td style="padding:4px 8px">%s</td>'
-                . '<td style="padding:4px 8px">%s</td>'
-                . '<td style="padding:4px 8px">%s</td>'
-                . '<td style="padding:4px 8px">%s</td>'
-                . '</tr>',
-                esc_html($def['key']),
-                esc_html($def['label'] ?: '—'),
-                esc_html($def['type']),
-                $def['index'] ? '✓' : '—',
-                $def['rest_exposed'] ? '✓' : '—',
-                $def['admin_column'] ? '✓' : '—',
-                ($def['translatable'] ?? true) ? '✓ Yes' : '— Shared',
-                esc_html($conditionText),
+                '<tr%s><td><strong>%s</strong> <code>%s</code>%s%s</td><td class="ctrlf-insp-comp__files"><span title="%s">%s</span>%s%s</td><td>%s</td></tr>',
+                $errors !== [] ? ' class="is-error"' : '',
+                esc_html($c->label !== '' ? $c->label : (string) $key),
+                esc_html((string) $key),
+                $c->category !== '' ? ' <span class="ctrlf-badge">' . esc_html($c->category) . '</span>' : '',
+                $c->description !== '' ? '<p class="description">' . esc_html($c->description) . '</p>' : '',
+                esc_attr($this->shortPath($c->path)),
+                esc_html($this->shortPath($c->path)),
+                '<br>' . implode(' ', array_map(static fn (string $f): string => '<span class="ctrlf-badge">' . esc_html($f) . '</span>', $files)),
+                ($c->templatePath === null ? ' <span class="ctrlf-badge ctrlf-badge--warning">' . esc_html__('no template', 'ctrlfield') . '</span>' : '')
+                    . implode('', array_map(static fn (string $e): string => '<p class="ctrlf-insp-comp__error">' . esc_html($e) . '</p>', $errors)),
+                $posts === []
+                    ? '<span class="ctrlf-insp-value is-missing">' . esc_html__('not used', 'ctrlfield') . '</span>'
+                    /* translators: %d: number of posts */
+                    : esc_html(sprintf(_n('%d post', '%d posts', count($posts), 'ctrlfield'), count($posts))) . ': ' . implode(', ', $links) . (count($posts) > 5 ? ' …' : '')
+            );
+            // phpcs:enable
+        }
+        echo '</tbody></table>';
+    }
+
+    // ── Health ───────────────────────────────────────────────────────────────
+
+    /**
+     * @param list<array<string, string>>       $issues
+     * @param array<string, string>             $schema  file => error
+     * @param list<int>                         $stale
+     * @param array<string, array<string, int>> $orphans
+     */
+    private function health(array $issues, array $schema, array $stale, array $orphans): void
+    {
+        $this->actionNotice();
+
+        $items = [];
+        foreach ($schema as $file => $error) {
+            $items[] = ['error', __('Not loaded', 'ctrlfield'), $this->shortPath($file) . ' — ' . $error, ''];
+        }
+        if ($stale !== []) {
+            $items[] = [
+                'warning',
+                __('Older schema version', 'ctrlfield'),
+                /* translators: %d: number of posts */
+                sprintf(_n('%d post was saved under an older schema version. It is read through the migrations; migrating writes it at the current version.', '%d posts were saved under an older schema version. They are read through the migrations; migrating writes them at the current version.', count($stale), 'ctrlfield'), count($stale)),
+                $this->actionButtons('ctrlfield_inspector_migrate', [], __('Migrate', 'ctrlfield')),
+            ];
+        }
+        foreach ($orphans as $type => $keys) {
+            arsort($keys);
+            $list    = implode(', ', array_map(static fn (string $k, int $n): string => "{$k} ({$n})", array_keys($keys), $keys));
+            $items[] = [
+                'warning',
+                /* translators: %s: post type */
+                sprintf(__('Left-over values on %s', 'ctrlfield'), $type),
+                /* translators: %s: keys with the number of posts */
+                sprintf(__('Values are stored for keys no field group of this post type defines (a key renamed, a field removed): %s. They are never shown; cleaning up removes them.', 'ctrlfield'), $list),
+                $this->actionButtons('ctrlfield_inspector_clean', ['post_type' => $type, 'keys' => implode(',', array_keys($keys))], __('Clean up', 'ctrlfield')),
+            ];
+        }
+        $titles = [
+            'duplicate_key'    => __('Same key in two groups', 'ctrlfield'),
+            'condition_target' => __('Condition on a missing field', 'ctrlfield'),
+            'no_label'         => __('Field without a label', 'ctrlfield'),
+        ];
+        $unlabelled = []; // group => keys: one line per group instead of one per field
+        foreach ($issues as $issue) {
+            if ($issue['code'] === 'no_label') {
+                $unlabelled[$issue['group']][$issue['field']] = true;
+                continue;
+            }
+            $items[] = [$issue['level'], $titles[$issue['code']] ?? $issue['code'], $issue['group'] . ' — ' . $issue['message'], ''];
+        }
+        foreach ($unlabelled as $groupKey => $keys) {
+            $items[] = [
+                'info',
+                $titles['no_label'],
+                /* translators: 1: field group, 2: field keys */
+                sprintf(__('%1$s — editors see the key instead of a label: %2$s.', 'ctrlfield'), $groupKey, implode(', ', array_keys($keys))),
+                '',
+            ];
+        }
+
+        if ($items === []) {
+            echo '<div class="ctrlf-insp-ok"><strong>' . esc_html__('All good.', 'ctrlfield') . '</strong> '
+                . esc_html__('The schema loads, keys and conditions are consistent, and the stored data matches the fields.', 'ctrlfield') . '</div>';
+            return;
+        }
+
+        $order = ['error' => 0, 'warning' => 1, 'info' => 2];
+        usort($items, static fn (array $a, array $b): int => ($order[$a[0]] ?? 3) <=> ($order[$b[0]] ?? 3));
+        $levels   = ['error' => __('Error', 'ctrlfield'), 'warning' => __('Warning', 'ctrlfield'), 'info' => __('Tip', 'ctrlfield')];
+        $problems = array_values(array_filter($items, static fn (array $i): bool => $i[0] !== 'info'));
+        $tips     = array_values(array_filter($items, static fn (array $i): bool => $i[0] === 'info'));
+        $list     = static function (array $items) use ($levels): void {
+            echo '<ul class="ctrlf-insp-issues">';
+            foreach ($items as [$level, $title, $text, $actions]) {
+                printf(
+                    '<li class="ctrlf-insp-issue ctrlf-insp-issue--%1$s"><span class="ctrlf-badge ctrlf-badge--%1$s">%2$s</span><div><strong>%3$s</strong><p>%4$s</p>%5$s</div></li>',
+                    esc_attr($level),
+                    esc_html($levels[$level] ?? $level),
+                    esc_html($title),
+                    esc_html($text),
+                    $actions // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts
+                );
+            }
+            echo '</ul>';
+        };
+
+        if ($problems === []) {
+            echo '<div class="ctrlf-insp-ok"><strong>' . esc_html__('No problems.', 'ctrlfield') . '</strong> '
+                . esc_html__('The schema loads, keys and conditions are consistent, and the stored data matches the fields.', 'ctrlfield') . '</div>';
+        } else {
+            $list($problems);
+        }
+        if ($tips !== []) {
+            /* translators: %d: number of tips */
+            echo '<details class="ctrlf-insp-tips"><summary>' . esc_html(sprintf(_n('%d tip', '%d tips', count($tips), 'ctrlfield'), count($tips))) . '</summary>';
+            $list($tips);
+            echo '</details>';
+        }
+    }
+
+    /**
+     * "Preview" (dry run) and the fix itself.
+     *
+     * @param array<string, string> $args
+     */
+    private function actionButtons(string $action, array $args, string $label): string
+    {
+        return '<p class="ctrlf-insp-issue__actions">'
+            . '<a class="button button-small" href="' . esc_url(InspectorActions::url($action, $args)) . '">' . esc_html__('Preview (dry run)', 'ctrlfield') . '</a> '
+            . '<a class="button button-small button-primary" href="' . esc_url(InspectorActions::url($action, $args + ['apply' => '1'])) . '"'
+            . ' onclick="return confirm(' . esc_attr((string) wp_json_encode(__('This changes stored data. Continue?', 'ctrlfield'))) . ')">' . esc_html($label) . '</a></p>';
+    }
+
+    private function actionNotice(): void
+    {
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- display of an action's result
+        $done = isset($_GET['ctrlf_done']) ? sanitize_key(wp_unslash((string) $_GET['ctrlf_done'])) : '';
+        if ($done === '') {
+            return;
+        }
+        $dry = ! empty($_GET['ctrlf_dry']);
+        $n   = isset($_GET['ctrlf_n']) ? (int) $_GET['ctrlf_n'] : 0;
+        // phpcs:enable
+        /* translators: %d: number of posts */
+        $message = match ($done) {
+            'migrate' => $dry
+                ? sprintf(_n('Dry run: %d post would be migrated.', 'Dry run: %d posts would be migrated.', $n, 'ctrlfield'), $n)
+                : sprintf(_n('%d post migrated.', '%d posts migrated.', $n, 'ctrlfield'), $n),
+            'clean'   => $dry
+                ? sprintf(_n('Dry run: %d post would be cleaned up.', 'Dry run: %d posts would be cleaned up.', $n, 'ctrlfield'), $n)
+                : sprintf(_n('%d post cleaned up.', '%d posts cleaned up.', $n, 'ctrlfield'), $n),
+            default   => '',
+        };
+        if ($message !== '') {
+            // The plugin's own message (not a WP .notice, which core moves above the page title).
+            echo MessageRenderer::dismissible($dry ? 'info' : 'success', esc_html($message)); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped
+        }
+    }
+
+    private function shortPath(string $file): string
+    {
+        return defined('WP_CONTENT_DIR') ? str_replace(WP_CONTENT_DIR, 'wp-content', $file) : $file;
+    }
+
+    // ── Import / Export ──────────────────────────────────────────────────────
+
+    private function importExport(): void
+    {
+        echo '<p class="ctrlf-insp__lead">' . esc_html__('Export the posts of a group as CSV (one column per field), edit them in a spreadsheet and import them back. Rows are matched by post ID; existing values are updated.', 'ctrlfield') . '</p>';
+
+        $rows = '';
+        foreach ($this->groups as $key => $group) {
+            $type = SchemaAnalyzer::postTypes($group)[0] ?? null;
+            if ($type === null) {
+                continue;
+            }
+            $rows .= sprintf(
+                '<tr><td><strong>%1$s</strong> <code>%2$s</code></td><td>%3$s</td><td class="ctrlf-insp-io__actions" x-data="ctrlfCsvImport(%6$s)">'
+                . '<a class="button" href="%4$s">%5$s</a> '
+                . '<label class="button" :class="{ \'disabled\': busy }"><span x-text="busy ? %7$s : %8$s"></span>'
+                . '<input type="file" accept=".csv" hidden @change="send($event.target)"></label>'
+                . '<span class="ctrlf-insp-io__result" :class="{ \'is-error\': failed }" x-show="result" x-text="result"></span>'
+                . '</td></tr>',
+                esc_html($group->getTitle() !== '' ? $group->getTitle() : (string) $key),
+                esc_html((string) $key),
+                esc_html($type),
+                esc_url(InspectorActions::url('ctrlfield_export_csv', ['group' => (string) $key])),
+                esc_html__('Export CSV', 'ctrlfield'),
+                esc_attr((string) wp_json_encode(['group' => (string) $key, 'nonce' => wp_create_nonce('ctrlfield_csv_import_' . $key)])),
+                esc_attr((string) wp_json_encode(__('Importing…', 'ctrlfield'))),
+                esc_attr((string) wp_json_encode(__('Import CSV', 'ctrlfield')))
             );
         }
 
-        echo '</tbody></table></details></td></tr>';
-    }
-
-    private function queryCoverage(string $postType): string
-    {
-        global $wpdb;
-
-        if (! isset($wpdb)) {
-            return 'N/A';
+        if ($rows === '') {
+            echo '<p class="ctrlf-insp__empty">' . esc_html__('No group is shown on a post type, so there is nothing to export.', 'ctrlfield') . '</p>';
+            return;
         }
 
-        $total = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
-            $postType,
-        ));
-
-        if ($total === 0) {
-            return '0 posts';
-        }
-
-        $withData = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->postmeta}
-             WHERE meta_key = '_ctrlfield_data'
-             AND post_id IN (
-                 SELECT ID FROM {$wpdb->posts}
-                 WHERE post_type = %s AND post_status = 'publish'
-             )",
-            $postType,
-        ));
-
-        $pct = $total > 0 ? round(($withData / $total) * 100) : 0;
-
-        return "{$withData}/{$total} ({$pct}%)";
-    }
-
-    /** @return array{0: int, 1: string} */
-    private function queryVersionMismatch(string $postType): array
-    {
-        global $wpdb;
-
-        if (! isset($wpdb)) {
-            return [0, '✓ Current'];
-        }
-
-        // JSON_EXTRACT requires MySQL 5.7+. Detect support via a cheap test.
-        $hasJsonExtract = $this->supportsJsonExtract();
-
-        if (! $hasJsonExtract) {
-            return [0, 'Unknown (JSON_EXTRACT unavailable)'];
-        }
-
-        $current = SchemaVersion::CURRENT;
-
-        $count = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->postmeta}
-             WHERE meta_key = '_ctrlfield_data'
-             AND post_id IN (SELECT ID FROM {$wpdb->posts} WHERE post_type = %s)
-             AND CAST(JSON_EXTRACT(meta_value, '$.schema_version') AS UNSIGNED) < %d",
-            $postType,
-            $current,
-        ));
-
-        if ($count === 0) {
-            return [0, '✓ Current'];
-        }
-
-        return [$count, sprintf('⚠ Mismatch: %d post%s (DB < v%d)', $count, $count === 1 ? '' : 's', $current)];
-    }
-
-    private function supportsJsonExtract(): bool
-    {
-        global $wpdb;
-
-        if (! isset($wpdb)) {
-            return false;
-        }
-
-        try {
-            $result = $wpdb->get_var("SELECT JSON_EXTRACT('{\"v\":1}', '$.v')");
-            return $result !== null;
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    private function groupIsOptionsPage(FieldGroup $group): bool
-    {
-        foreach ($group->getAndConditions() as $condition) {
-            if ($condition['key'] === 'options_page') {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function renderCsvAjaxHandler(): void
-    {
-        // Handle inline CSV export (direct download from admin page)
-        $action = $_GET['action'] ?? '';
-        $group  = $_GET['group']  ?? '';
-        $nonce  = $_GET['_ctrlfield_nonce'] ?? '';
-
-        if ($action === 'ctrlfield_export_csv' && is_string($group) && $group !== '') {
-            if (! wp_verify_nonce((string) $nonce, 'ctrlfield_csv_export_' . $group)) {
-                wp_die('Security check failed.', 403);
-            }
-
-            $postType = $this->resolvePostTypeForGroup($group);
-            if ($postType === null) {
-                wp_die('Group not found or has no post_type context.', 400);
-            }
-
-            header('Content-Type: text/csv; charset=UTF-8');
-            $filename = sanitize_file_name($postType . '-' . $group . '.csv');
-            header('Content-Disposition: attachment; filename="' . $filename . '"');
-
-            $exporter = new CsvExporter();
-            foreach ($exporter->export($postType) as $row) {
-                echo $row; // phpcs:ignore WordPress.Security.EscapeOutput
-            }
-            exit;
-        }
-    }
-
-    private function resolvePostTypeForGroup(string $groupKey): ?string
-    {
-        $groups = FieldRegistry::all();
-
-        if (! isset($groups[$groupKey])) {
-            return null;
-        }
-
-        foreach ($groups[$groupKey]->getAndConditions() as $condition) {
-            if ($condition['key'] === 'post_type' && $condition['operator'] === '==') {
-                return (string) $condition['value'];
-            }
-        }
-
-        return null;
-    }
-
-    private function buildContextLabel(FieldGroup $group): string
-    {
-        $parts = [];
-
-        foreach ($group->getAndConditions() as $c) {
-            $parts[] = "{$c['key']} {$c['operator']} {$c['value']}";
-        }
-
-        foreach ($group->getOrGroups() as $orGroup) {
-            $orParts = [];
-            foreach ($orGroup as $c) {
-                $orParts[] = "{$c['key']} {$c['operator']} {$c['value']}";
-            }
-            $parts[] = 'OR(' . implode(', ', $orParts) . ')';
-        }
-
-        return empty($parts) ? '(no conditions)' : implode(' AND ', $parts);
+        echo '<table class="wp-list-table widefat striped ctrlf-insp-io"><thead><tr><th>' . esc_html__('Group', 'ctrlfield') . '</th><th>'
+            . esc_html__('Post type', 'ctrlfield') . '</th><th></th></tr></thead><tbody>' . $rows . '</tbody></table>'; // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts
     }
 }

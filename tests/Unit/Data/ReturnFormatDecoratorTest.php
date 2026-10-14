@@ -222,4 +222,36 @@ class ReturnFormatDecoratorTest extends TestCase
             }
         };
     }
+
+    public function test_user_array_and_object_formats(): void
+    {
+        $user = (object) ['ID' => 3, 'display_name' => 'Ana', 'user_email' => 'ana@example.com'];
+        $GLOBALS['_wp_users'] = [3 => $user];
+
+        $array = ReturnFormatDecorator::apply(3, Field::user('owner')->returnFormat('array'));
+        $this->assertSame(3, $array['ID']);
+        $this->assertSame('Ana', $array['display_name']);
+
+        $this->assertSame($user, ReturnFormatDecorator::apply('3', Field::user('owner')->returnFormat('object')));
+        $this->assertSame([$user], ReturnFormatDecorator::apply([3, 99], Field::user('team')->multiple()->returnFormat('object')), 'deleted users drop out');
+        $this->assertSame([], ReturnFormatDecorator::apply(99, Field::user('owner')->returnFormat('array')));
+
+        unset($GLOBALS['_wp_users']);
+    }
+
+    public function test_term_array_format(): void
+    {
+        $term           = new \WP_Term();
+        $term->term_id  = 7;
+        $term->name     = 'News';
+        $term->slug     = 'news';
+        $term->taxonomy = 'category';
+        $GLOBALS['_wp_terms'] = [7 => $term];
+
+        $list = ReturnFormatDecorator::apply([7], Field::taxonomyTerm('topics')->returnFormat('array'));
+        $this->assertSame('news', $list[0]['slug']);
+        $this->assertSame($term, ReturnFormatDecorator::apply(7, Field::taxonomyTerm('topic')->returnFormat('object')));
+
+        unset($GLOBALS['_wp_terms']);
+    }
 }

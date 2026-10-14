@@ -32,6 +32,7 @@ class WordPressServiceProvider extends ServiceProvider
         add_action('init', [$this, 'registerCpts'], 20);
         add_action('deleted_post', [\CtrlField\Storage\RelationshipAdapter::class, 'deleteForPost']);
         add_action('init', [$this, 'registerTaxonomies'], 20);
+        add_action('init', [$this, 'linkCptTaxonomies'], 21);
         add_action('init', [$this, 'bindTaxonomyTermHooks'], 20);
         add_action('init', [$this, 'bindOptionsPageSaveHooks'], 20);
         // After top-level menus (priority 10, CtrlField's own at 9): a submenu added
@@ -45,19 +46,30 @@ class WordPressServiceProvider extends ServiceProvider
 
     public function registerCpts(): void
     {
-        foreach (CPT::all() as $cpt) {
+        // Two or more with their own menu: one "CPTs" folder, alphabetically (CptMenuFolder).
+        $folder = \CtrlField\Admin\PostTypes\CptMenuFolder::grouped(CPT::all());
+        $cpts   = CPT::all();
+        $order  = [...array_intersect_key(array_flip($folder), $cpts), ...$cpts];
+
+        foreach (array_keys($order) as $key) {
+            $cpt      = $cpts[$key];
             $singular = $cpt->getSingularLabel() ?: ucfirst($cpt->getPostType());
             $plural   = $cpt->getPluralLabel()   ?: $singular . 's';
+            $inFolder = in_array($cpt->getPostType(), $folder, true);
+            $labels   = self::postTypeLabels($singular, $plural);
+            if ($inFolder) {
+                $labels['all_items'] = $plural; // the folder's sub-menu shows "Projects", not "All Projects"
+            }
 
             register_post_type($cpt->getPostType(), [
-                'labels'              => self::postTypeLabels($singular, $plural),
+                'labels'              => $labels,
                 'description'         => $cpt->getDescription(),
                 'public'              => $cpt->isPublic(),
                 'hierarchical'        => $cpt->isHierarchical(),
                 'exclude_from_search' => $cpt->isExcludeFromSearch(),
                 'publicly_queryable'  => $cpt->isPubliclyQueryable(),
                 'show_ui'             => $cpt->isShowUi(),
-                'show_in_menu'        => $cpt->getShowInMenu(),
+                'show_in_menu'        => $inFolder ? \CtrlField\Admin\PostTypes\CptMenuFolder::SLUG : $cpt->getShowInMenu(),
                 'show_in_nav_menus'   => $cpt->isPublic(),
                 'show_in_admin_bar'   => $cpt->isShowInAdminBar(),
                 'show_in_rest'        => $cpt->isShowInRest(),
@@ -68,7 +80,22 @@ class WordPressServiceProvider extends ServiceProvider
                 'has_archive'         => $cpt->getHasArchive(),
                 'rewrite'             => ['slug' => $cpt->getRewriteSlug() ?: $cpt->getPostType()],
                 'can_export'          => $cpt->canExportPosts(),
-            ]);
+            ] + ($cpt->getRestBase() !== '' ? ['rest_base' => $cpt->getRestBase()] : []));
+        }
+    }
+
+    /**
+     * ->taxonomies([...]) of each post type: linked once every taxonomy is
+     * registered (core's own, a plugin's, or one registered on the same init).
+     */
+    public function linkCptTaxonomies(): void
+    {
+        foreach (CPT::all() as $cpt) {
+            foreach ($cpt->getTaxonomies() as $taxonomy) {
+                if (taxonomy_exists($taxonomy)) {
+                    register_taxonomy_for_object_type($taxonomy, $cpt->getPostType());
+                }
+            }
         }
     }
 
@@ -268,7 +295,7 @@ class WordPressServiceProvider extends ServiceProvider
         $adapter = new OptionsAdapter(new WpOptionsDriver());
         $saved   = $adapter->load($key) ?? [];
         ?>
-        <div class="wrap">
+        <div class="wrap ctrlfield-page">
             <h1><?php echo esc_html($page->getTitle()); ?></h1>
             <?php if (isset($_GET['settings-updated'])): ?>
                 <div class="notice notice-success is-dismissible">

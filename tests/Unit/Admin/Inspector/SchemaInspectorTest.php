@@ -22,7 +22,7 @@ class SchemaInspectorTest extends TestCase
         (new SchemaInspectorRenderer())->render();
         $html = ob_get_clean();
 
-        $this->assertStringContainsString('No field groups registered', $html);
+        $this->assertStringContainsString('No field groups yet', $html);
     }
 
     public function test_renders_group_key_and_title(): void
@@ -69,7 +69,7 @@ class SchemaInspectorTest extends TestCase
         (new SchemaInspectorRenderer())->render();
         $html = ob_get_clean();
 
-        $this->assertStringContainsString('context == user_profile', $html);
+        $this->assertStringContainsString('User profile', $html);
     }
 
     public function test_renders_multiple_groups(): void

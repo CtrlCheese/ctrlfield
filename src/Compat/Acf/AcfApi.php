@@ -36,6 +36,12 @@ final class AcfApi
     /** acf/init has finished: theme objects that filters rely on exist. */
     private static bool $acfInitDone = false;
 
+    /** @return list<string> CtrlField group keys registered from ACF local groups (acf_add_local_field_group, acf-json). */
+    public static function registeredKeys(): array
+    {
+        return array_keys(self::$registered);
+    }
+
     public static function markAcfInitDone(): void
     {
         self::$acfInitDone = true;

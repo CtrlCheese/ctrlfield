@@ -32,9 +32,6 @@ bin
 pro/tests
 pro/bin
 pro/phpunit.xml
-pro/assets/builder/src
-pro/assets/builder/package.json
-pro/assets/builder/package-lock.json
 
 # Docs e meta
 docs

@@ -7,7 +7,7 @@ namespace CtrlField\Fields\Types;
 use CtrlField\Enums\FieldType;
 use CtrlField\Fields\FieldDefinition;
 
-final class UserField extends FieldDefinition
+final class UserField extends FieldDefinition implements \CtrlField\Fields\Contracts\CollectionConstraintsInterface
 {
     private bool  $multiple = false;
     /** @var list<string> */
@@ -43,6 +43,31 @@ final class UserField extends FieldDefinition
     {
         $this->maxUsers = $n;
         return $this;
+    }
+
+    /** Same as ->minUsers() (the name other collection fields use). */
+    public function minItems(int $n): static
+    {
+        return $this->minUsers($n);
+    }
+
+    /** Same as ->maxUsers(). */
+    public function maxItems(int $n): static
+    {
+        return $this->maxUsers($n);
+    }
+
+    public function getMinItems(): ?int
+    {
+        return $this->minUsers > 0 ? $this->minUsers : null;
+    }
+
+    public function getMaxItems(): ?int
+    {
+        if (! $this->multiple) {
+            return null;
+        }
+        return $this->maxUsers > 0 ? $this->maxUsers : null;
     }
 
     public function isMultiple(): bool

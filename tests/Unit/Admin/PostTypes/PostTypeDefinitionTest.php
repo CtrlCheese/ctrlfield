@@ -50,6 +50,8 @@ final class PostTypeDefinitionTest extends TestCase
             'reserved: post'     => ['post'],
             'reserved: page'     => ['page'],
             'reserved: wp_block' => ['wp_block'],
+            'reserved query var: year' => ['year'],
+            'reserved query var: name' => ['name'],
         ];
     }
 
@@ -118,6 +120,40 @@ final class PostTypeDefinitionTest extends TestCase
         self::assertStringContainsString("->rewriteSlug('work')", $code);
         self::assertStringEndsWith("->register();\n", $code);
         // The generated file must be valid PHP.
+        self::assertNotFalse(@token_get_all($code, TOKEN_PARSE));
+    }
+
+    public function test_new_settings_and_old_rows(): void
+    {
+        [$def] = PostTypeDefinition::fromInput($this->validInput([
+            'taxonomies' => ['category', 'Bad Key!', 'servico'], 'archive_slug' => '/all-work/', 'rest_base' => 'work',
+            'exclude_from_search' => '1', 'capability_type' => 'page',
+        ]));
+        self::assertSame(['category', 'servico'], $def?->taxonomies);
+        self::assertSame('all-work', $def?->archive());
+        self::assertSame('work', $def?->restBase);
+        self::assertTrue($def?->excludeFromSearch);
+        self::assertSame('page', $def?->capabilityType);
+
+        [, $errors] = PostTypeDefinition::fromInput($this->validInput(['capability_type' => 'admin', 'rest_base' => 'a b']));
+        self::assertArrayHasKey('rest_base', $errors);
+
+        // A row stored before these settings: a private type stays out of search.
+        $old = PostTypeDefinition::fromArray(['slug' => 'log', 'singular' => 'Log', 'plural' => 'Logs', 'public' => false]);
+        self::assertTrue($old->excludeFromSearch);
+        self::assertSame([], $old->taxonomies);
+        self::assertSame('post', $old->capabilityType);
+    }
+
+    public function test_exporter_registers_what_the_admin_registers(): void
+    {
+        [$def] = PostTypeDefinition::fromInput($this->validInput(['public' => '', 'exclude_from_search' => '1', 'taxonomies' => ['category'], 'archive_slug' => 'all']));
+        $code = (new PostTypeCodeExporter())->export($def);
+
+        self::assertStringContainsString('->publiclyQueryable(false)', $code);
+        self::assertStringContainsString('->excludeFromSearch(true)', $code);
+        self::assertStringContainsString("->hasArchive('all')", $code);
+        self::assertStringContainsString("->taxonomies(['category'])", $code);
         self::assertNotFalse(@token_get_all($code, TOKEN_PARSE));
     }
 }

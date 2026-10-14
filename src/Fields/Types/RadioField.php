@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace CtrlField\Fields\Types;
 
 use CtrlField\Enums\FieldType;
+use CtrlField\Fields\Concerns\HasChoiceLayout;
 use CtrlField\Fields\FieldDefinition;
 
 final class RadioField extends FieldDefinition
 {
+    use HasChoiceLayout;
+
     /** @var array<string, string> */
     private array $options = [];
 
@@ -33,6 +36,6 @@ final class RadioField extends FieldDefinition
     /** @return array<string, mixed> */
     public function getDefinition(): array
     {
-        return array_merge(parent::getDefinition(), ['options' => $this->options]);
+        return array_merge(parent::getDefinition(), ['options' => $this->options], $this->choiceDefinition());
     }
 }

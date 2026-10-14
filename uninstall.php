@@ -42,14 +42,15 @@ $wpdb->query(
     )
 );
 
-// Pro: license, webhook and audit-log options.
+// Pro: license and webhook options (and the removed audit log's flag).
 delete_option('_ctrlfield_pro_license_key');
 delete_option('_ctrlfield_pro_instance_id');
 delete_option('_ctrlfield_pro_license_cache');
 delete_option('_ctrlfield_pro_webhook_secret');
 delete_option('_ctrlf_pro_audit_log_db_version');
+wp_clear_scheduled_hook('ctrlfield_pro_weekly_purge');
 
-// Pro: drop all tables created by CtrlField (audit log + all CCT tables).
+// Pro: drop all tables created by CtrlField (CCT tables, and the removed audit log's).
 // Table names come from the DB itself (not user input), but we validate format before use.
 $ctrlf_prefix = $wpdb->prefix . 'ctrlf_';
 $tables       = $wpdb->get_col(

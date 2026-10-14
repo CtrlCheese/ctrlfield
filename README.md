@@ -378,7 +378,7 @@ CtrlField is **one plugin**. Everything below ships in it; a Pro license (**Ctrl
 | **Custom Table Storage (CCT)** | One DB row per record — for 50k+ record use cases |
 | **Gutenberg Blocks** | Register any field group as a native block |
 | **Elementor / Bricks / WooCommerce** | Dynamic tags, dynamic data and shop fields |
-| **Audit log, webhooks, field permissions** | Change history, webhook on change, per-role access |
+| **Webhooks, field permissions** | Webhook on change, per-role access |
 
 Without a license the site runs the Free feature set and shows no license notices.
 

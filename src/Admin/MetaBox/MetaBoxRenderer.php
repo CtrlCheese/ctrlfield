@@ -329,7 +329,8 @@ class MetaBoxRenderer
         // Walk nested values too: images and posts inside groups, repeater rows
         // and flexible content sections need their thumbnails / titles as well.
         $visit = static function (FieldDefinition $field, mixed $value) use (&$visit, $ids, &$postIds, &$termIds, &$attachmentIds, &$previewSizes): void {
-            if ($field instanceof ImageField && $field->getPreviewSize() !== 'thumbnail') {
+            if (($field instanceof ImageField || $field->getType() === FieldType::GALLERY)
+                && method_exists($field, 'getPreviewSize') && $field->getPreviewSize() !== 'thumbnail') {
                 foreach ($ids($value) as $id) {
                     $previewSizes[$id . ':' . $field->getPreviewSize()] = [$id, $field->getPreviewSize()];
                 }

@@ -144,6 +144,48 @@ abstract class AbstractRenderer implements RendererInterface
     }
 
     /**
+     * A text-like input (or textarea) with what the field defines: placeholder,
+     * read-only, max length with a counter, and fixed text before / after it.
+     *
+     * @param string $type  input type, or 'textarea'
+     * @param string $model x-model directive (x-model, x-model.number)
+     * @param string $extra more attributes, already escaped
+     */
+    protected function textInput(FieldDefinition $field, string $statePath, string $type, string $model = 'x-model', string $extra = ''): string
+    {
+        $sp     = $this->esc($statePath);
+        $max    = method_exists($field, 'getMaxLength') ? $field->getMaxLength() : null;
+        $before = method_exists($field, 'getPrepend') ? (string) $field->getPrepend() : '';
+        $after  = method_exists($field, 'getAppend') ? (string) $field->getAppend() : '';
+        $holder = $field->getPlaceholder();
+
+        $attrs = ' id="' . $this->esc($this->inputId($field)) . '" ' . $model . '="' . $sp . '"'
+            . ' class="ctrlf-input ctrlf-input--' . $this->esc($type) . '"'
+            . ($holder !== '' ? ' placeholder="' . $this->esc($holder) . '"' : '')
+            . ($max !== null ? ' maxlength="' . $max . '"' : '')
+            . ($field->isReadOnly() ? ' readonly' : '')
+            . $extra;
+
+        $input = $type === 'textarea'
+            ? '<textarea' . $attrs . '></textarea>'
+            : '<input type="' . $this->esc($type) . '"' . $attrs . '>';
+
+        if ($before !== '' || $after !== '') {
+            $input = '<div class="ctrlf-affix">'
+                . ($before !== '' ? '<span class="ctrlf-affix__text">' . $this->esc($before) . '</span>' : '')
+                . $input
+                . ($after !== '' ? '<span class="ctrlf-affix__text">' . $this->esc($after) . '</span>' : '')
+                . '</div>';
+        }
+        if ($max !== null) {
+            $input .= '<small class="ctrlf-counter" :class="{ \'is-full\': String(' . $sp . ' ?? \'\').length >= ' . $max . ' }"'
+                . ' x-text="String(' . $sp . ' ?? \'\').length + \' / ' . $max . '\'"></small>';
+        }
+
+        return $input;
+    }
+
+    /**
      * Class and style attributes of a field wrapper with its width:
      * ' ctrlf-col" style="--ctrlf-w:33.33"' — appended inside class="ctrlf-field…".
      */

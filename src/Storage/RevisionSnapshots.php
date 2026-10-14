@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CtrlField\Storage;
 
+use CtrlField\Data\FieldWriter;
 use CtrlField\Storage\Drivers\WpPostMetaDriver;
 
 /**
@@ -14,6 +15,8 @@ use CtrlField\Storage\Drivers\WpPostMetaDriver;
  * editor saves meta boxes in a second request), so the revision first gets
  * the fields as they are, and is updated once the new values are saved.
  * Revisions get no index rows (_ctrlfield_idx_*): they are never queried.
+ * Restoring rewrites the post's index rows from the restored values, so
+ * meta queries and sorting follow the restored fields.
  */
 final class RevisionSnapshots
 {
@@ -54,20 +57,29 @@ final class RevisionSnapshots
     /** wp_restore_post_revision: the revision's fields become the post's fields. */
     public function onRevisionRestored(int $postId, int $revisionId): void
     {
-        $this->copy($revisionId, $postId);
+        $this->copy($revisionId, $postId, withIndex: true);
     }
 
     /**
      * Copies the stored fields as they are — raw, so data saved under an older
      * schema version is not lost on the way.
      */
-    private function copy(int $from, int $to): void
+    private function copy(int $from, int $to, bool $withIndex = false): void
     {
         $raw = $this->adapter->loadRaw($from);
         if ($raw === null || $raw['fields'] === []) {
             return;
         }
 
-        $this->adapter->save($to, $raw['fields'], $raw['schema_version']);
+        $indexed = [];
+        if ($withIndex) {
+            foreach ($raw['fields'] as $key => $value) {
+                if (FieldWriter::findField((string) $key)?->isIndex() === true) {
+                    $indexed[(string) $key] = $value;
+                }
+            }
+        }
+
+        $this->adapter->save($to, $raw['fields'], $raw['schema_version'], $indexed);
     }
 }

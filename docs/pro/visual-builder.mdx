@@ -1,57 +1,39 @@
 # Visual Builder
 
-*(CtrlField Pro)*
+**WP Admin → CtrlField → Visual Builder** sets up a new content model in four steps:
 
-A drag-and-drop interface in the WP admin that generates PHP schema files from a visual form. Designed for developers who prefer a GUI for initial schema setup.
+1. **Content**: the post type, with plural and singular names, a key made from the singular name, an icon, whether it is public, and an archive page.
+2. **Taxonomies**: new ones for this content, either like categories or like tags, and existing ones to use with it (Categories, Tags…).
+3. **Fields**: an empty field group shown on the new post type.
+4. **Review**: everything that will be created.
 
----
+Nothing is saved until **Create content model**, and then everything is saved together. Keys are checked while you type and again on the server: WordPress's reserved names (`post`, `year`, `name`…) and keys already in use are refused. The field group then opens in the **Field Groups** editor, ready for its fields.
 
-## Access
+Each part can be changed later on its own:
 
-**WP Admin → CtrlField → Visual Builder**
-
----
-
-## Workflow
-
-1. Click **New Group**
-2. Set the group title, post type condition, and other settings
-3. Drag field types from the palette into the canvas
-4. Configure each field (label, options, conditions)
-5. Click **Export PHP** — copies the generated code to your clipboard
-6. Paste into a schema file in your theme
+- **CtrlField → Post Types**: post types and, in the *Taxonomies* tab, taxonomies. URLs, archive, REST base, search, permissions, linked taxonomies; **Export PHP** for each.
+- **CtrlField → Field Groups**: the fields. **Export PHP** shows the group as code; **Save as PHP file** writes it into your schema folder (`CTRLFIELD_SCHEMA_PATH`), where code takes precedence over the admin copy.
 
 ---
 
-## What it generates
+## From the admin to code
 
-The builder outputs standard CtrlField PHP — no proprietary format, no lock-in:
+Everything made here can move to version-controlled PHP:
 
 ```php
-Field::group('portfolio_details')
-    ->title('Portfolio Details')
-    ->where('post_type', '==', 'portfolio')
-    ->fields([
-        Field::text('client_name')
-            ->label('Client Name')
-            ->required()
-            ->setIndex(true),
-        Field::select('project_type')
-            ->label('Project Type')
-            ->options([
-                'web'   => 'Web',
-                'brand' => 'Brand',
-            ]),
-    ])
+CPT::make('team_member')
+    ->label('Team member', 'Team members')
+    ->menuIcon('dashicons-groups')
+    ->supports(['title', 'editor', 'thumbnail'])
+    ->hasArchive(true)
+    ->taxonomies(['category'])
+    ->register();
+
+Taxonomy::make('department')
+    ->label('Department', 'Departments')
+    ->attachTo(['team_member'])
+    ->hierarchical(true)
     ->register();
 ```
 
-You own the generated code. The visual builder is a code generator, not a runtime dependency.
-
----
-
-## Notes
-
-- The Visual Builder does not save schema to the database — it only generates PHP code.
-- Schema changes require you to copy the generated code to a file and reload it with `ctrlfield_load_schemas()`.
-- The builder supports all Core field types. Pro field types (Gallery, Map, Relationship, etc.) are available in the Pro palette.
+Once the files are in your schema folder, delete the admin copies: post types, taxonomies and field groups defined in code take precedence, and the stored entries, terms and values stay as they are.

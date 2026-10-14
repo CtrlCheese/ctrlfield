@@ -112,8 +112,15 @@ class MetaBoxServiceProvider extends ServiceProvider
             'restUrl'     => rest_url(),
             'restNonce'   => wp_create_nonce('wp_rest'),
             'saveError'   => $this->takeSaveError(),
-            'i18n'        => ['link' => self::linkStrings(), 'icon' => self::iconStrings()],
+            'i18n'        => ['link' => self::linkStrings(), 'icon' => self::iconStrings(), 'picker' => self::pickerStrings()],
             'icons'       => \CtrlField\Data\IconLibrary::clientConfig(),
+            // The calendar (dates.js): the site's language, first day of the week and formats.
+            'dates'       => [
+                'locale'     => str_replace('_', '-', get_user_locale()),
+                'firstDay'   => (int) get_option('start_of_week', 1),
+                'dateFormat' => (string) get_option('date_format', 'Y-m-d'),
+                'timeFormat' => (string) get_option('time_format', 'H:i'),
+            ],
             'wysiwyg'     => [
                 'template' => WysiwygEditorSettings::TEMPLATE_ID,
                 'toolbars' => WysiwygEditorSettings::toolbars(),
@@ -366,8 +373,27 @@ class MetaBoxServiceProvider extends ServiceProvider
         return CTRLFIELD_VERSION . ($mtime ? '.' . $mtime : '');
     }
 
+    /** @return array<string, string> Texts of the content picker dialog (assets/admin/src/picker.js). */
+    private static function pickerStrings(): array
+    {
+        return [
+            'title'     => __('Choose', 'ctrlfield'),
+            'all'       => __('All', 'ctrlfield'),
+            'search'    => __('Search', 'ctrlfield'),
+            'loading'   => __('Loading…', 'ctrlfield'),
+            'noResults' => __('Nothing found.', 'ctrlfield'),
+            /* translators: %d: number of selected items */
+            'count'     => __('%d selected', 'ctrlfield'),
+            /* translators: 1: number of selected items, 2: maximum */
+            'countMax'  => __('%1$d of %2$d selected', 'ctrlfield'),
+            'select'    => __('Select', 'ctrlfield'),
+            'cancel'    => __('Cancel', 'ctrlfield'),
+            'close'     => __('Close', 'ctrlfield'),
+        ];
+    }
+
     /** @return array<string, string> Texts of the Icon field dialog (assets/admin/src/icons.js). */
-    private static function iconStrings(): array
+    public static function iconStrings(): array
     {
         return [
             'title'     => __('Select icon', 'ctrlfield'),

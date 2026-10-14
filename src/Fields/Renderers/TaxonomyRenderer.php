@@ -7,16 +7,21 @@ namespace CtrlField\Fields\Renderers;
 use CtrlField\Fields\FieldDefinition;
 use CtrlField\Fields\Types\TaxonomyField;
 
-/** Search terms of one taxonomy; one or several. */
+/** Terms of the field's taxonomy; one or several. */
 final class TaxonomyRenderer extends AbstractPickerRenderer
 {
     public function render(FieldDefinition $field, string $statePath): string
     {
-        $taxonomy = $field instanceof TaxonomyField ? $field->getTaxonomy() : 'category';
-        $multiple = $field instanceof TaxonomyField && $field->isMultiple();
-        $max      = $field instanceof TaxonomyField ? $field->getMaxItems() : null;
-        $taxJs    = (string) wp_json_encode($taxonomy !== '' ? $taxonomy : 'category');
+        $taxonomy = $field instanceof TaxonomyField ? $field->getTaxonomy() : '';
 
-        return $this->renderPicker($field, $statePath, 'term', "searchTerms(q, {$taxJs})", $multiple, $max, false);
+        return $this->renderPicker(
+            $field,
+            $statePath,
+            'term:' . ($taxonomy !== '' ? $taxonomy : 'category'),
+            $field instanceof TaxonomyField && $field->isMultiple(),
+            $field instanceof TaxonomyField ? $field->getMinItems() : null,
+            $field instanceof TaxonomyField ? $field->getMaxItems() : null,
+            false,
+        );
     }
 }

@@ -33,32 +33,32 @@ final class JsonGroup
      * Settings are applied in this order (multiple before appearance).
      */
     public const TYPES = [
-        'text'          => ['text', ['placeholder', 'default'], false],
-        'textarea'      => ['textarea', ['placeholder', 'default'], false],
-        'number'        => ['number', ['placeholder', 'default'], false],
-        'email'         => ['email', ['placeholder', 'default'], false],
-        'url'           => ['url', ['placeholder', 'default'], false],
-        'password'      => ['password', ['placeholder'], false],
+        'text'          => ['text', ['placeholder', 'default', 'prepend', 'append', 'maxLength'], false],
+        'textarea'      => ['textarea', ['placeholder', 'default', 'maxLength', 'rows'], false],
+        'number'        => ['number', ['placeholder', 'default', 'min', 'max', 'step', 'prepend', 'append'], false],
+        'email'         => ['email', ['placeholder', 'default', 'prepend', 'append', 'maxLength'], false],
+        'url'           => ['url', ['placeholder', 'default', 'prepend', 'append', 'maxLength'], false],
+        'password'      => ['password', ['placeholder', 'maxLength'], false],
         'wysiwyg'       => ['wysiwyg', ['default', 'toolbar', 'noMedia'], false],
-        'range'         => ['range', ['min', 'max', 'step', 'default'], false],
-        'select'        => ['select', ['options', 'default', 'returnFormat'], false],
-        'radio'         => ['radio', ['options', 'default', 'returnFormat'], false],
-        'checkbox'      => ['checkbox', ['options', 'returnFormat'], false],
+        'range'         => ['range', ['min', 'max', 'step', 'default', 'append'], false],
+        'select'        => ['select', ['options', 'default', 'searchable', 'returnFormat'], false],
+        'radio'         => ['radio', ['options', 'default', 'horizontal', 'cards', 'returnFormat'], false],
+        'checkbox'      => ['checkbox', ['options', 'horizontal', 'cards', 'toggleAll', 'returnFormat'], false],
         'button_group'  => ['buttonGroup', ['options', 'allowNull', 'default', 'returnFormat'], false],
         'true_false'    => ['trueFalse', ['message'], false],
         'date'          => ['date', ['format', 'returnFormat'], false],
         'datetime'      => ['datetime', ['format', 'returnFormat'], false],
         'time'          => ['time', ['returnFormat'], false],
-        'color'         => ['color', ['default'], false],
+        'color'         => ['color', ['default', 'themePalette', 'enableAlpha'], false],
         'image'         => ['image', ['previewSize', 'returnFormat'], false],
         'file'          => ['file', ['returnFormat'], false],
         'link'          => ['link', ['postType', 'taxonomies', 'noAnchors', 'styles', 'defaultStyles', 'icons', 'multiple', 'maxItems', 'returnFormat'], false],
         'oembed'        => ['oembed', [], false],
-        'page_link'     => ['pageLink', ['postType', 'multiple'], false],
+        'page_link'     => ['pageLink', ['postType', 'multiple', 'minItems', 'maxItems'], false],
         'post_object'   => ['postObject', ['postType', 'multiple', 'returnFormat'], false],
         'relationship'  => ['relationship', ['relatedPostType', 'bidirectional', 'minItems', 'maxItems', 'returnFormat'], false],
         'taxonomy_term' => ['taxonomyTerm', ['taxonomy', 'multiple', 'appearance', 'returnFormat'], false],
-        'user'          => ['user', ['roles', 'multiple', 'returnFormat'], false],
+        'user'          => ['user', ['roles', 'multiple', 'minItems', 'maxItems', 'returnFormat'], false],
         'map'           => ['map', [], false],
         'icon'          => ['icon', ['library'], false],
         'code'          => ['code', ['language'], false],
@@ -70,7 +70,7 @@ final class JsonGroup
         'separator'     => ['separator', [], false],
         'repeater'      => ['repeater', ['layout', 'fields', 'minItems', 'maxItems', 'buttonLabel'], true],
         'clone'         => ['clone', ['cloneFrom', 'clonePrefix', 'cloneDisplay'], true],
-        'gallery'       => ['gallery', ['minItems', 'maxItems', 'returnFormat'], true],
+        'gallery'       => ['gallery', ['minItems', 'maxItems', 'previewSize', 'returnFormat'], true],
         // Layouts are kept and registered, but edited in PHP (no editor UI yet).
         'flexible_content' => ['flexibleContent', ['layouts', 'globalBlocks', 'buttonLabel'], true],
     ];
@@ -127,6 +127,16 @@ final class JsonGroup
         'placement'       => ['left'],
         'accordionStyle'  => ['horizontal', 'side'],
         'defaultStyles'   => 'slugs',
+        'prepend'         => 'string',
+        'horizontal'      => 'bool',
+        'themePalette'    => 'bool',
+        'enableAlpha'     => 'bool',
+        'cards'           => 'bool',
+        'toggleAll'       => 'bool',
+        'searchable'      => 'bool',
+        'append'          => 'string',
+        'maxLength'       => 'count',
+        'rows'            => 'count',
         'icons'           => 'bool',
         'fields'          => 'fields',
         'layouts'         => 'layouts',
@@ -169,10 +179,13 @@ final class JsonGroup
             $errors[] = __('Give the field group a title.', 'ctrlfield');
         }
 
-        $location    = self::normalizeRules($data['location'] ?? null, $errors);
-        $locationAny = self::normalizeRules($data['locationAny'] ?? null, $errors);
-        if ($location === [] && $locationAny === [] && $errors === []) {
-            $errors[] = __('Add at least one location rule, otherwise the group is shown nowhere.', 'ctrlfield');
+        // A library group has no location: it shows nowhere on its own and
+        // other groups reuse its fields with a Clone field.
+        $library     = (bool) ($data['library'] ?? false);
+        $location    = $library ? [] : self::normalizeRules($data['location'] ?? null, $errors);
+        $locationAny = $library ? [] : self::normalizeRules($data['locationAny'] ?? null, $errors);
+        if (! $library && $location === [] && $locationAny === [] && $errors === []) {
+            $errors[] = __('Add at least one location rule, otherwise the group is shown nowhere — or make it a library group, to reuse its fields with Clone.', 'ctrlfield');
         }
 
         $count  = 0;
@@ -182,6 +195,7 @@ final class JsonGroup
             'key'            => $key,
             'title'          => $title,
             'active'         => ! array_key_exists('active', $data) || (bool) $data['active'],
+            'library'        => $library,
             'location'       => $location,
             'locationAny'    => $locationAny,
             'position'       => self::oneOf($data['position'] ?? null, self::POSITIONS),
@@ -473,17 +487,72 @@ final class JsonGroup
 
     /**
      * Build and register; returns false when the key is taken (code wins).
+     * Clone fields that cannot work are left out; their reasons go to $skipped.
      *
      * @param array<string, mixed> $group
+     * @param-out list<string>      $skipped
      */
-    public static function register(array $group): bool
+    public static function register(array $group, mixed &$skipped = null): bool
     {
+        $skipped = [];
         if (\CtrlField\Registry\FieldRegistry::has((string) $group['key'])) {
             return false;
+        }
+
+        // A Clone field that cannot work (missing or non-library source) is
+        // left out, so the rest of the group still shows; the reason is reported.
+        $problems = self::cloneProblems($group, static fn (string $key): ?FieldGroup => \CtrlField\Registry\FieldRegistry::has($key) ? \CtrlField\Registry\FieldRegistry::get($key) : null);
+        if ($problems !== []) {
+            $group['fields'] = array_values(array_diff_key($group['fields'] ?? [], $problems));
+            $skipped         = array_values($problems);
         }
         self::build($group)->register();
 
         return true;
+    }
+
+    /**
+     * Clone fields (top level) that cannot work, keyed by field index: no
+     * source, a source that does not exist, this group itself, or a group
+     * with location rules (only library groups can be cloned).
+     *
+     * @param  array<string, mixed>              $group
+     * @param  callable(string): ?FieldGroup     $find a registered group by key
+     * @return array<int, string>
+     */
+    public static function cloneProblems(array $group, callable $find): array
+    {
+        $problems = [];
+        foreach ($group['fields'] ?? [] as $i => $f) {
+            if (($f['type'] ?? '') !== 'clone') {
+                continue;
+            }
+            $label  = (string) (($f['label'] ?? '') !== '' ? $f['label'] : $f['key']);
+            $source = (string) ($f['cloneFrom'] ?? '');
+            $found  = $source !== '' && $source !== ($group['key'] ?? '') ? $find($source) : null;
+            $problem = match (true) {
+                /* translators: %s: field label */
+                $source === ''                     => sprintf(__('Clone field "%s": choose the library group to clone.', 'ctrlfield'), $label),
+                /* translators: %s: field label */
+                $source === ($group['key'] ?? '')  => sprintf(__('Clone field "%s": a group cannot clone itself.', 'ctrlfield'), $label),
+                /* translators: 1: field label, 2: group key */
+                $found === null                    => sprintf(__('Clone field "%1$s": the group "%2$s" does not exist (or is inactive).', 'ctrlfield'), $label, $source),
+                /* translators: 1: field label, 2: group key */
+                ! self::isLibrary($found)          => sprintf(__('Clone field "%1$s": "%2$s" has location rules — only library groups (shown nowhere on their own) can be cloned.', 'ctrlfield'), $label, $source),
+                default                            => '',
+            };
+            if ($problem !== '') {
+                $problems[(int) $i] = $problem;
+            }
+        }
+
+        return $problems;
+    }
+
+    /** A library group: no location rules, so it can be cloned (blocks excluded). */
+    public static function isLibrary(FieldGroup $group): bool
+    {
+        return $group->getAndConditions() === [] && $group->getOrGroups() === [] && ! $group->isBlock();
     }
 
     /**
@@ -589,6 +658,14 @@ final class JsonGroup
             $v = $f[$setting];
 
             switch ($setting) {
+                case 'horizontal':
+                    $calls[] = ['layout', ['horizontal']];
+                    break;
+                case 'themePalette':
+                case 'enableAlpha':
+                case 'cards':
+                case 'toggleAll':
+                case 'searchable':
                 case 'icons':
                 case 'required':
                 case 'globalBlocks':

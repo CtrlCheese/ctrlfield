@@ -10,6 +10,21 @@ import { registerUiState, uiPath, uiGet, uiSet } from './uiState.js';
 import { rowSummary, newInstanceId, cloneRow, canAdd, canAddLayout } from './rows.js';
 import { registerLink } from './link.js';
 import { registerIcons } from './icons.js';
+import { registerPicker } from './picker.js';
+import { registerSelect } from './select.js';
+import { registerColor } from './color.js';
+import { registerDates } from './dates.js';
+import { registerCode } from './code.js';
+import { registerOembed } from './oembed.js';
+import { registerInspector } from './inspector.js';
+import { registerPostTypes } from './posttypes.js';
+
+/** What the File field shows of a wp.media attachment (pure: tested). */
+export function fileInfoFrom(a) {
+    const name = a?.filename || a?.title || (a?.url ?? '').split('/').pop() || '';
+    const ext = (name.match(/\.([a-z0-9]+)$/i)?.[1] ?? a?.subtype ?? '').toUpperCase();
+    return { name, ext, size: a?.filesizeHumanReadable ?? '', icon: a?.icon ?? '', url: a?.url ?? '' };
+}
 import { registerWpLinkTabs } from './wplinkTabs.js';
 
 function markBlockEditorDirty() {
@@ -79,6 +94,14 @@ registerWysiwyg(Alpine);
 registerUiState(Alpine);
 registerLink(Alpine);
 registerIcons(Alpine);
+registerPicker(Alpine);
+registerSelect(Alpine);
+registerColor(Alpine);
+registerDates(Alpine);
+registerCode(Alpine);
+registerOembed(Alpine);
+registerInspector(Alpine);
+registerPostTypes(Alpine);
 registerWpLinkTabs();
 // A global block of the library by id (FlexibleContentRenderer prints window.ctrlfieldGlobalBlocks).
 Alpine.magic('ctrlfBlock', () => (id) => window.ctrlfieldGlobalBlocks?.blocks?.[id] ?? null);
@@ -96,6 +119,9 @@ document.addEventListener('alpine:init', () => {
 
         /** Cache of attachment URLs fetched from WP (id → url). */
         attachmentUrls: {},
+
+        /** File field: id → { name, ext, size, icon, url } (fileInfo()). */
+        fileInfos: {},
 
         /** Active tab per group — keyed by group key, value is active tab key. */
         activeTabs: {},
@@ -131,11 +157,6 @@ document.addEventListener('alpine:init', () => {
             if (phData.saveError) {
                 showSaveError(phData.saveError);
             }
-
-            // Code editors are initialised after the DOM is ready (WYSIWYG: x-ctrlf-wysiwyg).
-            this.$nextTick(() => {
-                this.initCodeEditors();
-            });
         },
 
         // -------------------------------------------------------------------
@@ -272,6 +293,7 @@ document.addEventListener('alpine:init', () => {
 
                 // Cache for getAttachmentUrl(): the thumbnail, plus every size for previews.
                 this.attachmentUrls[attachment.id] = url;
+                this.fileInfos[attachment.id] = fileInfoFrom(attachment);
                 for (const [size, data] of Object.entries(attachment.sizes ?? {})) {
                     if (data?.url) this.attachmentUrls[`${attachment.id}:${size}`] = data.url;
                 }
@@ -280,6 +302,27 @@ document.addEventListener('alpine:init', () => {
             });
 
             frame.open();
+        },
+
+        /**
+         * Name, extension, size and icon of an attachment (File field). Fetched
+         * once through wp.media when the value was saved before this page load.
+         */
+        fileInfo(id) {
+            id = Number(id);
+            if (!id) return {};
+            if (!(id in this.fileInfos)) {
+                this.fileInfos[id] = { name: '…', loading: true };
+                const model = globalThis.wp?.media?.attachment?.(id);
+                if (model) {
+                    model.fetch()
+                        .then(() => { this.fileInfos[id] = fileInfoFrom(model.toJSON()); })
+                        .catch(() => { this.fileInfos[id] = { name: `#${id}`, missing: true }; });
+                } else {
+                    this.fileInfos[id] = { name: `#${id}` };
+                }
+            }
+            return this.fileInfos[id];
         },
 
         /**
@@ -294,39 +337,6 @@ document.addEventListener('alpine:init', () => {
         // -------------------------------------------------------------------
         // Code Editor (CodeMirror)
         // -------------------------------------------------------------------
-
-        /**
-         * Initialises CodeMirror on all [data-ctrlfield-code] wrappers.
-         * Called in init() after the DOM is ready.
-         */
-        initCodeEditors() {
-            this.$el.querySelectorAll('[data-ctrlfield-code]').forEach(wrap => {
-                const fieldKey = wrap.dataset.ctrlfieldCode;
-                const textarea = wrap.querySelector('textarea');
-                if (!textarea || typeof wp === 'undefined' || !wp.CodeMirror) return;
-
-                const cm = wp.CodeMirror.fromTextArea(textarea, {
-                    mode:          wrap.dataset.language || 'text',
-                    lineNumbers:   true,
-                    lineWrapping:  wrap.dataset.wrapLines === 'true',
-                    indentUnit:    4,
-                    tabSize:       4,
-                    indentWithTabs: false,
-                    theme:         'default',
-                });
-
-                // Sync CodeMirror → adminState
-                cm.on('change', () => {
-                    this.adminState[fieldKey] = cm.getValue();
-                });
-
-                // Sync stored value → CodeMirror
-                const stored = this.adminState[fieldKey];
-                if (stored && cm.getValue() !== stored) {
-                    cm.setValue(stored);
-                }
-            });
-        },
 
         // -------------------------------------------------------------------
         // User Field — AJAX search
@@ -461,8 +471,26 @@ document.addEventListener('alpine:init', () => {
                 const picked = frame.state().get('selection').toJSON();
                 picked.forEach((a) => {
                     this.attachmentUrls[a.id] = a.sizes?.thumbnail?.url ?? a.url ?? '';
+                    for (const [size, data] of Object.entries(a.sizes ?? {})) {
+                        if (data?.url) this.attachmentUrls[`${a.id}:${size}`] = data.url;
+                    }
                 });
                 done(mergeGallery(current, picked.map((a) => a.id), max));
+            });
+            frame.open();
+        },
+
+        /**
+         * Gallery: opens the media library on one image, so its alt text,
+         * caption and title can be edited there (WordPress saves them).
+         */
+        editAttachment(id) {
+            if (typeof wp === 'undefined' || !wp.media) return;
+            const frame = wp.media({ title: 'Edit image', button: { text: 'Done' }, multiple: false, library: { type: 'image' } });
+            frame.on('open', () => {
+                const attachment = wp.media.attachment(id);
+                attachment.fetch();
+                frame.state().get('selection').reset([attachment]);
             });
             frame.open();
         },

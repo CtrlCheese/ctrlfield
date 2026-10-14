@@ -6,6 +6,7 @@ namespace CtrlField\Admin\PostTypes;
 
 use CtrlField\Bootstrap\ServiceProvider;
 use CtrlField\Builder\CPT;
+use CtrlField\Builder\Taxonomy;
 
 /**
  * Post types created in CtrlField → Post Types (no code).
@@ -20,6 +21,9 @@ final class PostTypesServiceProvider extends ServiceProvider
     /** @var string[] admin-created slugs skipped because code defines them */
     private static array $shadowed = [];
 
+    /** @var string[] admin-created taxonomies skipped because code defines them */
+    private static array $shadowedTaxonomies = [];
+
     public function register(): void {}
 
     public function boot(): void
@@ -30,12 +34,25 @@ final class PostTypesServiceProvider extends ServiceProvider
 
         // After schema files (init:5) and theme code (init:10), before registration (init:20).
         add_action('init', [$this, 'registerAdminPostTypes'], 19);
+        add_action('init', [$this, 'registerAdminTaxonomies'], 19);
         add_action('init', [$this, 'maybeFlushRewriteRules'], 99);
 
         $page = new PostTypesPage(new PostTypeRepository(), new PostTypeCodeExporter());
         add_action('admin_menu', [$page, 'registerMenu'], 20);
         add_action('admin_post_ctrlfield_save_post_type', [$page, 'handleSave']);
         add_action('admin_post_ctrlfield_delete_post_type', [$page, 'handleDelete']);
+        add_action('admin_post_ctrlfield_save_taxonomy', [$page, 'handleSaveTaxonomy']);
+        add_action('admin_post_ctrlfield_delete_taxonomy', [$page, 'handleDeleteTaxonomy']);
+        add_action('admin_enqueue_scripts', [$page, 'enqueueAssets']);
+
+        (new CptMenuFolder())->boot();
+        add_action('admin_post_ctrlfield_cpt_menu_folder', [$page, 'handleMenuFolder']);
+
+        // CtrlField → Visual Builder: post type + taxonomies + field group in one go.
+        $wizard = new ContentModelWizard(new PostTypeRepository(), new \CtrlField\Admin\FieldGroups\FieldGroupRepository());
+        add_action('admin_menu', [$wizard, 'registerMenu'], 21);
+        add_action('admin_enqueue_scripts', [$wizard, 'enqueueAssets']);
+        add_action('admin_post_ctrlfield_create_content_model', [$wizard, 'handleCreate']);
     }
 
     public function registerAdminPostTypes(): void
@@ -53,20 +70,52 @@ final class PostTypesServiceProvider extends ServiceProvider
                 ->supports($def->supports)
                 ->public($def->public)
                 ->publiclyQueryable($def->public)
-                ->excludeFromSearch(! $def->public)
+                ->excludeFromSearch($def->excludeFromSearch)
                 ->hierarchical($def->hierarchical)
-                ->hasArchive($def->hasArchive)
+                ->hasArchive($def->archive())
                 ->showInRest($def->showInRest)
-                ->menuPosition($def->menuPosition);
+                ->menuPosition($def->menuPosition)
+                ->capability($def->capabilityType)
+                ->taxonomies($def->taxonomies);
 
             if ($def->rewriteSlug !== '') {
                 $cpt->rewriteSlug($def->rewriteSlug);
+            }
+            if ($def->restBase !== '') {
+                $cpt->restBase($def->restBase);
             }
             if ($def->description !== '') {
                 $cpt->description($def->description);
             }
 
             $cpt->register();
+        }
+    }
+
+    public function registerAdminTaxonomies(): void
+    {
+        foreach ((new PostTypeRepository())->taxonomies() as $def) {
+            if (Taxonomy::has($def->slug) || taxonomy_exists($def->slug)) {
+                self::$shadowedTaxonomies[] = $def->slug;
+                continue;
+            }
+
+            $taxonomy = Taxonomy::make($def->slug)
+                ->label($def->singular, $def->plural)
+                ->attachTo($def->postTypes)
+                ->hierarchical($def->hierarchical)
+                ->public($def->public)
+                ->showInRest($def->showInRest)
+                ->showAdminColumn($def->showAdminColumn);
+
+            if ($def->rewriteSlug !== '') {
+                $taxonomy->rewriteSlug($def->rewriteSlug);
+            }
+            if ($def->description !== '') {
+                $taxonomy->description($def->description);
+            }
+
+            $taxonomy->register();
         }
     }
 
@@ -83,5 +132,11 @@ final class PostTypesServiceProvider extends ServiceProvider
     public static function shadowed(): array
     {
         return self::$shadowed;
+    }
+
+    /** @return string[] */
+    public static function shadowedTaxonomies(): array
+    {
+        return self::$shadowedTaxonomies;
     }
 }

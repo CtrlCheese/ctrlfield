@@ -7,82 +7,136 @@ namespace CtrlField\Fields\Renderers;
 use CtrlField\Fields\FieldDefinition;
 
 /**
- * Search-and-pick UI shared by Post Object, Relationship and Taxonomy.
+ * The content picker shared by Post Object, Relationship, Page Link, Taxonomy
+ * and User (assets/admin/src/picker.js):
  *
- * Each picker has its own Alpine scope ({ q, results }) and writes straight to
- * the field's state path, so it also works inside repeater rows. Search, labels
- * and pickValue() live in the ctrlFieldAdmin component (assets/admin/src).
+ *  - a "Search or choose…" box right under the label: its dropdown lists the
+ *    7 newest items (or the 7 best matches) and ends with "Browse all…", a
+ *    dialog with search, tabs and the whole list;
+ *  - the chosen items below it as lines — position number (the drag handle on
+ *    hover, when the order matters), thumbnail, title, type · date, ×;
+ *  - at the maximum the box hides until an item is removed; under the minimum
+ *    a message asks for more (saving is refused too: RulesVerificationStage).
+ *
+ * Each picker has its own Alpine scope and writes straight to the field's
+ * state path, so it also works inside repeater and flexible rows.
  */
 abstract class AbstractPickerRenderer extends AbstractRenderer
 {
     /**
-     * @param string $kind        'post' | 'term' — label namespace in pickerLabels.
-     * @param string $searchCall  JS expression returning a promise of results, may use `q`.
-     * @param bool   $sortable    Show up/down buttons (ordered lists).
+     * @param string                                     $source "post:page,service" | "term:category" | "user:editor,author" (PickerController)
+     * @param list<array{source: string, label: string}> $tabs   one per post type when there are several
      */
     protected function renderPicker(
         FieldDefinition $field,
         string $statePath,
-        string $kind,
-        string $searchCall,
+        string $source,
         bool $multiple,
+        ?int $min,
         ?int $max,
         bool $sortable,
+        array $tabs = [],
     ): string {
-        $p        = $statePath;
-        $kindJs   = "'" . $kind . "'";
-        $multiJs  = $multiple ? 'true' : 'false';
-        $maxJs    = $max !== null ? (string) $max : 'null';
-        $search   = 'results = await ' . $searchCall;
+        $p      = $this->esc($statePath);
+        $config = $this->esc((string) wp_json_encode([
+            'source'   => $source,
+            'multiple' => $multiple,
+            'min'      => $min,
+            'max'      => $multiple ? $max : 1,
+            'tabs'     => $tabs,
+            'title'    => (string) ($field->getDefinition()['label'] ?? ''),
+        ], JSON_HEX_APOS | JSON_HEX_QUOT));
 
-        $selected = $multiple
-            ? '<ul class="ctrlf-picker__selected"' . ($sortable ? ' x-ctrlf-sort="' . $p . '"' : '') . '>'
-                . '<template x-for="(id, idx) in (Array.isArray(' . $p . ') ? ' . $p . ' : [])" :key="id">'
-                . '<li class="ctrlf-picker__item" data-ctrlf-item>'
-                . ($sortable
-                    ? '<button type="button" class="ctrlf-picker__handle" x-ctrlf-handle aria-label="' . $this->esc(__('Drag to reorder (or use the arrow keys)', 'ctrlfield')) . '">' . self::dragHandleIcon() . '</button>'
-                    : '')
-                . '<span x-text="itemLabel(' . $kindJs . ', id)"></span>'
-                . '<button type="button" class="button-link ctrlf-picker__remove" @click="' . $p . '.splice(idx, 1)" aria-label="' . $this->esc(__('Remove', 'ctrlfield')) . '">&#215;</button>'
-                . '</li>'
-                . '</template>'
-                . '</ul>'
-            : '<div class="ctrlf-picker__selected" x-show="' . $p . '">'
-                . '<span class="ctrlf-picker__item">'
-                . '<span x-text="itemLabel(' . $kindJs . ', ' . $p . ')"></span>'
-                . '<button type="button" class="button-link ctrlf-picker__remove" @click="' . $p . ' = null" aria-label="' . $this->esc(__('Remove', 'ctrlfield')) . '">&#215;</button>'
-                . '</span>'
-                . '</div>';
+        $drag     = $this->esc(__('Drag to reorder (or use the arrow keys)', 'ctrlfield'));
+        $remove   = $this->esc(__('Remove', 'ctrlfield'));
+        $choose   = $this->esc(__('Search or choose…', 'ctrlfield'));
+        $browse   = $this->esc(__('Browse all…', 'ctrlfield'));
+        $loading  = $this->esc(__('Loading…', 'ctrlfield'));
+        $none     = $this->esc(__('Nothing found.', 'ctrlfield'));
+        $disabled = $field->isReadOnly() ? ' disabled' : '';
+        /* translators: %d: minimum number of items */
+        $minText  = $min !== null ? $this->esc(sprintf(_n('Choose at least %d item.', 'Choose at least %d items.', $min, 'ctrlfield'), $min)) : '';
+        /* translators: %d: maximum number of items */
+        $maxText  = $multiple && $max !== null ? $this->esc(sprintf(_n('Maximum of %d item reached.', 'Maximum of %d items reached.', $max, 'ctrlfield'), $max)) : '';
 
-        $limit = $max !== null
-            ? '<p class="description" x-show="Array.isArray(' . $p . ') && ' . $p . '.length >= ' . $max . '">'
-                . $this->esc(sprintf(
-                    /* translators: %d: maximum number of items */
-                    __('Maximum of %d reached.', 'ctrlfield'),
-                    $max
-                ))
-                . '</p>'
+        $sortAttr = $multiple && $sortable ? ' x-ctrlf-sort="' . $p . '"' : '';
+        // The position number; on hover (or keyboard focus) the drag handle takes its place.
+        $handle   = $multiple && $sortable
+            ? '<button type="button" class="ctrlf-row__handle ctrlf-picker__handle" x-ctrlf-handle aria-label="' . $drag . '" title="' . $drag . '">'
+                . '<span class="ctrlf-picker__num" x-text="idx + 1"></span>' . self::dragHandleIcon() . '</button>'
             : '';
+        $item     = $multiple && $sortable ? ' data-ctrlf-item' : '';
+        $id       = $this->esc($this->inputId($field));
 
-        return '<div class="ctrlf-picker ctrlf-picker--' . $this->esc($kind) . '" x-data="{ q: \'\', results: [], open: false }"'
-            . ' @click.outside="open = false">'
-            . $selected
-            . $limit
-            . '<input type="search" id="' . $this->esc($this->inputId($field)) . '" class="ctrlf-input ctrlf-picker__search"'
-            . ' placeholder="' . $this->esc(__('Search…', 'ctrlfield')) . '" autocomplete="off" x-model="q"'
-            . ' @focus="open = true; if (!results.length) { ' . $this->esc($search) . ' }"'
-            . ' @input.debounce.300ms="open = true; ' . $this->esc($search) . '">'
-            . '<ul class="ctrlf-picker__results" x-show="open && results.length">'
-            . '<template x-for="item in results" :key="item.id">'
-            . '<li><button type="button" class="ctrlf-picker__result"'
-            . ' @click="rememberLabel(' . $kindJs . ', item.id, item.title); '
-            . $this->esc($p) . ' = pickValue(' . $this->esc($p) . ', item.id, ' . $multiJs . ', ' . $maxJs . '); '
-            . ($multiple ? '' : 'open = false; q = \'\'; ')
-            . '">'
-            . '<span x-text="item.title"></span> <small x-text="item.meta"></small>'
+        $thumb = static fn (string $expr): string =>
+            '<span class="ctrlf-picker__thumb" :class="{ \'is-empty\': !' . $expr . '.thumbnail }">'
+            . '<img :src="' . $expr . '.thumbnail || \'\'" alt="" x-show="' . $expr . '.thumbnail" loading="lazy"></span>';
+
+        return '<div class="ctrlf-picker" x-data="ctrlfPicker(' . $config . ')"'
+            . ' @click.outside="open = false" @keydown.escape="open = false">'
+
+            // Search or choose: the 7 newest, then "Browse all…".
+            . '<div class="ctrlf-picker__combo" x-show="!full(' . $p . ')">'
+            . '<input type="search" id="' . $id . '" class="ctrlf-input ctrlf-picker__search" placeholder="' . $choose . '" autocomplete="off"'
+            . ' role="combobox" :aria-expanded="open" x-model="q"' . $disabled
+            . ' @focus="focus()" @click="focus()" @input.debounce.250ms="open = true; load()"'
+            . ' @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)"'
+            . ' @keydown.enter.prevent="active >= 0 && active < items.length ? (' . $p . ' = add(' . $p . ', items[active])) : (active === items.length ? browse(' . $p . ', (v) => ' . $p . ' = v, $el) : null)">'
+            . '<ul class="ctrlf-picker__dropdown" role="listbox" x-show="open" x-cloak>'
+            . '<template x-for="(item, i) in items" :key="item.id">'
+            . '<li><button type="button" class="ctrlf-picker__option" :class="{ \'is-active\': i === active }"'
+            . ' :disabled="list(' . $p . ').includes(item.id)" @mouseenter="active = i"'
+            . ' @click="' . $p . ' = add(' . $p . ', item)">'
+            . $thumb('item')
+            . '<span class="ctrlf-picker__text"><strong x-text="item.title"></strong>'
+            . '<small x-text="[item.meta, item.date].filter(Boolean).join(\' · \')"></small></span>'
             . '</button></li>'
             . '</template>'
+            . '<li class="ctrlf-picker__status" x-show="loading">' . $loading . '</li>'
+            . '<li class="ctrlf-picker__status" x-show="!loading && !items.length">' . $none . '</li>'
+            . '<li><button type="button" class="ctrlf-picker__browse" :class="{ \'is-active\': active === items.length }"'
+            . ' @mouseenter="active = items.length" @click="browse(' . $p . ', (v) => ' . $p . ' = v, $el)">' . $browse . '</button></li>'
             . '</ul>'
+            . '</div>'
+            // The chosen items.
+            . '<ul class="ctrlf-picker__chosen"' . $sortAttr . ' x-show="list(' . $p . ').length">'
+            . '<template x-for="(id, idx) in list(' . $p . ')" :key="id">'
+            . '<li class="ctrlf-picker__line" :class="{ \'is-missing\': info(id).missing }"' . $item . '>'
+            . $handle
+            . $thumb('info(id)')
+            . '<span class="ctrlf-picker__text"><strong x-text="info(id).title"></strong>'
+            . '<small x-text="[info(id).meta, info(id).date].filter(Boolean).join(\' · \')"></small></span>'
+            . '<button type="button" class="ctrlf-picker__x" @click="' . $p . ' = remove(' . $p . ', id)"'
+            . ' aria-label="' . $remove . '" title="' . $remove . '"' . $disabled . '>'
+            . '<svg viewBox="0 0 20 20" width="12" height="12" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
+            . '</button>'
+            . '</li>'
+            . '</template>'
+            . '</ul>'
+
+            . ($minText !== '' ? '<p class="ctrlf-picker__error" role="alert" x-show="belowMin(' . $p . ')">' . $minText . '</p>' : '')
+            . ($maxText !== '' ? '<p class="ctrlf-picker__limit" x-show="full(' . $p . ')">' . $maxText . '</p>' : '')
+
             . '</div>';
+    }
+
+    /**
+     * One tab per post type (when there are several), for the dialog.
+     *
+     * @param  list<string> $types
+     * @return list<array{source: string, label: string}>
+     */
+    protected static function postTypeTabs(array $types): array
+    {
+        if (count($types) < 2) {
+            return [];
+        }
+        $tabs = [];
+        foreach ($types as $type) {
+            $object = function_exists('get_post_type_object') ? get_post_type_object($type) : null;
+            $tabs[] = ['source' => 'post:' . $type, 'label' => $object !== null ? (string) $object->labels->name : $type];
+        }
+
+        return $tabs;
     }
 }

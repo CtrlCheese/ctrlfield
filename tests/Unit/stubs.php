@@ -422,6 +422,8 @@ if (! class_exists('WP_Term')) {
         public string $taxonomy = '';
         public string $name     = '';
         public string $slug     = '';
+        public string $description = '';
+        public int    $count    = 0;
     }
 }
 
@@ -500,5 +502,41 @@ if (! function_exists('_n')) {
     function _n(string $single, string $plural, int $number, string $domain = 'default'): string
     {
         return $number === 1 ? $single : $plural;
+    }
+}
+
+if (! function_exists('esc_html__')) {
+    function esc_html__(string $text, string $domain = 'default'): string
+    {
+        return esc_html($text);
+    }
+}
+
+if (! function_exists('esc_attr__')) {
+    function esc_attr__(string $text, string $domain = 'default'): string
+    {
+        return esc_attr($text);
+    }
+}
+
+if (! function_exists('number_format_i18n')) {
+    function number_format_i18n(float|int $number, int $decimals = 0): string
+    {
+        return number_format((float) $number, $decimals);
+    }
+}
+
+if (! function_exists('wp_nonce_url')) {
+    function wp_nonce_url(string $url, string $action = '-1', string $name = '_wpnonce'): string
+    {
+        return $url . (str_contains($url, '?') ? '&' : '?') . $name . '=test';
+    }
+}
+
+if (! function_exists('get_post_type_object')) {
+    // Post types in $GLOBALS['_wp_post_type_objects'] (name => object), else none.
+    function get_post_type_object(string $type): ?object
+    {
+        return $GLOBALS['_wp_post_type_objects'][$type] ?? null;
     }
 }

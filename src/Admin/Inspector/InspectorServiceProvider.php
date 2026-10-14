@@ -28,6 +28,22 @@ final class InspectorServiceProvider extends ServiceProvider
         add_action('admin_menu', static fn () => (new \CtrlField\Admin\Map\MapSettingsPage())->register(), 20);
 
         add_action('wp_ajax_ctrlfield_import_csv', [$this, 'handleCsvImport']);
+        (new InspectorActions())->register();
+
+        // The Inspector page: the stylesheet and the script (filters, CSV import).
+        add_action('admin_enqueue_scripts', static function (string $hook): void {
+            if ($hook !== 'toplevel_page_ctrlfield') {
+                return;
+            }
+            $version = \CtrlField\Admin\MetaBox\MetaBoxServiceProvider::assetVersion('ctrlfield.js');
+            wp_enqueue_style('ctrlfield-admin', CTRLFIELD_URL . 'assets/admin/ctrlfield.css', [], \CtrlField\Admin\MetaBox\MetaBoxServiceProvider::assetVersion('ctrlfield.css'));
+            wp_enqueue_script('ctrlfield-admin', CTRLFIELD_URL . 'assets/admin/ctrlfield.js', [], $version, true);
+            wp_localize_script('ctrlfield-admin', 'ctrlfieldData', [
+                'ajaxUrl'   => admin_url('admin-ajax.php'),
+                'restUrl'   => rest_url(),
+                'restNonce' => wp_create_nonce('wp_rest'),
+            ]);
+        });
     }
 
     public function handleCsvImport(): void
@@ -49,7 +65,8 @@ final class InspectorServiceProvider extends ServiceProvider
             return;
         }
 
-        $postType = $this->resolvePostTypeForGroup($group);
+        $groupObj = FieldRegistry::all()[$group] ?? null;
+        $postType = $groupObj !== null ? (SchemaAnalyzer::postTypes($groupObj)[0] ?? null) : null;
         if ($postType === null) {
             wp_send_json_error(['message' => 'Group not found or has no post_type context.']);
             return;
@@ -64,22 +81,5 @@ final class InspectorServiceProvider extends ServiceProvider
         $stats    = $importer->import($filePath, $postType, false, true, false);
 
         wp_send_json_success($stats);
-    }
-
-    private function resolvePostTypeForGroup(string $groupKey): ?string
-    {
-        $groups = FieldRegistry::all();
-
-        if (! isset($groups[$groupKey])) {
-            return null;
-        }
-
-        foreach ($groups[$groupKey]->getAndConditions() as $condition) {
-            if ($condition['key'] === 'post_type' && $condition['operator'] === '==') {
-                return (string) $condition['value'];
-            }
-        }
-
-        return null;
     }
 }

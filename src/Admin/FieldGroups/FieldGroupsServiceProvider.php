@@ -38,11 +38,16 @@ final class FieldGroupsServiceProvider extends ServiceProvider
         add_action('admin_enqueue_scripts', [$page, 'enqueueAssets']);
         add_action('admin_post_ctrlfield_save_field_group', [$page, 'handleSave']);
         add_action('admin_post_ctrlfield_delete_field_group', [$page, 'handleDelete']);
+        add_action('admin_post_ctrlfield_save_field_group_php', [$page, 'handleSavePhp']);
     }
 
     public function registerJsonGroups(): void
     {
-        foreach ((new FieldGroupRepository())->all() as $key => $group) {
+        // Library groups first: groups that clone them find them registered.
+        $groups = (new FieldGroupRepository())->all();
+        uasort($groups, static fn (array $a, array $b): int => (int) ! ($a['library'] ?? false) <=> (int) ! ($b['library'] ?? false));
+
+        foreach ($groups as $key => $group) {
             if (! $group['active']) {
                 continue;
             }
@@ -55,8 +60,12 @@ final class FieldGroupsServiceProvider extends ServiceProvider
             }
 
             try {
-                if (JsonGroup::register($group)) {
+                if (JsonGroup::register($group, $skipped)) {
                     self::$registered[] = $key;
+                    // Fields left out (a Clone that cannot work): the group shows without them.
+                    foreach ($skipped as $message) {
+                        SchemaErrors::add($label, new \RuntimeException($message . ' ' . __('The rest of the group is shown.', 'ctrlfield')));
+                    }
                 } else {
                     self::$shadowed[] = $key;
                 }
