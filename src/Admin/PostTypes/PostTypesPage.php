@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace CtrlField\Admin\PostTypes;
 
+use CtrlField\Admin\FieldGroups\FieldGroupRepository;
+use CtrlField\Admin\FieldGroups\FieldGroupsPage;
+use CtrlField\Admin\FieldGroups\FieldGroupsServiceProvider;
+use CtrlField\Admin\Inspector\SchemaAnalyzer;
 use CtrlField\Admin\MetaBox\MetaBoxServiceProvider;
 use CtrlField\Builder\CPT;
 use CtrlField\Builder\Taxonomy;
 use CtrlField\Fields\Renderers\MessageRenderer;
+use CtrlField\Registry\FieldRegistry;
 
 /**
  * CtrlField → Post Types: post types and taxonomies without code — list,
@@ -172,6 +177,7 @@ final class PostTypesPage
                     $def->hierarchical ? __('hierarchical', 'ctrlfield') : '',
                     $def->showInRest ? __('block editor', 'ctrlfield') : '',
                     implode(', ', array_map(static fn (string $t): string => $taxNames[$t] ?? $t, $def->taxonomies)),
+                    $this->fieldsSummary($def->slug),
                 ]);
                 $warning = match (true) {
                     $inCode   => __('Not active: a post type with this key is defined in code, which takes precedence.', 'ctrlfield'),
@@ -188,6 +194,7 @@ final class PostTypesPage
                     $warning,
                     array_filter([
                         __('Edit', 'ctrlfield')       => $editUrl,
+                        __('Fields', 'ctrlfield')     => $editUrl . '#ctrlf-fields',
                         __('Entries', 'ctrlfield')    => $active ? admin_url('edit.php?post_type=' . $def->slug) : '',
                         __('Export PHP', 'ctrlfield') => $this->url(['action' => 'code', self::ARG => $def->slug], 'post_types'),
                     ]),
@@ -208,7 +215,7 @@ final class PostTypesPage
                     $cpt->getPluralLabel() !== '' ? $cpt->getPluralLabel() : (string) $key,
                     (string) $key,
                     '',
-                    [__('CPT::make() in a schema file', 'ctrlfield')],
+                    [__('CPT::make() in a schema file', 'ctrlfield'), $this->fieldsSummary((string) $key)],
                     array_sum(array_map('intval', (array) wp_count_posts((string) $key))),
                     '',
                     [__('Entries', 'ctrlfield') => admin_url('edit.php?post_type=' . $key)],
@@ -403,6 +410,8 @@ final class PostTypesPage
                 <?php $this->keyRow($errors, __('Internal name, made from the singular name. Lowercase, max. 20 characters. Changing it later hides the existing entries.', 'ctrlfield')); ?>
                 <?php $this->text('description', __('Description', 'ctrlfield'), $errors, __('Optional. Some themes show it on the archive page.', 'ctrlfield'), false); ?>
             <?php $this->endSection(); ?>
+
+            <?php $this->fieldsSection($isNew ? '' : $slug, $isNew ? '' : $def->plural); ?>
 
             <?php $this->section(__('Admin menu', 'ctrlfield')); ?>
                 <div class="ctrlf-typeform__row">
@@ -988,13 +997,125 @@ final class PostTypesPage
         $def  = $notice === 'created' && $slug !== '' ? $this->repo->get($slug) : null;
         if ($def !== null) {
             $html .= sprintf(
-                ' <a href="%s">%s</a>',
+                ' <strong><a href="%s">%s</a></strong> · <a href="%s">%s</a>',
+                esc_url($this->newGroupUrl($def->slug)),
+                /* translators: %s: post type plural name */
+                esc_html(sprintf(__('Next: add fields to %s', 'ctrlfield'), $def->plural)),
                 esc_url(admin_url('post-new.php?post_type=' . $def->slug)),
                 /* translators: %s: post type singular name */
                 esc_html(sprintf(__('Add the first %s', 'ctrlfield'), $def->singular))
             );
         }
         echo MessageRenderer::dismissible('success', $html); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
+    }
+
+    // ── Field groups of a post type ──────────────────────────────────────────
+
+    /**
+     * The field groups shown on a post type: made in Field Groups (editable,
+     * from their location rules, loaded or not) and defined in code.
+     *
+     * @return list<array{key: string, title: string, fields: int, editable: bool, error: string}>
+     */
+    private function fieldGroupsFor(string $postType): array
+    {
+        static $json = null;
+        $json ??= (new FieldGroupRepository())->all();
+
+        $out = [];
+        foreach ($json as $key => $group) {
+            foreach ([...($group['location'] ?? []), ...($group['locationAny'] ?? [])] as $rule) {
+                if ($rule['key'] === 'post_type' && $rule['operator'] === '==' && $rule['value'] === $postType) {
+                    $out[] = [
+                        'key'      => (string) $key,
+                        'title'    => (string) ($group['title'] !== '' ? $group['title'] : $key),
+                        'fields'   => SchemaAnalyzer::count(SchemaAnalyzer::tree(FieldRegistry::has((string) $key) ? array_values(FieldRegistry::get((string) $key)->getFields()) : [])) ?: count($group['fields']),
+                        'editable' => true,
+                        'error'    => $group['_errors'] !== [] ? implode(' ', $group['_errors']) : (! $group['active'] ? __('Inactive', 'ctrlfield') : ''),
+                    ];
+                    break;
+                }
+            }
+        }
+        $fromJson = FieldGroupsServiceProvider::registered();
+        foreach (FieldRegistry::all() as $key => $group) {
+            if (! in_array($key, $fromJson, true) && ! isset($json[$key]) && in_array($postType, SchemaAnalyzer::postTypes($group), true)) {
+                $out[] = [
+                    'key'      => (string) $key,
+                    'title'    => $group->getTitle() !== '' ? $group->getTitle() : (string) $key,
+                    'fields'   => SchemaAnalyzer::count(SchemaAnalyzer::tree(array_values($group->getFields()))),
+                    'editable' => false,
+                    'error'    => '',
+                ];
+            }
+        }
+
+        return $out;
+    }
+
+    /** "2 field groups · 24 fields" / "no fields yet" for the list. */
+    private function fieldsSummary(string $postType): string
+    {
+        $groups = $this->fieldGroupsFor($postType);
+        if ($groups === []) {
+            return __('no fields yet', 'ctrlfield');
+        }
+        $fields = array_sum(array_column($groups, 'fields'));
+        if ($fields === 0) {
+            return __('field group without fields yet', 'ctrlfield');
+        }
+
+        return sprintf(
+            /* translators: 1: number of field groups, 2: number of fields */
+            _n('%1$d field group', '%1$d field groups', count($groups), 'ctrlfield') . ' · ' . _n('%2$d field', '%2$d fields', $fields, 'ctrlfield'),
+            count($groups),
+            $fields
+        );
+    }
+
+    private function newGroupUrl(string $postType): string
+    {
+        return add_query_arg(['page' => FieldGroupsPage::SLUG, 'action' => 'new', 'for_post_type' => $postType], admin_url('admin.php'));
+    }
+
+    /** The "Fields" section of the post type form: its field groups, and a new one for it. */
+    private function fieldsSection(string $postType, string $plural): void
+    {
+        echo '<section class="ctrlf-typeform__section" id="ctrlf-fields"><h2>' . esc_html__('Fields', 'ctrlfield') . '</h2>';
+        if ($postType === '') {
+            echo '<p class="ctrlf-typeform__intro">' . esc_html__('Create the post type first; then add its fields here — like in ACF, a field group assigned to this post type.', 'ctrlfield') . '</p><p class="ctrlf-typeform__note"></p></section>';
+            return;
+        }
+
+        $groups = $this->fieldGroupsFor($postType);
+        echo '<p class="ctrlf-typeform__intro">' . esc_html__('Field groups shown when editing an entry. A field group is assigned to this post type by its Location rule.', 'ctrlfield') . '</p>';
+        if ($groups === []) {
+            echo '<p class="ctrlf-typeform__note ctrlf-typeform__empty">' . esc_html__('No fields yet — the edit screen shows only what "Editor" has ticked.', 'ctrlfield') . '</p>';
+        } else {
+            echo '<ul class="ctrlf-typeform__groups">';
+            foreach ($groups as $g) {
+                printf(
+                    '<li><span class="dashicons dashicons-feedback" aria-hidden="true"></span><div><strong>%s</strong> <code>%s</code><span class="ctrlf-types__meta">%s</span>%s</div>%s</li>',
+                    esc_html($g['title']),
+                    esc_html($g['key']),
+                    /* translators: %d: number of fields */
+                    esc_html(sprintf(_n('%d field', '%d fields', $g['fields'], 'ctrlfield'), $g['fields']) . ($g['editable'] ? '' : ' · ' . __('defined in code', 'ctrlfield'))),
+                    $g['error'] !== ''
+                        ? '<span class="ctrlf-types__warning">' . esc_html($g['error']) . '</span>'
+                        : ($g['fields'] === 0 ? '<span class="ctrlf-types__warning">' . esc_html__('No fields yet — it does not show on the edit screen until it has some.', 'ctrlfield') . '</span>' : ''),
+                    $g['editable']
+                        ? '<a class="button button-small" href="' . esc_url(add_query_arg(['page' => FieldGroupsPage::SLUG, 'action' => 'edit', 'group' => $g['key']], admin_url('admin.php'))) . '">' . esc_html__('Edit fields', 'ctrlfield') . '</a>'
+                        : ''
+                );
+            }
+            echo '</ul>';
+        }
+        printf(
+            '<p class="ctrlf-typeform__note"><a class="button" href="%s">%s</a></p></section>',
+            esc_url($this->newGroupUrl($postType)),
+            /* translators: %s: post type plural name */
+            esc_html(sprintf(__('+ New field group for %s', 'ctrlfield'), $plural))
+        );
     }
 
     private function featureLabel(string $feature): string

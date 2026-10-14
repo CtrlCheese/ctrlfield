@@ -159,7 +159,9 @@ final class FieldGroupsPage
                         </div>
                     </td>
                     <td><code><?php echo esc_html($key); ?></code></td>
-                    <td><?php echo esc_html($this->locationSummary($group['location'])); ?></td>
+                    <td><?php echo ! empty($group['library'])
+                        ? '<span class="ctrlf-badge ctrlf-badge--json">' . esc_html__('Library', 'ctrlfield') . '</span> <span class="description">' . esc_html__('reused with Clone', 'ctrlfield') . '</span>'
+                        : esc_html($this->locationSummary($group['location'])); ?></td>
                     <td><?php echo esc_html((string) count($group['fields'])); ?></td>
                     <td><?php echo $group['_source'] === FieldGroupRepository::SOURCE_FILE
                         ? '<code>' . esc_html($key) . '.json</code>'
@@ -209,10 +211,16 @@ final class FieldGroupsPage
         $isNew  = $group === null;
         $flash  = $this->takeErrors();
         $errors = $flash['errors'] ?? [];
+        // "+ New field group for Projects" (Post Types): title and location filled in.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- prefills a new form
+        $for    = $isNew && isset($_GET['for_post_type']) ? sanitize_key(wp_unslash((string) $_GET['for_post_type'])) : '';
+        $forObj = $for !== '' ? get_post_type_object($for) : null;
         $values = $flash['input'] ?? $group ?? [
-            'key' => '', 'title' => '', 'active' => true, 'position' => 'normal', 'style' => 'default',
+            'key' => $for !== '' ? str_replace('-', '_', $for) . '_fields' : '',
+            'title' => $forObj !== null ? (string) $forObj->labels->singular_name : '',
+            'active' => true, 'position' => 'normal', 'style' => 'default',
             'labelPlacement' => 'top', 'fields' => [],
-            'location' => [['key' => 'post_type', 'operator' => '==', 'value' => 'post']],
+            'location' => [['key' => 'post_type', 'operator' => '==', 'value' => $for !== '' ? $for : 'post']],
         ];
         unset($values['_source'], $values['_errors']);
         if ($group !== null && $group['_errors'] !== [] && $errors === []) {
@@ -329,7 +337,13 @@ final class FieldGroupsPage
             </div>
 
             <h2><?php esc_html_e('Location', 'ctrlfield'); ?></h2>
-            <p class="description"><?php esc_html_e('Show this group when all of these rules match.', 'ctrlfield'); ?></p>
+            <fieldset class="ctrlf-fg-where">
+                <label><input type="radio" :value="false" :checked="!group.library" @change="group.library = false; if (!group.location.length) addRule()">
+                    <?php esc_html_e('Show this group where all of these rules match', 'ctrlfield'); ?></label>
+                <label><input type="radio" :value="true" :checked="group.library" @change="group.library = true">
+                    <?php esc_html_e('Nowhere on its own — a library group, reused in other groups with a Clone field', 'ctrlfield'); ?></label>
+            </fieldset>
+            <div x-show="!group.library">
             <table class="widefat" style="max-width:960px;margin-top:8px">
                 <tbody>
                 <template x-for="(rule, index) in group.location" :key="index">
@@ -366,6 +380,7 @@ final class FieldGroupsPage
                 </tbody>
             </table>
             <p><button type="button" class="button" @click="addRule()">+ <?php esc_html_e('Add rule', 'ctrlfield'); ?></button></p>
+            </div>
             <div x-show="group.locationAny.length > 0" class="notice notice-info inline" style="max-width:930px">
                 <p>
                     <?php esc_html_e('Also shown when any of these rules matches (imported from ACF; kept as is, edit them in PHP):', 'ctrlfield'); ?>
@@ -509,11 +524,22 @@ final class FieldGroupsPage
             'html' => 'HTML', 'css' => 'CSS', 'javascript' => 'JavaScript', 'php' => 'PHP', 'json' => 'JSON',
         ]));
         $row('layouts', __('Layouts', 'ctrlfield'), $this->layoutsEditor(), __('Each layout is one kind of section, with its own fields. Editors pick them with "+ Add".', 'ctrlfield'));
+        // Only library groups (no location rules) can be cloned.
         $groupChoices = [];
         foreach (FieldRegistry::all() as $gk => $g) {
-            $groupChoices[$gk] = ($g->getTitle() !== '' ? $g->getTitle() : $gk) . ' (' . $gk . ')';
+            if (JsonGroup::isLibrary($g)) {
+                $groupChoices[$gk] = ($g->getTitle() !== '' ? $g->getTitle() : $gk) . ' (' . $gk . ')';
+            }
         }
-        $row('cloneFrom', __('Clone from', 'ctrlfield'), $select('cloneFrom', $groupChoices), __('The fields of this group are inserted here. The group should have no location rules of its own (a library group).', 'ctrlfield'));
+        foreach ($this->repo->all() as $gk => $g) {
+            if (! empty($g['library']) && ! isset($groupChoices[$gk])) {
+                $groupChoices[$gk] = ($g['title'] !== '' ? $g['title'] : $gk) . ' (' . $gk . ')';
+            }
+        }
+        $row('cloneFrom', __('Clone from', 'ctrlfield'), $groupChoices !== []
+            ? $select('cloneFrom', $groupChoices)
+            : '<p class="description">' . esc_html__('No library group yet: create a field group with Location "Nowhere on its own — a library group".', 'ctrlfield') . '</p>',
+            __('A library group: its fields are inserted here.', 'ctrlfield'));
         $row('clonePrefix', __('Key prefix', 'ctrlfield'), $text('clonePrefix'), __('Prepended to every cloned key. Empty: this field\'s key.', 'ctrlfield'));
         $row('cloneDisplay', __('Display', 'ctrlfield'), $select('cloneDisplay', [
             'seamless' => __('Seamless (the fields appear inline)', 'ctrlfield'),
@@ -724,6 +750,17 @@ HTML;
 
         [$group, $errors] = JsonGroup::normalize(is_array($raw) ? $raw : []);
         $key = (string) $group['key'];
+
+        // Clone fields must point at an existing library group (registered, or saved here as one).
+        if ($errors === []) {
+            $saved  = $this->repo->all();
+            $errors = array_values(JsonGroup::cloneProblems($group, static function (string $source) use ($saved): ?\CtrlField\Builder\FieldGroup {
+                if (isset($saved[$source]) && ! empty($saved[$source]['library'])) {
+                    return \CtrlField\Builder\FieldGroup::make($source); // a library group made here
+                }
+                return FieldRegistry::has($source) ? FieldRegistry::get($source) : null;
+            }));
+        }
 
         if ($errors === [] && $key !== $previousKey) {
             if ($this->repo->get($key) !== null) {

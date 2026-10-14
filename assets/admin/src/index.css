@@ -2948,3 +2948,22 @@ a.ctrlf-insp__card:hover { border-color: var(--ctrlf-accent-strong); }
 
     a { text-decoration: none; }
 }
+
+/* Field Groups: where the group shows — rules, or a library group */
+.ctrlf-fg-where { display: grid; gap: 6px; max-width: 960px; margin: 8px 0 4px;
+    label { display: flex; gap: 8px; align-items: flex-start; }
+    input { margin-top: 2px; accent-color: var(--ctrlf-accent-strong); }
+}
+
+/* Post type form: its field groups */
+.ctrlf-typeform__groups {
+    margin: 10px 0 0;
+    border-top: 1px solid var(--ctrlf-line-soft);
+
+    li { display: grid; grid-template-columns: 20px 1fr auto; gap: 10px; align-items: center; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--ctrlf-line-soft); }
+    .dashicons { color: var(--ctrlf-accent-strong); }
+    code { padding: 1px 6px; background: var(--ctrlf-surface); font-size: 12px; }
+    .ctrlf-types__meta { display: block; }
+}
+.ctrlf-typeform__section > .ctrlf-typeform__note:last-child { padding-top: 12px; }
+.ctrlf-typeform__empty { padding-top: 10px; color: var(--ctrlf-muted); font-style: italic; }

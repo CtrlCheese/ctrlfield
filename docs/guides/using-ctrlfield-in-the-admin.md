@@ -29,6 +29,8 @@ This guide builds a complete content type without writing code: a **post type**,
 6. **Taxonomies**: tick existing ones, such as **Categories** or **Tags**, to use them with Examples.
 7. Click **Create Post Type**. The sidebar shows the URLs it will use before you save.
 
+The confirmation has a **Next: add fields to Examples** link, which goes straight to step 2.
+
 **Examples** now appears in the menu. With two or more post types, they are grouped under one **CPTs** menu item, sorted alphabetically. You can switch this off at the bottom of **CtrlField → Post Types**.
 
 ### Optional: a taxonomy of its own
@@ -43,9 +45,10 @@ This guide builds a complete content type without writing code: a **post type**,
 
 ## Step 2: Add fields to the post type
 
-1. Go to **CtrlField → Field Groups** → **Add New Field Group**.
-2. **Title**: `Example details`. The key fills itself in.
-3. **Location**: this decides where the fields appear. Set the rule to **Post type** **is equal to** **Examples**.
+1. Open **CtrlField → Post Types → Examples**. In its **Fields** section, click **+ New field group for Examples**.
+   - Or go to **CtrlField → Field Groups → Add New Field Group** and set the location yourself.
+2. **Title** and **key** are already filled in (`Example`, `example_fields`). Change them if you like.
+3. **Location** decides where the fields appear. It is already set to **Post type** **is equal to** **Examples**.
 4. **Add fields**, one per piece of information. For each one:
    - **Label**: what editors see, e.g. "Headline".
    - **Name**: filled in from the label (`headline`). Developers use it to read the value.
@@ -55,7 +58,7 @@ This guide builds a complete content type without writing code: a **post type**,
 6. To show a field only in some cases, use **Conditional logic**. For example, "Featured note" is shown only when "Featured" is on.
 7. Click **Save**.
 
-Open **Examples → Add New**: your fields are there.
+Open **Examples → Add New**: your fields are there. Back in **Post Types → Examples**, the **Fields** section now lists the group, with **Edit fields**.
 
 ### Pro fields (with a Pro license)
 
@@ -64,7 +67,7 @@ Open **Examples → Add New**: your fields are there.
 | **Repeater** | A list of rows with the same fields, e.g. team members with photo, name and role |
 | **Flexible content** | Page sections of different kinds (text, quote, gallery…) in any order |
 | **Gallery** | Several images, sortable |
-| **Clone** | Reusing the fields of a *library* group, a group without a location rule |
+| **Clone** | Reusing the fields of a *library* group. To create one, add a field group and set **Location** to *Nowhere on its own — a library group*. **Clone from** lists only library groups. |
 
 ---
 
@@ -92,7 +95,7 @@ Open **Examples → Add New**: your fields are there.
 
 | Problem | Why |
 |---|---|
-| The edit screen shows only the block editor, no fields | The field group has no fields yet, or its **Location** rule points to another post type |
-| A field group does not appear at all | **Field Groups** shows "Not loaded" with the reason, e.g. a *Clone* field pointing to a group that has a location rule |
+| The edit screen shows only the block editor, no fields | The field group has no fields yet, or its **Location** rule points to another post type. **Post Types → the post type → Fields** shows which groups it has and flags empty ones. |
+| A field is missing from a group | A *Clone* field whose library group was deleted or got location rules is left out, and the rest of the group still shows. **Schema Inspector → Health** names it. |
 | The post type is marked "Not active" | A post type with the same key is already defined in code, and code takes precedence |
 | New URLs show "Page not found" | Visit **Settings → Permalinks** once and click **Save** |
