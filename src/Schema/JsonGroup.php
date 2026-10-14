@@ -179,10 +179,13 @@ final class JsonGroup
             $errors[] = __('Give the field group a title.', 'ctrlfield');
         }
 
-        $location    = self::normalizeRules($data['location'] ?? null, $errors);
-        $locationAny = self::normalizeRules($data['locationAny'] ?? null, $errors);
-        if ($location === [] && $locationAny === [] && $errors === []) {
-            $errors[] = __('Add at least one location rule, otherwise the group is shown nowhere.', 'ctrlfield');
+        // A library group has no location: it shows nowhere on its own and
+        // other groups reuse its fields with a Clone field.
+        $library     = (bool) ($data['library'] ?? false);
+        $location    = $library ? [] : self::normalizeRules($data['location'] ?? null, $errors);
+        $locationAny = $library ? [] : self::normalizeRules($data['locationAny'] ?? null, $errors);
+        if (! $library && $location === [] && $locationAny === [] && $errors === []) {
+            $errors[] = __('Add at least one location rule, otherwise the group is shown nowhere — or make it a library group, to reuse its fields with Clone.', 'ctrlfield');
         }
 
         $count  = 0;
@@ -192,6 +195,7 @@ final class JsonGroup
             'key'            => $key,
             'title'          => $title,
             'active'         => ! array_key_exists('active', $data) || (bool) $data['active'],
+            'library'        => $library,
             'location'       => $location,
             'locationAny'    => $locationAny,
             'position'       => self::oneOf($data['position'] ?? null, self::POSITIONS),
@@ -483,17 +487,72 @@ final class JsonGroup
 
     /**
      * Build and register; returns false when the key is taken (code wins).
+     * Clone fields that cannot work are left out; their reasons go to $skipped.
      *
      * @param array<string, mixed> $group
+     * @param-out list<string>      $skipped
      */
-    public static function register(array $group): bool
+    public static function register(array $group, mixed &$skipped = null): bool
     {
+        $skipped = [];
         if (\CtrlField\Registry\FieldRegistry::has((string) $group['key'])) {
             return false;
+        }
+
+        // A Clone field that cannot work (missing or non-library source) is
+        // left out, so the rest of the group still shows; the reason is reported.
+        $problems = self::cloneProblems($group, static fn (string $key): ?FieldGroup => \CtrlField\Registry\FieldRegistry::has($key) ? \CtrlField\Registry\FieldRegistry::get($key) : null);
+        if ($problems !== []) {
+            $group['fields'] = array_values(array_diff_key($group['fields'] ?? [], $problems));
+            $skipped         = array_values($problems);
         }
         self::build($group)->register();
 
         return true;
+    }
+
+    /**
+     * Clone fields (top level) that cannot work, keyed by field index: no
+     * source, a source that does not exist, this group itself, or a group
+     * with location rules (only library groups can be cloned).
+     *
+     * @param  array<string, mixed>              $group
+     * @param  callable(string): ?FieldGroup     $find a registered group by key
+     * @return array<int, string>
+     */
+    public static function cloneProblems(array $group, callable $find): array
+    {
+        $problems = [];
+        foreach ($group['fields'] ?? [] as $i => $f) {
+            if (($f['type'] ?? '') !== 'clone') {
+                continue;
+            }
+            $label  = (string) (($f['label'] ?? '') !== '' ? $f['label'] : $f['key']);
+            $source = (string) ($f['cloneFrom'] ?? '');
+            $found  = $source !== '' && $source !== ($group['key'] ?? '') ? $find($source) : null;
+            $problem = match (true) {
+                /* translators: %s: field label */
+                $source === ''                     => sprintf(__('Clone field "%s": choose the library group to clone.', 'ctrlfield'), $label),
+                /* translators: %s: field label */
+                $source === ($group['key'] ?? '')  => sprintf(__('Clone field "%s": a group cannot clone itself.', 'ctrlfield'), $label),
+                /* translators: 1: field label, 2: group key */
+                $found === null                    => sprintf(__('Clone field "%1$s": the group "%2$s" does not exist (or is inactive).', 'ctrlfield'), $label, $source),
+                /* translators: 1: field label, 2: group key */
+                ! self::isLibrary($found)          => sprintf(__('Clone field "%1$s": "%2$s" has location rules — only library groups (shown nowhere on their own) can be cloned.', 'ctrlfield'), $label, $source),
+                default                            => '',
+            };
+            if ($problem !== '') {
+                $problems[(int) $i] = $problem;
+            }
+        }
+
+        return $problems;
+    }
+
+    /** A library group: no location rules, so it can be cloned (blocks excluded). */
+    public static function isLibrary(FieldGroup $group): bool
+    {
+        return $group->getAndConditions() === [] && $group->getOrGroups() === [] && ! $group->isBlock();
     }
 
     /**
