@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace CtrlField\Admin\Inspector;
 
 use CtrlField\Admin\FieldGroups\FieldGroupsPage;
+use CtrlField\Admin\FieldGroups\FieldGroupRepository;
 use CtrlField\Admin\FieldGroups\FieldGroupsServiceProvider;
+use CtrlField\Admin\FieldGroups\JsonFolderGuard;
 use CtrlField\Builder\FieldGroup;
 use CtrlField\Components\ComponentRegistry;
 use CtrlField\Data\FieldDataService;
@@ -59,8 +61,9 @@ final class SchemaInspectorRenderer
         $schema   = SchemaErrors::all();
         $stale    = $this->data->stalePosts();
         $orphans  = $this->data->orphans($this->groups);
+        $exposed  = $this->jsonExposure();
         $problems = count($schema) + count(array_filter($issues, static fn (array $i): bool => $i['level'] !== 'info'))
-            + ($stale !== [] ? 1 : 0) + count($orphans);
+            + ($stale !== [] ? 1 : 0) + count($orphans) + ($exposed !== null ? 1 : 0);
 
         echo '<div class="wrap ctrlf-insp">';
         echo '<h1 class="wp-heading-inline">' . esc_html__('Schema Inspector', 'ctrlfield') . '</h1>';
@@ -87,7 +90,7 @@ final class SchemaInspectorRenderer
         echo '</nav>';
 
         match ($tab) {
-            'health'     => $this->health($issues, $schema, $stale, $orphans),
+            'health'     => $this->health($issues, $schema, $stale, $orphans, $exposed),
             'io'         => $this->importExport(),
             'values'     => $this->values(),
             'components' => $this->components($schema),
@@ -532,17 +535,38 @@ final class SchemaInspectorRenderer
 
     // ── Health ───────────────────────────────────────────────────────────────
 
+    /** The JSON folder URL when its files can be downloaded, null otherwise. */
+    private function jsonExposure(): ?string
+    {
+        if (! function_exists('wp_remote_get') || ! function_exists('get_stylesheet_directory')) {
+            return null; // outside WordPress (unit tests)
+        }
+        $probe = JsonFolderGuard::probe((new FieldGroupRepository())->directory());
+
+        return $probe['status'] === JsonFolderGuard::EXPOSED ? $probe['url'] : null;
+    }
+
     /**
      * @param list<array<string, string>>       $issues
      * @param array<string, string>             $schema  file => error
      * @param list<int>                         $stale
      * @param array<string, array<string, int>> $orphans
+     * @param ?string                           $exposed URL of the JSON folder, when its files can be downloaded
      */
-    private function health(array $issues, array $schema, array $stale, array $orphans): void
+    private function health(array $issues, array $schema, array $stale, array $orphans, ?string $exposed = null): void
     {
         $this->actionNotice();
 
         $items = [];
+        if ($exposed !== null) {
+            $items[] = [
+                'error',
+                __('Field group files can be downloaded', 'ctrlfield'),
+                /* translators: 1: folder URL, 2: nginx rule */
+                sprintf(__('Anyone can download the field group files in %1$s and read every field name, instruction and choice (not your content or the database). CtrlField protects them by itself when it can write to that folder: make it writable and open this page again. Otherwise add this rule to the nginx server block: %2$s — or move the folder outside the web root with the CTRLFIELD_JSON_PATH constant.', 'ctrlfield'), $exposed, JsonFolderGuard::nginxRule($exposed)),
+                '',
+            ];
+        }
         foreach ($schema as $file => $error) {
             $items[] = ['error', __('Not loaded', 'ctrlfield'), $this->shortPath($file) . ' — ' . $error, ''];
         }

@@ -98,4 +98,5 @@ Open **Examples → Add New**: your fields are there. Back in **Post Types → E
 | The edit screen shows only the block editor, no fields | The field group has no fields yet, or its **Location** rule points to another post type. **Post Types → the post type → Fields** shows which groups it has and flags empty ones. |
 | A field is missing from a group | A *Clone* field whose library group was deleted or got location rules is left out, and the rest of the group still shows. **Schema Inspector → Health** names it. |
 | The post type is marked "Not active" | A post type with the same key is already defined in code, and code takes precedence |
+| Health says "Field group files can be downloaded" | CtrlField could not write to the field group folder, so it could not protect the files. Make the folder writable and open the admin again; or add the nginx rule shown there, or move the folder outside the web root with `CTRLFIELD_JSON_PATH`. Your content and the database are not exposed. |
 | New URLs show "Page not found" | Visit **Settings → Permalinks** once and click **Save** |

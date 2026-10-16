@@ -10,9 +10,12 @@ Each group is a JSON file named after its key:
 
 ```
 wp-content/themes/<your-theme>/ctrlfield-json/
-├── home_hero.json
-└── post_details.json
+├── home_hero.json.php
+├── post_details.json.php
+├── .htaccess · web.config · index.php
 ```
+
+- **Private on every server, with no setup.** Each file starts with one line, `<?php return; ?>`, followed by readable JSON. Opened in a browser, the file runs and prints nothing: on Apache, nginx, LiteSpeed or IIS, without server configuration. The `.htaccess`, `web.config` and `index.php` CtrlField adds are a second layer. Plain `.json` files (from an older version, or copied by hand) are still read and are converted the next time an administrator opens the admin.
 
 - **Deploy them with the theme.** A JSON file copied to another site loads there automatically; there is nothing to import or sync.
 - **Read-only servers.** When the folder cannot be written (file permissions, `DISALLOW_FILE_MODS`) groups are saved in the database instead (option `ctrlfield_ui_field_groups`). The list shows where each group lives.
@@ -26,7 +29,7 @@ define('CTRLFIELD_JSON_PATH', __DIR__ . '/wp-content/ctrlfield-json');
 add_filter('ctrlfield/json_path', fn () => WP_CONTENT_DIR . '/ctrlfield-json');
 ```
 
-JSON is data, not code: a group can only produce the field types and settings the editor offers, so editing groups in the admin never writes executable PHP to the server.
+JSON is data, not code: a group can only produce the field types and settings the editor offers. The only PHP in a group file is the fixed first line; `<` and `>` in the JSON are written as `\u003C` and `\u003E`, so nothing typed in a field can ever become code.
 
 ---
 

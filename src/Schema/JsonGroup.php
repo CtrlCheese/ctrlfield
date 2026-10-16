@@ -747,7 +747,7 @@ final class JsonGroup
     {
         $i   = '    ';
         $flex = str_contains((string) wp_json_encode($group['fields'] ?? []), '"layouts"');
-        $out  = "<?php\n\ndeclare(strict_types=1);\n\nuse CtrlField\\Builder\\FieldGroup;\nuse CtrlField\\Fields\\Field;\n"
+        $out  = "<?php\n\ndeclare(strict_types=1);\n\ndefined('ABSPATH') || exit;\n\nuse CtrlField\\Builder\\FieldGroup;\nuse CtrlField\\Fields\\Field;\n"
             . ($flex ? "use CtrlField\\Pro\\Fields\\FlexLayout;\n" : '') . "\n"
             . 'FieldGroup::make(' . self::lit($group['key']) . ")\n"
             . "{$i}->title(" . self::lit($group['title']) . ")\n";

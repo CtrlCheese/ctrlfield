@@ -164,7 +164,7 @@ final class FieldGroupsPage
                         : esc_html($this->locationSummary($group['location'])); ?></td>
                     <td><?php echo esc_html((string) count($group['fields'])); ?></td>
                     <td><?php echo $group['_source'] === FieldGroupRepository::SOURCE_FILE
-                        ? '<code>' . esc_html($key) . '.json</code>'
+                        ? '<code>' . esc_html($key . FieldGroupRepository::EXTENSION) . '</code>'
                         : esc_html__('Database', 'ctrlfield'); ?></td>
                 </tr>
             <?php endforeach; ?>

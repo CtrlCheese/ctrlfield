@@ -39,6 +39,69 @@ final class FieldGroupsServiceProvider extends ServiceProvider
         add_action('admin_post_ctrlfield_save_field_group', [$page, 'handleSave']);
         add_action('admin_post_ctrlfield_delete_field_group', [$page, 'handleDelete']);
         add_action('admin_post_ctrlfield_save_field_group_php', [$page, 'handleSavePhp']);
+        add_action('admin_init', [$this, 'protectJsonFolder']);
+        add_filter('site_status_tests', [$this, 'siteHealthTests']);
+    }
+
+    /**
+     * Protects a folder made by an older version or copied by hand: plain
+     * .json files are rewritten as protected .json.php files, and the
+     * server files are added.
+     */
+    public function protectJsonFolder(): void
+    {
+        $repository = new FieldGroupRepository();
+        $dir        = $repository->directory();
+        if (! is_dir($dir)) {
+            return;
+        }
+        if ($repository->upgradeFiles() !== [] && function_exists('delete_transient')) {
+            delete_transient(JsonFolderGuard::TRANSIENT);
+        }
+        if (! JsonFolderGuard::isProtected($dir)) {
+            JsonFolderGuard::protect($dir);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed> $tests
+     * @return array<string, mixed>
+     */
+    public function siteHealthTests(array $tests): array
+    {
+        $tests['direct']['ctrlfield_json_private'] = [
+            'label' => __('CtrlField field group files are private', 'ctrlfield'),
+            'test'  => [$this, 'siteHealthJson'],
+        ];
+
+        return $tests;
+    }
+
+    /** @return array<string, mixed> */
+    public function siteHealthJson(): array
+    {
+        $probe = JsonFolderGuard::probe((new FieldGroupRepository())->directory());
+        $base  = [
+            'test'  => 'ctrlfield_json_private',
+            'badge' => ['label' => __('Security', 'ctrlfield'), 'color' => 'blue'],
+        ];
+        if ($probe['status'] !== JsonFolderGuard::EXPOSED) {
+            return $base + [
+                'status'      => 'good',
+                'label'       => __('CtrlField field group files are private', 'ctrlfield'),
+                'description' => '<p>' . esc_html__('The JSON files of the field groups made in the admin cannot be downloaded from the web.', 'ctrlfield') . '</p>',
+            ];
+        }
+
+        return array_merge($base, [
+            'status'      => 'critical',
+            'badge'       => ['label' => __('Security', 'ctrlfield'), 'color' => 'red'],
+            'label'       => __('CtrlField field group files can be downloaded', 'ctrlfield'),
+            'description' => '<p>' . esc_html__('Anyone can download the files of your field groups and read every field name, instruction and choice. Your content and the database are not exposed.', 'ctrlfield') . '</p>',
+            'actions'     => '<p>' . esc_html__('CtrlField protects them by itself when it can write to the folder: make it writable and open the admin again. Otherwise, on nginx, add this rule to the server block:', 'ctrlfield') . '</p><pre><code>'
+                . esc_html(JsonFolderGuard::nginxRule($probe['url'])) . '</code></pre>'
+                . '<p>' . esc_html__('Or move the folder outside the web root with the CTRLFIELD_JSON_PATH constant in wp-config.php.', 'ctrlfield') . '</p>',
+        ]);
     }
 
     public function registerJsonGroups(): void
@@ -52,7 +115,7 @@ final class FieldGroupsServiceProvider extends ServiceProvider
                 continue;
             }
 
-            $label = 'ctrlfield-json/' . $key . '.json';
+            $label = 'ctrlfield-json/' . $key . FieldGroupRepository::EXTENSION;
 
             if ($group['_errors'] !== []) {
                 SchemaErrors::add($label, new \RuntimeException(implode(' ', $group['_errors'])));
