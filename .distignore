@@ -42,3 +42,7 @@ README.md
 .phpcs.xml.dist
 phpcs.baseline.xml
 psalm.xml
+
+# Contributor docs
+CONTRIBUTING.md
+.gitattributes

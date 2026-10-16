@@ -58,9 +58,11 @@ if (version_compare($GLOBALS['wp_version'], CTRLFIELD_MIN_WP, '<')) {
   return;
 }
 
+// Installed with `composer require` in a project (Bedrock, …): the project's
+// autoloader already knows CtrlField. Installed from the zip: vendor/ ships with it.
 $autoloader = CTRLFIELD_PATH . 'vendor/autoload.php';
 
-if (!file_exists($autoloader)) {
+if (!class_exists(\CtrlField\Bootstrap\BootManager::class) && !file_exists($autoloader)) {
   add_action('admin_notices', static function (): void {
     echo '<div class="notice notice-error"><p>';
     esc_html_e('CtrlField: Composer dependencies are missing. Run "composer install" in the plugin directory.', 'ctrlfield');
@@ -69,7 +71,9 @@ if (!file_exists($autoloader)) {
   return;
 }
 
-require_once $autoloader;
+if (file_exists($autoloader)) {
+  require_once $autoloader;
+}
 
 add_action('init', static function (): void {
   load_plugin_textdomain('ctrlfield', false, dirname(plugin_basename(CTRLFIELD_FILE)) . '/languages');

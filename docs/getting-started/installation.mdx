@@ -14,13 +14,17 @@
 
 CtrlField is a single plugin. Free and Pro are the same install — a Pro license unlocks the Pro features.
 
+**Via zip** (no code): download `ctrlfield.zip` from [ctrlcheese.de](https://ctrlcheese.de), then **Plugins → Add New → Upload Plugin**. Everything it needs is inside.
+
 **Via Composer:**
 
 ```bash
 composer require ctrlcheese/ctrlfield
 ```
 
-**Via zip:** download `ctrlfield.zip` from [ctrlcheese.de](https://ctrlcheese.de), then **Plugins → Add New → Upload Plugin**.
+The plugin is installed into your plugins folder (with `composer/installers`) and loads through your project's autoloader. No build step: the admin assets ship with the package.
+
+Nothing to configure for security either: field groups made in the admin are saved as files that print nothing when opened in a browser, on any web server.
 
 ---
 
