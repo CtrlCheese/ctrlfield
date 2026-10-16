@@ -1,8 +1,15 @@
 # CtrlField
 
-**Enterprise-grade code-first custom fields engine for WordPress.**
+[![CI](https://github.com/CtrlCheese/ctrlfield/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlCheese/ctrlfield/actions/workflows/ci.yml)
+![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-777bb4)
+![WordPress 6.5+](https://img.shields.io/badge/WordPress-6.5%2B-21759b)
+[![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue)](LICENSE)
 
-CtrlField replaces ACF and Carbon Fields with a deterministic, PHP-first schema layer. The database stores values. PHP defines the structure. Schema files live in your theme or project — never locked inside a plugin admin UI.
+**Code-first custom fields, post types and taxonomies for WordPress.**
+
+CtrlField replaces ACF and Carbon Fields with a deterministic, PHP-first schema layer. The database stores values. PHP defines the structure. Schema files live in your theme or project and are versioned in git. Prefer clicking? Everything can also be made in the admin and exported to PHP later.
+
+**Documentation:** [Using CtrlField in code](docs/guides/using-ctrlfield-in-code.md) · [Using CtrlField in the admin](docs/guides/using-ctrlfield-in-the-admin.md) · [Field reference](docs/fields/) · [API](docs/api/) · [Migrating from ACF](docs/getting-started/migrating-from-acf.mdx)
 
 ---
 
@@ -31,21 +38,18 @@ CtrlField replaces ACF and Carbon Fields with a deterministic, PHP-first schema 
 
 ## Installation
 
+**No code:** download `ctrlfield.zip` and go to **Plugins → Add New → Upload Plugin**. Everything it needs is inside; there is nothing to build or configure.
+
+**Composer** (Bedrock and other Composer-based projects):
+
 ```bash
 composer require ctrlcheese/ctrlfield
-```
-
-Or place the plugin directory in `wp-content/plugins/ctrlfield/` and run:
-
-```bash
-composer install
-```
-
-Activate via WP admin or WP-CLI:
-
-```bash
 wp plugin activate ctrlfield
 ```
+
+The plugin lands in your plugins folder (through `composer/installers`) and uses your project's autoloader. The built admin assets are part of the package, so there is no `npm` step.
+
+**From a git clone:** put the folder in `wp-content/plugins/ctrlfield/` and run `composer install --no-dev`.
 
 ---
 
@@ -192,9 +196,13 @@ Full list and OR groups (`whereAny()`): `docs/getting-started/location-rules.mdx
 
 ## Field groups without code
 
-**CtrlField → Field Groups** creates groups with a form, like ACF. Each group is saved as a JSON file in `<theme>/ctrlfield-json/` (or the database on read-only servers), so it is versioned and deployed with the theme. Groups defined in PHP take precedence and are listed read-only; any JSON group can be exported to PHP.
+**CtrlField → Field Groups** creates groups with a form, like ACF. Each group is saved as a JSON file in `<theme>/ctrlfield-json/` (or the database on read-only servers), so it is versioned and deployed with the theme. Groups defined in PHP take precedence and are listed read-only; any JSON group can be exported to PHP, or saved straight into your schema folder as a `.php` file.
 
-Details: `docs/getting-started/field-groups-admin.mdx`.
+**Private by default, on any server.** Group files are saved as `<key>.json.php`: one `<?php return; ?>` line, then readable JSON. Opened in a browser, a file prints nothing, on Apache, nginx, LiteSpeed and IIS alike, with no server configuration. A `.htaccess`, a `web.config` and an `index.php` are added as a second layer, and **Schema Inspector → Health** and **Tools → Site Health** warn you if a file can still be downloaded. Exported PHP files start with `defined('ABSPATH') || exit;`, so opening one in a browser does nothing either.
+
+Set **Location** to *Nowhere on its own* to make a **library group**: it shows nowhere by itself and is reused by Clone fields (Pro).
+
+Step by step: [Using CtrlField in the admin](docs/guides/using-ctrlfield-in-the-admin.md). Details: `docs/getting-started/field-groups-admin.mdx`.
 
 ---
 
@@ -349,18 +357,19 @@ ctrlfield_load_components('/path/to/components/')  // auto-discovers fields.php 
 ## WP-CLI
 
 ```bash
-wp ctrlfield migrate              # Run schema migrations
-wp ctrlfield migrate --dry-run    # Preview without writing
-wp ctrlfield export               # Export PHP schema as JSON artifact
-wp ctrlfield import               # Import and validate a JSON artifact
-wp ctrlfield validate             # Validate schema against stored versions
+wp ctrlfield migrate --post-type=portfolio --dry-run   # Preview schema migrations, then run without --dry-run
+wp ctrlfield validate                                  # Check schemas: duplicate keys, broken conditions…
+wp ctrlfield export --file=schema.json                 # Export the registered schema as a JSON artifact
+wp ctrlfield import --file=schema.json                 # Import and validate a JSON artifact
 
-wp ctrlfield export --post-type=portfolio > portfolio.csv   # CSV export
-wp ctrlfield import portfolio.csv --post-type=portfolio     # CSV import
+wp ctrlfield export-csv --post-type=portfolio > portfolio.csv          # Values to CSV
+wp ctrlfield import-csv portfolio.csv --post-type=portfolio --dry-run  # CSV back in (--update-existing, --create-missing)
 
-wp ctrlfield scaffold post-type portfolio \
-    --fields="title:text,client:text,image:image"            # Scaffold CPT + field group
+wp ctrlfield scaffold post-type portfolio --label="Project,Projects" \
+    --fields="client:text,cover:image" --write=ctrlfield/portfolio.php  # Also: taxonomy, field-group, options-page
 ```
+
+Pro adds `acf-import`, `export-schema`, `import-schema` and `generate-schema`. Full list: [`docs/api/cli-commands.mdx`](docs/api/cli-commands.mdx).
 
 ---
 
@@ -370,7 +379,6 @@ CtrlField is **one plugin**. Everything below ships in it; a Pro license (**Ctrl
 
 | Pro feature | Description |
 |---------|-------------|
-| **Visual Field Builder** | Drag-and-drop UI that generates PHP code — never stores schema in the DB |
 | **Repeater** | Rows of sub-fields (Pro in ACF too) |
 | **Flexible Content** | Page builder with named layouts, each with its own sub-fields |
 | **Gallery** | Multi-image field with drag-to-reorder |
@@ -386,10 +394,13 @@ Without a license the site runs the Free feature set and shows no license notice
 
 ## Admin UI
 
-CtrlField adds a **CtrlField** top-level menu in WP Admin with:
+CtrlField adds a **CtrlField** top-level menu in WP Admin. Everything here is in the Free plugin:
 
-- **Schema Inspector** — read-only view of all registered field groups, coverage stats, version mismatch warnings, and CSV export/import buttons.
-- **Visual Builder** — available with CtrlField Pro.
+- **Post Types & Taxonomies**: create them with a form that checks keys while you type and previews the URLs. Each post type has a **Fields** section with its field groups and a *New field group for …* button. Post types defined in code are listed read-only; anything made here can be exported to PHP.
+- **Field Groups**: fields with a form, location rules, conditional logic and library groups (see above).
+- **Visual Builder**: a four-step assistant (post type → taxonomies → fields → review) for people who do not write code.
+- **Schema Inspector**: every field group, where it shows and how often each field is filled in; a post's stored values; PHP and TypeScript types per group; health checks with previewable fixes; CSV import and export.
+- **CPTs menu**: with two or more post types, they share one alphabetical *CPTs* menu item with an overview page. Switch it off on the Post Types screen or with `add_filter('ctrlfield/cpt_menu_folder', '__return_false');`.
 
 ---
 
@@ -439,8 +450,14 @@ When the theme moves to a new server, the schema comes with it. No import steps.
 
 ---
 
+## Contributing & security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development setup and the checks a pull request must pass. Please report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
+
+---
+
 ## License
 
-GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)
+GPL-2.0-or-later. See [LICENSE](LICENSE).
 
 Pro features ship inside the same plugin and are unlocked with a CtrlField Pro license from [ctrlcheese.de](https://ctrlcheese.de).
