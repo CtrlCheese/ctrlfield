@@ -99,6 +99,21 @@ wp ctrlfield validate --post-type=portfolio
 
 ---
 
+## `wp ctrlfield components`
+
+The Schema Inspector's **Components** tab in the terminal: the components `ComponentRegistry::discover()` found.
+
+```bash
+wp ctrlfield components list                  # key, label, category, files, fields, posts using it, problems
+wp ctrlfield components list --format=json    # table, json, csv, yaml, count
+wp ctrlfield components validate              # every problem; exits with an error when a component has one
+wp ctrlfield components validate --strict     # warnings fail too (CI)
+```
+
+Problems are a fields file that does not load, a missing template, a condition inside the component pointing at a field that is not there, and the theme's own checks (`ctrlfield/component_issues` — see [Component Registry](../pro/component-registry.mdx#checks)).
+
+---
+
 ## `wp ctrlfield scaffold`
 
 Generates PHP schema code. It prints to stdout, or writes a file with `--write` (`--force` overwrites).

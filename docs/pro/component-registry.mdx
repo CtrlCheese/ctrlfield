@@ -170,6 +170,23 @@ ComponentRegistry::reset(): void  // tests only
 
 ---
 
+## Checks
+
+**CtrlField → Schema Inspector → Components** and `wp ctrlfield components validate` report, for each component, a fields file that does not load, a missing template and the schema problems inside its layout. A theme adds the checks of its own conventions with `ctrlfield/component_issues`:
+
+```php
+add_filter('ctrlfield/component_issues', function (array $issues, \CtrlField\Components\ComponentDefinition $component): array {
+    if (! is_file($component->path . '/' . $component->folder . '.php')) {
+        $issues[] = ['level' => 'error', 'message' => 'No component class.'];
+    }
+    return $issues;
+}, 10, 2);
+```
+
+Each issue is `['level' => 'error' | 'warning', 'message' => string]`. Errors make `validate` fail; warnings fail only with `--strict`.
+
+---
+
 ## Template priority
 
 | Priority | Extension | Engine |
