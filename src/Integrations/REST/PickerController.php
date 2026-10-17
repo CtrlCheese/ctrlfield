@@ -91,13 +91,14 @@ final class PickerController
 
     public function items(\WP_REST_Request $request): \WP_REST_Response
     {
-        [$kind] = self::parseSource((string) $request->get_param('source'));
+        [$kind, $objects] = self::parseSource((string) $request->get_param('source'));
         $ids    = array_slice(array_values(array_filter(array_map('intval', explode(',', (string) $request->get_param('ids'))))), 0, 100);
         $out    = [];
 
         foreach ($ids as $id) {
             $item = match ($kind) {
-                'term'  => ($t = get_term($id)) instanceof \WP_Term ? self::termResult($t) : null,
+                // Only terms of the taxonomy the permission check was made for.
+                'term'  => ($t = get_term($id)) instanceof \WP_Term && $t->taxonomy === ($objects[0] ?? '') ? self::termResult($t) : null,
                 'user'  => ($u = get_userdata($id)) instanceof \WP_User ? self::userResult($u) : null,
                 default => ($p = get_post($id)) instanceof \WP_Post && current_user_can('read_post', $id) ? self::postResult($p) : null,
             };

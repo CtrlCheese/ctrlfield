@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace CtrlField\Admin\Inspector;
 
 use CtrlField\Admin\FieldGroups\FieldGroupsPage;
+use CtrlField\Admin\FieldGroups\FieldGroupRepository;
 use CtrlField\Admin\FieldGroups\FieldGroupsServiceProvider;
+use CtrlField\Admin\FieldGroups\JsonFolderGuard;
 use CtrlField\Builder\FieldGroup;
 use CtrlField\Components\ComponentRegistry;
 use CtrlField\Data\FieldDataService;
@@ -59,8 +61,9 @@ final class SchemaInspectorRenderer
         $schema   = SchemaErrors::all();
         $stale    = $this->data->stalePosts();
         $orphans  = $this->data->orphans($this->groups);
+        $exposed  = $this->jsonExposure();
         $problems = count($schema) + count(array_filter($issues, static fn (array $i): bool => $i['level'] !== 'info'))
-            + ($stale !== [] ? 1 : 0) + count($orphans);
+            + ($stale !== [] ? 1 : 0) + count($orphans) + ($exposed !== null ? 1 : 0);
 
         echo '<div class="wrap ctrlf-insp">';
         echo '<h1 class="wp-heading-inline">' . esc_html__('Schema Inspector', 'ctrlfield') . '</h1>';
@@ -87,7 +90,7 @@ final class SchemaInspectorRenderer
         echo '</nav>';
 
         match ($tab) {
-            'health'     => $this->health($issues, $schema, $stale, $orphans),
+            'health'     => $this->health($issues, $schema, $stale, $orphans, $exposed),
             'io'         => $this->importExport(),
             'values'     => $this->values(),
             'components' => $this->components($schema),
@@ -316,7 +319,7 @@ final class SchemaInspectorRenderer
             . '<button type="button" role="tab" :aria-selected="lang === \'php\'" @click="lang = \'php\'">PHP</button>'
             . '<button type="button" role="tab" :aria-selected="lang === \'ts\'" @click="lang = \'ts\'">TypeScript</button></div>'
             . '<span class="ctrlf-insp-types__hint" x-show="lang === \'php\'">' . esc_html__('Put it above the template code — PhpStorm, PHPStan and Intelephense complete the keys.', 'ctrlfield') . '</span>'
-            . '<button type="button" class="button button-small" @click="navigator.clipboard.writeText($el.closest(\'.ctrlf-insp-types\').querySelector(\'pre:not([style*=none]) code\').textContent); $el.textContent = ' . esc_attr((string) wp_json_encode(__('Copied', 'ctrlfield'))) . '">' . esc_html__('Copy', 'ctrlfield') . '</button></div>';
+            . '<button type="button" class="button button-small" @click="navigator.clipboard.writeText($el.closest(\'.ctrlf-insp-types\').querySelector(\'pre:not([style*=none]) code\').textContent); $el.textContent = ' . esc_attr(\CtrlField\Admin\Js::json(__('Copied', 'ctrlfield'))) . '">' . esc_html__('Copy', 'ctrlfield') . '</button></div>';
         echo '<pre x-show="lang === \'php\'"><code>' . esc_html($types->php($group)) . '</code></pre>';
         echo '<pre x-show="lang === \'ts\'"><code>' . esc_html($types->typescript($group)) . '</code></pre>';
         echo '</div>';
@@ -366,7 +369,7 @@ final class SchemaInspectorRenderer
             . '<li x-show="loading" class="is-muted">%s</li>'
             . '<template x-for="item in results" :key="item.id"><li><a :href="link(item.id)"><strong x-text="item.title"></strong> <span x-text="item.meta"></span><span class="ctrlf-insp-post__date" x-text="item.date"></span></a></li></template>'
             . '</ul></div>',
-            esc_attr((string) wp_json_encode([
+            esc_attr(\CtrlField\Admin\Js::json([
                 'source' => 'post:' . implode(',', $types !== [] ? $types : ['post', 'page']),
                 'url'    => add_query_arg(['page' => 'ctrlfield', 'tab' => 'values'], admin_url('admin.php')),
             ])),
@@ -532,17 +535,38 @@ final class SchemaInspectorRenderer
 
     // ── Health ───────────────────────────────────────────────────────────────
 
+    /** The JSON folder URL when its files can be downloaded, null otherwise. */
+    private function jsonExposure(): ?string
+    {
+        if (! function_exists('wp_remote_get') || ! function_exists('get_stylesheet_directory')) {
+            return null; // outside WordPress (unit tests)
+        }
+        $probe = JsonFolderGuard::probe((new FieldGroupRepository())->directory());
+
+        return $probe['status'] === JsonFolderGuard::EXPOSED ? $probe['url'] : null;
+    }
+
     /**
      * @param list<array<string, string>>       $issues
      * @param array<string, string>             $schema  file => error
      * @param list<int>                         $stale
      * @param array<string, array<string, int>> $orphans
+     * @param ?string                           $exposed URL of the JSON folder, when its files can be downloaded
      */
-    private function health(array $issues, array $schema, array $stale, array $orphans): void
+    private function health(array $issues, array $schema, array $stale, array $orphans, ?string $exposed = null): void
     {
         $this->actionNotice();
 
         $items = [];
+        if ($exposed !== null) {
+            $items[] = [
+                'error',
+                __('Field group files can be downloaded', 'ctrlfield'),
+                /* translators: 1: folder URL, 2: nginx rule */
+                sprintf(__('Anyone can download the field group files in %1$s and read every field name, instruction and choice (not your content or the database). CtrlField protects them by itself when it can write to that folder: make it writable and open this page again. Otherwise add this rule to the nginx server block: %2$s — or move the folder outside the web root with the CTRLFIELD_JSON_PATH constant.', 'ctrlfield'), $exposed, JsonFolderGuard::nginxRule($exposed)),
+                '',
+            ];
+        }
         foreach ($schema as $file => $error) {
             $items[] = ['error', __('Not loaded', 'ctrlfield'), $this->shortPath($file) . ' — ' . $error, ''];
         }
@@ -640,7 +664,7 @@ final class SchemaInspectorRenderer
         return '<p class="ctrlf-insp-issue__actions">'
             . '<a class="button button-small" href="' . esc_url(InspectorActions::url($action, $args)) . '">' . esc_html__('Preview (dry run)', 'ctrlfield') . '</a> '
             . '<a class="button button-small button-primary" href="' . esc_url(InspectorActions::url($action, $args + ['apply' => '1'])) . '"'
-            . ' onclick="return confirm(' . esc_attr((string) wp_json_encode(__('This changes stored data. Continue?', 'ctrlfield'))) . ')">' . esc_html($label) . '</a></p>';
+            . ' onclick="return confirm(' . esc_attr(\CtrlField\Admin\Js::json(__('This changes stored data. Continue?', 'ctrlfield'))) . ')">' . esc_html($label) . '</a></p>';
     }
 
     private function actionNotice(): void
@@ -698,9 +722,9 @@ final class SchemaInspectorRenderer
                 esc_html($type),
                 esc_url(InspectorActions::url('ctrlfield_export_csv', ['group' => (string) $key])),
                 esc_html__('Export CSV', 'ctrlfield'),
-                esc_attr((string) wp_json_encode(['group' => (string) $key, 'nonce' => wp_create_nonce('ctrlfield_csv_import_' . $key)])),
-                esc_attr((string) wp_json_encode(__('Importing…', 'ctrlfield'))),
-                esc_attr((string) wp_json_encode(__('Import CSV', 'ctrlfield')))
+                esc_attr(\CtrlField\Admin\Js::json(['group' => (string) $key, 'nonce' => wp_create_nonce('ctrlfield_csv_import_' . $key)])),
+                esc_attr(\CtrlField\Admin\Js::json(__('Importing…', 'ctrlfield'))),
+                esc_attr(\CtrlField\Admin\Js::json(__('Import CSV', 'ctrlfield')))
             );
         }
 

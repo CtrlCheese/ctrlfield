@@ -164,7 +164,7 @@ final class FieldGroupsPage
                         : esc_html($this->locationSummary($group['location'])); ?></td>
                     <td><?php echo esc_html((string) count($group['fields'])); ?></td>
                     <td><?php echo $group['_source'] === FieldGroupRepository::SOURCE_FILE
-                        ? '<code>' . esc_html($key) . '.json</code>'
+                        ? '<code>' . esc_html($key . FieldGroupRepository::EXTENSION) . '</code>'
                         : esc_html__('Database', 'ctrlfield'); ?></td>
                 </tr>
             <?php endforeach; ?>
@@ -250,7 +250,7 @@ final class FieldGroupsPage
         <?php endif; ?>
         <?php $this->renderNotice(); ?>
 
-        <div id="ctrlfield-group-editor" x-data="ctrlFieldGroupEditor" data-config="<?php echo esc_attr((string) wp_json_encode($config)); ?>">
+        <div id="ctrlfield-group-editor" x-data="ctrlFieldGroupEditor" data-config="<?php echo esc_attr(\CtrlField\Admin\Js::json($config)); ?>">
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" @submit="serialize()">
             <input type="hidden" name="action" value="ctrlfield_save_field_group">
             <input type="hidden" name="previous_key" value="<?php echo esc_attr($isNew ? '' : $group['key']); ?>">
@@ -682,7 +682,7 @@ HTML;
             <div class="ctrlf-php-export__bar">
                 <strong><?php echo esc_html($key . '.php'); ?></strong>
                 <button type="button" class="button button-small" @click="navigator.clipboard.writeText($root.querySelector('code').textContent); copied = true; setTimeout(() => copied = false, 1500)">
-                    <span x-text="copied ? <?php echo esc_attr((string) wp_json_encode(__('Copied', 'ctrlfield'))); ?> : <?php echo esc_attr((string) wp_json_encode(__('Copy', 'ctrlfield'))); ?>"><?php esc_html_e('Copy', 'ctrlfield'); ?></span>
+                    <span x-text="copied ? <?php echo esc_attr(\CtrlField\Admin\Js::json(__('Copied', 'ctrlfield'))); ?> : <?php echo esc_attr(\CtrlField\Admin\Js::json(__('Copy', 'ctrlfield'))); ?>"><?php esc_html_e('Copy', 'ctrlfield'); ?></span>
                 </button>
             </div>
             <pre><code><?php echo esc_html(JsonGroup::toPhp($group)); ?></code></pre>
@@ -709,7 +709,7 @@ HTML;
                     ?>
                 <?php endif; ?>
                 <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"
-                    <?php if ($exists): ?>onsubmit="return confirm(<?php echo esc_attr((string) wp_json_encode(__('Replace the existing file?', 'ctrlfield'))); ?>)"<?php endif; ?>>
+                    <?php if ($exists): ?>onsubmit="return confirm(<?php echo esc_attr(\CtrlField\Admin\Js::json(__('Replace the existing file?', 'ctrlfield'))); ?>)"<?php endif; ?>>
                     <input type="hidden" name="action" value="ctrlfield_save_field_group_php">
                     <input type="hidden" name="<?php echo esc_attr(self::ARG); ?>" value="<?php echo esc_attr($key); ?>">
                     <?php if ($exists): ?><input type="hidden" name="overwrite" value="1"><?php endif; ?>
@@ -729,6 +729,8 @@ HTML;
             PhpFileWriter::ERR_NO_FOLDER    => __('No schema folder is set up. Define CTRLFIELD_SCHEMA_PATH in wp-config.php (or add a folder with the ctrlfield/schema_paths filter) to save groups as PHP files.', 'ctrlfield'),
             PhpFileWriter::ERR_NOT_WRITABLE => __('The schema folder is not writable by WordPress. Copy the code into it instead.', 'ctrlfield'),
             PhpFileWriter::ERR_INVALID      => __('The generated code could not be checked, so it was not written.', 'ctrlfield'),
+            PhpFileWriter::ERR_NOT_ALLOWED  => __('Writing PHP files from the admin is turned off here (DISALLOW_FILE_EDIT, or a network site without super admin rights). Copy the code into your schema folder instead.', 'ctrlfield'),
+            PhpFileWriter::ERR_NOT_OURS     => __('A file with this name already exists and was not saved from here, so it was left untouched. Rename the group key, or move the file.', 'ctrlfield'),
             default                         => __('The file could not be written.', 'ctrlfield'),
         };
     }

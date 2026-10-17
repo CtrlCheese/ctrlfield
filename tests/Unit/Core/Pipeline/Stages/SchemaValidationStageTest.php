@@ -109,4 +109,19 @@ class SchemaValidationStageTest extends TestCase
         $this->assertArrayHasKey('field_b', $context->fields);
         $this->assertArrayNotHasKey('unknown', $context->fields);
     }
+
+    public function test_layout_only_fields_store_nothing(): void
+    {
+        $group           = FieldGroup::make('ui')->fields([
+            Field::text('title'),
+            Field::message('note')->content('Read me'),
+            Field::tab('details'),
+        ]);
+        $context         = new PipelineContext(1, [], [$group]);
+        $context->fields = ['title' => 'Hi', 'note' => '<b>sent by hand</b>', 'details' => 'x'];
+
+        $this->stage->handle($context);
+
+        $this->assertSame(['title' => 'Hi'], $context->fields);
+    }
 }

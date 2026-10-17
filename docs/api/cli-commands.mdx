@@ -26,31 +26,57 @@ wp ctrlfield migrate --post-type=portfolio --batch=50
 
 ## `wp ctrlfield export`
 
-Exports field values for all posts of a post type to a CSV file.
+Exports the registered schema as a JSON artifact, to move it between environments.
 
 ```bash
-wp ctrlfield export --post-type=portfolio > portfolio.csv
-wp ctrlfield export --post-type=portfolio --file=exports/portfolio.csv
+wp ctrlfield export
+wp ctrlfield export --file=schema.json
 ```
 
 | Flag | Default | Description |
 |---|---|---|
-| `--post-type` | required | Post type to export |
 | `--file` | stdout | Output file path |
-| `--include-drafts` | false | Include draft posts |
-
-**Output format:** CSV with a header row. Complex fields (group, repeater) are JSON-encoded in their column.
 
 ---
 
 ## `wp ctrlfield import`
 
+Imports and validates a JSON artifact made by `wp ctrlfield export`.
+
+```bash
+wp ctrlfield import --file=schema.json
+```
+
+---
+
+## `wp ctrlfield export-csv`
+
+Exports field values for the posts of a post type as CSV.
+
+```bash
+wp ctrlfield export-csv --post-type=portfolio > portfolio.csv
+wp ctrlfield export-csv --post-type=portfolio --fields=client_name,status
+wp ctrlfield export-csv --post-type=portfolio --status=publish > published.csv
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--post-type` | required | Post type to export |
+| `--fields` | all | Comma-separated field keys |
+| `--status` | any | Post status to export |
+
+**Output format:** CSV with a header row. Complex fields (group, repeater) are JSON-encoded in their column.
+
+---
+
+## `wp ctrlfield import-csv`
+
 Imports field values from a CSV file.
 
 ```bash
-wp ctrlfield import portfolio.csv --post-type=portfolio
-wp ctrlfield import portfolio.csv --post-type=portfolio --update-existing
-wp ctrlfield import portfolio.csv --post-type=portfolio --create-missing --dry-run
+wp ctrlfield import-csv portfolio.csv --post-type=portfolio --dry-run
+wp ctrlfield import-csv portfolio.csv --post-type=portfolio --update-existing
+wp ctrlfield import-csv portfolio.csv --post-type=portfolio --create-missing
 ```
 
 | Flag | Default | Description |
@@ -75,27 +101,25 @@ wp ctrlfield validate --post-type=portfolio
 
 ## `wp ctrlfield scaffold`
 
-Generates a PHP schema file stub for a new field group.
+Generates PHP schema code. It prints to stdout, or writes a file with `--write` (`--force` overwrites).
 
 ```bash
-wp ctrlfield scaffold my_group --post-type=portfolio --output=ctrlfield/my-group.php
+wp ctrlfield scaffold post-type portfolio --label="Project,Projects" --fields="client:text,cover:image"
+wp ctrlfield scaffold taxonomy project_category --attach-to=portfolio --hierarchical
+wp ctrlfield scaffold field-group portfolio_details --post-type=portfolio --fields="client:text:Client" --write=ctrlfield/portfolio.php
+wp ctrlfield scaffold options-page theme_settings --fields="tagline:text"
+wp ctrlfield scaffold content-table bookings --fields="name:text,date:date"   # Pro storage
 ```
 
-Generates:
+| Subcommand | Main flags |
+|---|---|
+| `post-type <slug>` | `--label`, `--supports`, `--icon`, `--fields` |
+| `taxonomy <slug>` | `--attach-to`, `--label`, `--hierarchical`, `--fields` |
+| `field-group <key>` | `--post-type`, `--taxonomy`, `--context`, `--options-page`, `--title`, `--fields` |
+| `options-page <slug>` | `--title`, `--capability`, `--parent`, `--fields` |
+| `content-table <slug>` | `--label`, `--fields`, `--no-timestamps` |
 
-```php
-<?php
-
-use CtrlField\Fields\Field;
-
-Field::group('my_group')
-    ->title('My Group')
-    ->where('post_type', '==', 'portfolio')
-    ->fields([
-        // add your fields here
-    ])
-    ->register();
-```
+`--fields` takes `key:type[:label]` pairs, separated by commas. Every subcommand also accepts `--write`, `--force` and `--no-register`.
 
 ---
 

@@ -114,7 +114,7 @@ final class CsvImporter
         bool   $createMissing,
     ): array {
         $postId     = isset($record['post_id']) ? (int) $record['post_id'] : 0;
-        $postTitle  = $record['post_title'] ?? '';
+        $postTitle  = self::unprotect((string) ($record['post_title'] ?? ''));
         $postStatus = $record['post_status'] ?? 'publish';
 
         $fieldData = [];
@@ -123,6 +123,7 @@ final class CsvImporter
             if (in_array($key, ['post_id', 'post_title', 'post_status'], true)) {
                 continue;
             }
+            $value = self::unprotect((string) $value);
 
             $definition = $fieldMap[$key] ?? null;
             if ($definition === null) {
@@ -160,6 +161,13 @@ final class CsvImporter
                 return [
                     'status' => 'skipped',
                     'error'  => "Row {$rowNum}: post_id {$postId} does not exist — skipped.",
+                ];
+            }
+
+            if (function_exists('get_post_type') && get_post_type($postId) !== $postType) {
+                return [
+                    'status' => 'skipped',
+                    'error'  => "Row {$rowNum}: post {$postId} is not a {$postType} — skipped.",
                 ];
             }
 
@@ -203,6 +211,12 @@ final class CsvImporter
         }
 
         return ['status' => 'created'];
+    }
+
+    /** Undoes CsvExporter::protect(): "'=x" → "=x". */
+    public static function unprotect(string $cell): string
+    {
+        return strlen($cell) > 1 && $cell[0] === "'" && strpbrk($cell[1], "=+-@\t\r") !== false ? substr($cell, 1) : $cell;
     }
 
     /** @param array<string, mixed> $fields */

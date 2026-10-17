@@ -24,6 +24,8 @@ final class PhpCodeWriter
         $lines[] = '';
         $lines[] = 'declare(strict_types=1);';
         $lines[] = '';
+        $lines[] = "defined('ABSPATH') || exit;";
+        $lines[] = '';
 
         $uses = ['CtrlField\\Builder\\CPT'];
         if (! empty($def->fields)) {
@@ -80,6 +82,8 @@ final class PhpCodeWriter
         $lines[] = ' */';
         $lines[] = '';
         $lines[] = 'declare(strict_types=1);';
+        $lines[] = '';
+        $lines[] = "defined('ABSPATH') || exit;";
         $lines[] = '';
 
         $uses = ['CtrlField\\Builder\\Taxonomy'];
@@ -139,6 +143,8 @@ final class PhpCodeWriter
         $lines[] = '';
         $lines[] = 'declare(strict_types=1);';
         $lines[] = '';
+        $lines[] = "defined('ABSPATH') || exit;";
+        $lines[] = '';
 
         $uses = ['CtrlField\\Builder\\OptionsPage'];
         if (! empty($def->fields)) {
@@ -193,6 +199,8 @@ final class PhpCodeWriter
         $lines[] = '';
         $lines[] = 'declare(strict_types=1);';
         $lines[] = '';
+        $lines[] = "defined('ABSPATH') || exit;";
+        $lines[] = '';
         $lines[] = 'use CtrlField\\Fields\\Field;';
         $lines[] = '';
 
@@ -241,6 +249,8 @@ final class PhpCodeWriter
         $lines[] = ' */';
         $lines[] = '';
         $lines[] = 'declare(strict_types=1);';
+        $lines[] = '';
+        $lines[] = "defined('ABSPATH') || exit;";
         $lines[] = '';
         $lines[] = 'use CtrlField\\Pro\\Builder\\ContentTable;';
 

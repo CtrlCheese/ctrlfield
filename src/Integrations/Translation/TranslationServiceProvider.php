@@ -22,7 +22,7 @@ final class TranslationServiceProvider extends ServiceProvider
 
         $handler = new TranslationSyncHandler();
 
-        add_action('ctrlfield/after_save', [$handler, 'syncSharedFields'], 10, 2);
+        add_action('ctrlfield/after_save', [$handler, 'syncSharedFields'], 10, 3);
         add_action('pll_after_copy',        [$handler, 'onPolylangCopy'],   10, 3);
         add_action('wpml_after_copy_meta',  [$handler, 'onWpmlCopy'],       10, 3);
     }

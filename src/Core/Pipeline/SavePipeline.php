@@ -8,6 +8,7 @@ use CtrlField\Builder\AdminContext;
 use CtrlField\Core\Pipeline\Contracts\StageInterface;
 use CtrlField\Core\Pipeline\Stages\CapabilityCheckStage;
 use CtrlField\Core\Pipeline\Stages\ComputedFieldsStage;
+use CtrlField\Core\Pipeline\Stages\FieldPermissionStage;
 use CtrlField\Core\Pipeline\Stages\JsonDecodeStage;
 use CtrlField\Core\Pipeline\Stages\NonceValidationStage;
 use CtrlField\Core\Pipeline\Stages\PersistenceStage;
@@ -64,6 +65,7 @@ class SavePipeline
         ?AdminContext $contextOverride = null,
         string $capability = 'edit_posts',
         string $objectCapability = 'edit_post',
+        string $entityType = 'post',
     ): void {
         if ($contextOverride !== null) {
             $adminContext = $contextOverride;
@@ -90,7 +92,7 @@ class SavePipeline
         $adapter  = $adapterOverride ?? new PostMetaAdapter(new WpPostMetaDriver());
         $pipeline = new self(self::buildFullStages($adapter, $capability, $objectCapability));
 
-        self::dispatch($pipeline, $context, $entityId, $unslashed);
+        self::dispatch($pipeline, $context, $entityId, $unslashed, $entityType);
     }
 
     /**
@@ -125,6 +127,7 @@ class SavePipeline
             $jsonPayload,
             new UserMetaAdapter(),
             AdminContext::forUser($userId),
+            'user',
         );
     }
 
@@ -141,6 +144,7 @@ class SavePipeline
             $jsonPayload,
             new TermMetaAdapter(),
             new AdminContext(taxonomy: $taxonomy !== '' ? $taxonomy : null),
+            'term',
         );
     }
 
@@ -167,7 +171,7 @@ class SavePipeline
     }
 
     /**
-     * Data-only stages: decode → validate → coerce → sanitize → compute → persist.
+     * Data-only stages: decode → permissions → validate → coerce → sanitize → compute → persist.
      * Used by REST endpoints (auth already verified by WP REST).
      *
      * @return StageInterface[]
@@ -176,6 +180,7 @@ class SavePipeline
     {
         return [
             new JsonDecodeStage(),
+            new FieldPermissionStage($adapter),
             new SchemaValidationStage(),
             new TypeCoercionStage(),
             new RulesVerificationStage(),
@@ -192,6 +197,7 @@ class SavePipeline
         string $jsonPayload,
         StorageAdapterInterface $adapter,
         AdminContext $adminContext,
+        string $entityType,
     ): void {
         $groups = ContextRegistry::resolve($adminContext);
         if (empty($groups)) {
@@ -202,24 +208,28 @@ class SavePipeline
         $context  = new PipelineContext($entityId, $rawPost, array_values($groups));
         $pipeline = new self(self::buildDataStages($adapter));
 
-        self::dispatch($pipeline, $context, $entityId, $rawPost);
+        self::dispatch($pipeline, $context, $entityId, $rawPost, $entityType);
     }
 
-    /** Runs the pipeline and fires before/after_save hooks. */
+    /**
+     * Runs the pipeline and fires before/after_save hooks. Their third
+     * argument says what $entityId is: 'post', 'user', 'term' or 'comment'.
+     */
     private static function dispatch(
         self $pipeline,
         PipelineContext $context,
         int $entityId,
         array $rawPost,
+        string $entityType = 'post',
     ): void {
         if (function_exists('do_action')) {
-            do_action('ctrlfield/before_save', $entityId, $rawPost);
+            do_action('ctrlfield/before_save', $entityId, $rawPost, $entityType);
         }
 
         $pipeline->process($context);
 
         if (function_exists('do_action')) {
-            do_action('ctrlfield/after_save', $entityId, $context->fields);
+            do_action('ctrlfield/after_save', $entityId, $context->fields, $entityType);
         }
     }
 }

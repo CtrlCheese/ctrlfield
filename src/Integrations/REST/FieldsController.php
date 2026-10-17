@@ -104,7 +104,7 @@ class FieldsController
         $restKeys = [];
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
-                if ($field->getDefinition()['rest_exposed'] === true) {
+                if ($field->getDefinition()['rest_exposed'] === true && $field->currentUserPermission() !== 'hidden') {
                     $restKeys[] = $field->getKey();
                 }
             }
@@ -261,7 +261,10 @@ class FieldsController
             return true;
         }
 
-        if ($post->post_status === 'publish') {
+        // Public only when anyone could open the post itself: published, of a
+        // viewable post type (not an internal CPT), and not behind a password
+        // the visitor has not entered.
+        if ($post->post_status === 'publish' && is_post_publicly_viewable($post) && ! post_password_required($post)) {
             return true;
         }
 
@@ -271,6 +274,11 @@ class FieldsController
                 'Authentication is required to read this post.',
                 ['status' => 401]
             );
+        }
+
+        // Behind a password: the people who can edit it, as on the post screen.
+        if ($post->post_password !== '') {
+            return (bool) current_user_can('edit_post', $postId);
         }
 
         return (bool) current_user_can('read_post', $postId);
@@ -339,7 +347,7 @@ class FieldsController
 
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
-                if ($field->getDefinition()['rest_exposed'] === true) {
+                if ($field->getDefinition()['rest_exposed'] === true && $field->currentUserPermission() !== 'hidden') {
                     $restKeys[] = $field->getKey();
                 }
             }

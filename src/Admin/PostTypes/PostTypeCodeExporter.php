@@ -88,6 +88,7 @@ final class PostTypeCodeExporter
 
         return "<?php\n\n"
             . "declare(strict_types=1);\n\n"
+            . "defined('ABSPATH') || exit;\n\n"
             . "use CtrlField\\Builder\\{$class};\n\n"
             . "// Exported from CtrlField → Post Types. Once this file is in your schema\n"
             . "// directory, delete it in the admin: code takes precedence.\n"

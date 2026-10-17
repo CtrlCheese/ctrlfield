@@ -130,7 +130,7 @@ final class ContentModelWizard
                 echo MessageRenderer::box('error', '<p>' . esc_html__('Nothing was created yet:', 'ctrlfield') . '</p>' . $list); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
             }
             ?>
-            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" x-data="ctrlfModelWizard(<?php echo esc_attr((string) wp_json_encode($config)); ?>)" @submit="if (!canCreate()) $event.preventDefault()">
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" x-data="ctrlfModelWizard(<?php echo esc_attr(\CtrlField\Admin\Js::json($config)); ?>)" @submit="if (!canCreate()) $event.preventDefault()">
                 <input type="hidden" name="action" value="<?php echo esc_attr(self::ACTION); ?>">
                 <?php wp_nonce_field(self::ACTION); ?>
 

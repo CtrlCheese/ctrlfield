@@ -351,7 +351,7 @@ final class PostTypesPage
                             <a href="<?php echo esc_url($url); ?>"><?php echo esc_html($label); ?></a>
                         <?php endforeach; ?>
                         <?php if ($deleteUrl !== ''): ?>
-                            <a href="<?php echo esc_url($deleteUrl); ?>" class="is-danger" onclick="return confirm(<?php echo esc_attr((string) wp_json_encode($confirm)); ?>)"><?php esc_html_e('Delete', 'ctrlfield'); ?></a>
+                            <a href="<?php echo esc_url($deleteUrl); ?>" class="is-danger" onclick="return confirm(<?php echo esc_attr(\CtrlField\Admin\Js::json($confirm)); ?>)"><?php esc_html_e('Delete', 'ctrlfield'); ?></a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
@@ -508,7 +508,7 @@ final class PostTypesPage
                 <div class="ctrlf-typeform__preview">
                     <span class="ctrlf-typeform__preview-icon" x-html="$ctrlfIcon(v.icon, 22)"></span>
                     <div>
-                        <strong x-text="v.plural || <?php echo esc_attr((string) wp_json_encode(__('New post type', 'ctrlfield'))); ?>"></strong>
+                        <strong x-text="v.plural || <?php echo esc_attr(\CtrlField\Admin\Js::json(__('New post type', 'ctrlfield'))); ?>"></strong>
                         <code x-text="v.slug || '—'"></code>
                     </div>
                 </div>
@@ -592,7 +592,7 @@ final class PostTypesPage
                 <div class="ctrlf-typeform__preview">
                     <span class="ctrlf-typeform__preview-icon"><span class="dashicons" :class="v.hierarchical ? 'dashicons-category' : 'dashicons-tag'" aria-hidden="true"></span></span>
                     <div>
-                        <strong x-text="v.plural || <?php echo esc_attr((string) wp_json_encode(__('New taxonomy', 'ctrlfield'))); ?>"></strong>
+                        <strong x-text="v.plural || <?php echo esc_attr(\CtrlField\Admin\Js::json(__('New taxonomy', 'ctrlfield'))); ?>"></strong>
                         <code x-text="v.slug || '—'"></code>
                     </div>
                 </div>
@@ -644,7 +644,7 @@ final class PostTypesPage
         printf(
             '<form method="post" action="%s" class="ctrlf-typeform" x-data="ctrlfTypeForm(%s)">',
             esc_url(admin_url('admin-post.php')),
-            esc_attr((string) wp_json_encode($config))
+            esc_attr(\CtrlField\Admin\Js::json($config))
         );
         echo '<input type="hidden" name="action" value="' . esc_attr($action) . '">';
         echo '<input type="hidden" name="previous_slug" value="' . esc_attr($previous) . '">';
@@ -727,7 +727,7 @@ final class PostTypesPage
         <?php if (! $isNew): ?>
             <div class="ctrlf-typeform__links">
                 <a href="<?php echo esc_url($codeUrl); ?>"><?php esc_html_e('Export PHP', 'ctrlfield'); ?></a>
-                <a href="<?php echo esc_url($deleteUrl); ?>" class="is-danger" onclick="return confirm(<?php echo esc_attr((string) wp_json_encode($confirm)); ?>)"><?php esc_html_e('Delete', 'ctrlfield'); ?></a>
+                <a href="<?php echo esc_url($deleteUrl); ?>" class="is-danger" onclick="return confirm(<?php echo esc_attr(\CtrlField\Admin\Js::json($confirm)); ?>)"><?php esc_html_e('Delete', 'ctrlfield'); ?></a>
             </div>
         <?php endif; ?>
         <?php
@@ -791,7 +791,7 @@ final class PostTypesPage
             <div class="ctrlf-php-export__bar">
                 <strong>PHP</strong>
                 <button type="button" class="button button-small" @click="navigator.clipboard.writeText($root.querySelector('code').textContent); copied = true; setTimeout(() => copied = false, 1500)">
-                    <span x-text="copied ? <?php echo esc_attr((string) wp_json_encode(__('Copied', 'ctrlfield'))); ?> : <?php echo esc_attr((string) wp_json_encode(__('Copy', 'ctrlfield'))); ?>"><?php esc_html_e('Copy', 'ctrlfield'); ?></span>
+                    <span x-text="copied ? <?php echo esc_attr(\CtrlField\Admin\Js::json(__('Copied', 'ctrlfield'))); ?> : <?php echo esc_attr(\CtrlField\Admin\Js::json(__('Copy', 'ctrlfield'))); ?>"><?php esc_html_e('Copy', 'ctrlfield'); ?></span>
                 </button>
             </div>
             <pre><code><?php echo esc_html($code); ?></code></pre>

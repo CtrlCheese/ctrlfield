@@ -122,11 +122,22 @@ final class CsvExporter
         return $groups;
     }
 
+    /**
+     * A cell a spreadsheet would run as a formula (=, +, -, @, tab, CR) gets a
+     * leading ' — a title like =HYPERLINK(…) typed by an author must not run
+     * when an admin opens the export. Numbers (-5) are left alone. The
+     * importer removes the ' again (CsvImporter::unprotect).
+     */
+    public static function protect(string $cell): string
+    {
+        return $cell !== '' && strpbrk($cell[0], "=+-@\t\r") !== false && ! is_numeric($cell) ? "'" . $cell : $cell;
+    }
+
     /** @param array<int, mixed> $row */
     private function encodeRow(array $row): string
     {
         $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, array_map('strval', $row), ',', '"', '');
+        fputcsv($handle, array_map(static fn ($cell): string => self::protect((string) $cell), $row), ',', '"', '');
         rewind($handle);
         $line = (string) stream_get_contents($handle);
         fclose($handle);

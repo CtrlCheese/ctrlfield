@@ -15,15 +15,16 @@ final class ButtonGroupRenderer extends AbstractRenderer
 
         if ($field instanceof ButtonGroupField) {
             foreach ($field->getOptions() as $value => $label) {
-                $escapedValue = $this->esc((string) $value);
+                // A JS string literal: a ' in a choice value cannot end the expression.
+                $escapedValue = $this->esc((string) wp_json_encode((string) $value));
                 $escapedLabel = $this->esc((string) $label);
                 $escapedPath  = $this->esc($statePath);
 
                 $items .= sprintf(
                     '<button type="button" role="radio"'
-                    . ' :aria-checked="%1$s === \'%2$s\' ? \'true\' : \'false\'"'
-                    . ' :class="{\'is-active\': %1$s === \'%2$s\'}"'
-                    . ' @click="%1$s = \'%2$s\'"'
+                    . ' :aria-checked="%1$s === %2$s ? \'true\' : \'false\'"'
+                    . ' :class="{\'is-active\': %1$s === %2$s}"'
+                    . ' @click="%1$s = %2$s"'
                     . ' class="ctrlf-btn-group-item">'
                     . '%3$s'
                     . '</button>',

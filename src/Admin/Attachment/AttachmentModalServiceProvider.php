@@ -100,12 +100,12 @@ final class AttachmentModalServiceProvider extends ServiceProvider
                 continue;
             }
 
-            $key = substr((string) $name, 3);
-            if ($key === '') {
-                continue;
+            $key = substr((string) $name, strlen('ctrlf_'));
+            if ($key === '' || ! isset($fieldMap[$key])) {
+                continue; // only fields of the groups shown for this attachment
             }
 
-            $type     = $fieldMap[$key] ?? FieldType::TEXT;
+            $type     = $fieldMap[$key];
             $fields[$key] = is_array($value)
                 ? array_map(fn ($v) => $this->sanitizeByType($type, (string) $v), $value)
                 : $this->sanitizeByType($type, (string) $value);
@@ -137,6 +137,9 @@ final class AttachmentModalServiceProvider extends ServiceProvider
         $map     = [];
         foreach (ContextRegistry::resolve($context) as $group) {
             foreach ($group->getFields() as $field) {
+                if ($field->currentUserPermission() !== 'edit') {
+                    continue; // field permissions: read-only or hidden for this user
+                }
                 $map[$field->getKey()] = $field->getType();
             }
         }

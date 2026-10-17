@@ -50,6 +50,7 @@ final class EntitySave
                 contextOverride:  $context,
                 capability:       '',
                 objectCapability: $objectCapability,
+                entityType:       $scope,
             );
         } catch (PipelineException $e) {
             set_transient(self::errorKey($scope, $entityId), MetaBoxServiceProvider::friendlyError($e), MINUTE_IN_SECONDS);

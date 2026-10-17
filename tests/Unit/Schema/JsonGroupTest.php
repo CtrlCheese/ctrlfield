@@ -146,10 +146,11 @@ final class JsonGroupTest extends TestCase
         $this->assertSame([], $errors);
 
         $php  = JsonGroup::toPhp($g);
+        $this->assertStringContainsString("defined('ABSPATH') || exit;", $php, 'does nothing when opened in a browser');
         $file = tempnam(sys_get_temp_dir(), 'cfjson');
         file_put_contents($file, str_replace(
-            ['FieldGroup::make', "->register();"],
-            ['return FieldGroup::make', ';'],
+            ["defined('ABSPATH') || exit;", 'FieldGroup::make', "->register();"],
+            ['', 'return FieldGroup::make', ';'],
             $php
         ));
         /** @var FieldGroup $fromPhp */

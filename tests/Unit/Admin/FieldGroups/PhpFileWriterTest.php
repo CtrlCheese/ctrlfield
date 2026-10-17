@@ -29,7 +29,8 @@ final class PhpFileWriterTest extends TestCase
         $path = (new PhpFileWriter($this->dir))->write('hero', "<?php\n\nreturn 1;\n");
 
         $this->assertSame($this->dir . '/hero.php', $path);
-        $this->assertSame("<?php\n\nreturn 1;\n", file_get_contents($path));
+        $this->assertSame("<?php\n" . PhpFileWriter::MARKER . "\n\nreturn 1;\n", file_get_contents($path));
+        $this->assertTrue(PhpFileWriter::isOurs($path));
         $this->assertSame([], glob($this->dir . '/.*.tmp'), 'no temp file left');
     }
 
@@ -46,8 +47,18 @@ final class PhpFileWriterTest extends TestCase
         }
         $this->assertSame("<?php // by hand\n", file_get_contents($this->dir . '/hero.php'));
 
-        $writer->write('hero', "<?php\n", overwrite: true);
-        $this->assertSame("<?php\n", file_get_contents($this->dir . '/hero.php'));
+        try {
+            $writer->write('hero', "<?php\n", overwrite: true);
+            $this->fail('a file a developer wrote is never replaced');
+        } catch (\RuntimeException $e) {
+            $this->assertSame(PhpFileWriter::ERR_NOT_OURS, $e->getMessage());
+        }
+        $this->assertSame("<?php // by hand\n", file_get_contents($this->dir . '/hero.php'));
+
+        unlink($this->dir . '/hero.php');
+        $writer->write('hero', "<?php\nreturn 1;\n");
+        $writer->write('hero', "<?php\nreturn 2;\n", overwrite: true);
+        $this->assertStringEndsWith("return 2;\n", (string) file_get_contents($this->dir . '/hero.php'), 'its own file is replaced');
     }
 
     public function test_refuses_bad_keys_and_code_that_does_not_parse(): void

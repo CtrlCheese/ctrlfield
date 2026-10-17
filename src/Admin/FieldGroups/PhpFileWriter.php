@@ -9,10 +9,15 @@ namespace CtrlField\Admin\FieldGroups;
  * CTRLFIELD_SCHEMA_PATH / the 'ctrlfield/schema_paths' filter, the folder
  * loaded on init:5, where code takes precedence over JSON groups.
  *
- * The file is PHP the site will run, so: only with file changes allowed
- * (DISALLOW_FILE_MODS), only "<key>.php" inside that folder, the code is
- * parsed before it is written, and an existing file is replaced only when
- * asked to.
+ * The file is PHP the site will run, so:
+ * - only with file changes allowed (DISALLOW_FILE_MODS) and file editing
+ *   allowed (DISALLOW_FILE_EDIT, the switch that keeps admins from running
+ *   their own PHP);
+ * - on multisite, only for super admins: the schema folder is shared by
+ *   every site of the network;
+ * - only "<key>.php" inside that folder, parsed before it is written;
+ * - an existing file is replaced only when asked to, and only when this
+ *   writer made it (MARKER), never a file a developer wrote.
  */
 final class PhpFileWriter
 {
@@ -22,6 +27,11 @@ final class PhpFileWriter
     public const ERR_EXISTS = 'exists';
     public const ERR_INVALID = 'invalid';
     public const ERR_FAILED = 'failed';
+    public const ERR_NOT_ALLOWED = 'not_allowed';
+    public const ERR_NOT_OURS = 'not_ours';
+
+    /** Second line of every file this writer makes. */
+    public const MARKER = '// Saved by CtrlField → Field Groups. Saving the group again replaces this file.';
 
     public function __construct(private readonly ?string $directory = null) {}
 
@@ -50,6 +60,10 @@ final class PhpFileWriter
     {
         if (function_exists('wp_is_file_mod_allowed') && ! wp_is_file_mod_allowed('ctrlfield_php')) {
             return self::ERR_DISABLED;
+        }
+        if ((defined('DISALLOW_FILE_EDIT') && DISALLOW_FILE_EDIT)
+            || (function_exists('is_multisite') && is_multisite() && ! is_super_admin())) {
+            return self::ERR_NOT_ALLOWED;
         }
         $dir = $this->directory();
         if ($dir === null) {
@@ -90,6 +104,10 @@ final class PhpFileWriter
         if (file_exists($path) && ! $overwrite) {
             throw new \RuntimeException(self::ERR_EXISTS);
         }
+        if (file_exists($path) && ! self::isOurs($path)) {
+            throw new \RuntimeException(self::ERR_NOT_OURS);
+        }
+        $code = (string) preg_replace('/^<\?php[ \t]*\R/', "<?php\n" . self::MARKER . "\n", $code, 1);
 
         $dir = dirname($path);
         if (! is_dir($dir) && ! @mkdir($dir, 0755, true)) {
@@ -103,6 +121,14 @@ final class PhpFileWriter
         }
 
         return $path;
+    }
+
+    /** Was the file made by this writer? */
+    public static function isOurs(string $path): bool
+    {
+        $head = @file_get_contents($path, false, null, 0, 512);
+
+        return is_string($head) && str_contains($head, self::MARKER);
     }
 
     public static function validKey(string $key): bool

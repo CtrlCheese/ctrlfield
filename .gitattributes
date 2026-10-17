@@ -1,0 +1,29 @@
+# What `composer require ctrlcheese/ctrlfield` downloads: the plugin as it
+# runs, without the development files. Keep in step with .distignore (the zip).
+/.distignore          export-ignore
+/.gitattributes       export-ignore
+/.github              export-ignore
+/.gitignore           export-ignore
+/.phpcs.xml.dist      export-ignore
+/.wp-env.ci.json      export-ignore
+/.wp-env.json         export-ignore
+/bin                  export-ignore
+/CONTRIBUTING.md      export-ignore
+/docs                 export-ignore
+/package-lock.json    export-ignore
+/package.json         export-ignore
+/phpcs.baseline.xml   export-ignore
+/phpstan-baseline.neon export-ignore
+/phpstan-bootstrap.php export-ignore
+/phpstan.neon         export-ignore
+/phpunit-integration.xml export-ignore
+/phpunit.xml          export-ignore
+/playwright.config.js export-ignore
+/psalm.xml            export-ignore
+/TESTING.md           export-ignore
+/tests                export-ignore
+/vite.config.mjs      export-ignore
+/vitest.config.mjs    export-ignore
+/pro/tests            export-ignore
+/pro/bin              export-ignore
+/pro/phpunit.xml      export-ignore

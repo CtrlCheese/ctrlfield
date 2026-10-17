@@ -7,6 +7,8 @@
 
 declare(strict_types=1);
 
+defined('ABSPATH') || exit;
+
 use CtrlField\Builder\CPT;
 use CtrlField\Fields\Field;
 
