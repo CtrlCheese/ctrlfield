@@ -1,6 +1,6 @@
 # Using CtrlField in the admin — step by step
 
-This guide builds a complete content type without writing code: a **post type**, a **taxonomy** and a **field group**, all from **WP Admin → CtrlField**. Two steps, like in ACF:
+This guide builds a complete content type without writing code: a **post type**, a **taxonomy** and a **field group**, all from **WP Admin → CtrlField**. Two steps:
 
 1. **Post Types**: create the content type ("Examples").
 2. **Field Groups**: create its fields and assign them to that post type.

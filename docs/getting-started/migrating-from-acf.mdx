@@ -1,4 +1,4 @@
-# Migrating from ACF
+# Migrating from ACF and ACF PRO
 
 CtrlField imports ACF field groups and their saved values, and provides ACF's template functions, so a theme built for ACF keeps working after the switch.
 
@@ -53,6 +53,13 @@ Themes such as [Flynt](https://flyntwp.com) only start when ACF is present. With
 - `acf/init`, `acf/include_fields` and `acf/include_options_pages` fired on `init`; local groups register once init is done, so fields added later with `acf_add_local_field()` belong to them;
 - field names keep their case (`contentHtml`), and a field never saved returns its `default_value`.
 
+### Fields in migrated themes
+
+- **WYSIWYG:** toolbars from the `acf/fields/wysiwyg/toolbars` filter are applied, with the same format.
+- **Link:** `get_field()` returns the usual `['url', 'title', 'target']` array (a list of them for a multiple field), with the current URL, plus `style` / `icon` / `icon_position` when set.
+- **Global blocks (Pro):** `get_field()` / `have_rows()` receive a global block's sections as ordinary rows (Flynt works as is).
+- **Template code:** Field Groups → Template code also writes the code with these functions (**ACF functions**).
+
 Turn the stand-in class off with `add_filter('ctrlfield/acf_compat_class', '__return_false');` if another plugin mistakes it for the real ACF.
 
 ---
@@ -65,4 +72,4 @@ Turn the stand-in class off with `add_filter('ctrlfield/acf_compat_class', '__re
 - **Relationship fields** hold one post type; the first one is kept.
 - **A multiple select** becomes checkboxes.
 - **Options pages** created in ACF's admin (ACF 6.2+) are not imported; register them with `acf_add_options_page()` or `OptionsPage::make()`.
-- Repeater, Flexible Content and Gallery need CtrlField Pro, as in ACF.
+- Repeater, Flexible Content and Gallery need CtrlField Pro.

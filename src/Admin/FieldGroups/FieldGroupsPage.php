@@ -597,7 +597,7 @@ final class FieldGroupsPage
             'php'   => __('ctrlfield_get() returns the value as stored, with the field\'s return format applied. Every value is escaped for where it is printed.', 'ctrlfield'),
             'blade' => __('{{ }} escapes; {!! !!} is used only for HTML that is already safe (rich text through wp_kses_post, WordPress image tags).', 'ctrlfield'),
             'twig'  => __('Timber does not escape by default, so the code escapes explicitly (|e). function() calls any WordPress function.', 'ctrlfield'),
-            'acf'   => __('For themes written for ACF: get_field() and have_rows() work the same with CtrlField (without ACF installed).', 'ctrlfield'),
+            'acf'   => __('For themes migrated from ACF: get_field() and have_rows() work with CtrlField, without ACF installed.', 'ctrlfield'),
         ];
         $code = TemplateSnippets::generate($group, $dialect);
         ?>

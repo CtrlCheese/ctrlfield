@@ -1083,7 +1083,7 @@ final class PostTypesPage
     {
         echo '<section class="ctrlf-typeform__section" id="ctrlf-fields"><h2>' . esc_html__('Fields', 'ctrlfield') . '</h2>';
         if ($postType === '') {
-            echo '<p class="ctrlf-typeform__intro">' . esc_html__('Create the post type first; then add its fields here — like in ACF, a field group assigned to this post type.', 'ctrlfield') . '</p><p class="ctrlf-typeform__note"></p></section>';
+            echo '<p class="ctrlf-typeform__intro">' . esc_html__('Create the post type first; then add its fields here: a field group assigned to this post type.', 'ctrlfield') . '</p><p class="ctrlf-typeform__note"></p></section>';
             return;
         }
 

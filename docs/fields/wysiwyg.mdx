@@ -32,8 +32,6 @@ The editor is set up the way WordPress sets up its own, so what a theme configur
 - **Formats** (`style_formats`), block formats, entities and other options from `tiny_mce_before_init` — e.g. a theme's "Button" format;
 - TinyMCE plugins (`mce_external_plugins`) and editor CSS (`add_editor_style()`).
 
-Themes built for ACF keep their toolbars: the `acf/fields/wysiwyg/toolbars` filter is applied too, with the same format.
-
 ```php
 // A "minimal" toolbar for ->toolbar('minimal').
 add_filter('ctrlfield/wysiwyg/toolbars', function (array $toolbars) {

@@ -7,7 +7,7 @@
 
 **Code-first custom fields, post types and taxonomies for WordPress.**
 
-CtrlField replaces ACF and Carbon Fields with a deterministic, PHP-first schema layer. The database stores values. PHP defines the structure. Schema files live in your theme or project and are versioned in git. Prefer clicking? Everything can also be made in the admin and exported to PHP later.
+CtrlField is a deterministic, PHP-first schema layer. The database stores values. PHP defines the structure. Schema files live in your theme or project and are versioned in git. Prefer clicking? Everything can also be made in the admin and exported to PHP later.
 
 **Documentation:** [Using CtrlField in code](docs/guides/using-ctrlfield-in-code.md) · [Using CtrlField in the admin](docs/guides/using-ctrlfield-in-the-admin.md) · [Field reference](docs/fields/) · [API](docs/api/) · [Migrating from ACF](docs/getting-started/migrating-from-acf.mdx)
 
@@ -15,14 +15,14 @@ CtrlField replaces ACF and Carbon Fields with a deterministic, PHP-first schema 
 
 ## Why CtrlField
 
-| Problem with ACF / Carbon Fields | CtrlField |
-|-----------------------------------|-----------|
-| Schema in the database — invisible in git diffs | Schema in PHP — committed alongside the code |
-| UI → export JSON → import → repeat on every environment | Define once in PHP, works everywhere |
-| Row-per-field storage doubles meta rows | Single JSON blob per post |
-| `_reference_key` rows for every field | Eliminated entirely |
-| Silent runtime schema migrations | Explicit CLI only: `wp ctrlfield migrate` |
-| Global REST API pollution | Opt-in per field: `->showInRest()` |
+| | CtrlField |
+|---|-----------|
+| **Schema** | In PHP, committed alongside the code and reviewed in git diffs |
+| **Environments** | Define once, works everywhere — no export / import step |
+| **Storage** | One JSON blob per post, no extra reference rows |
+| **Migrations** | Explicit and visible: `wp ctrlfield migrate` |
+| **REST API** | Opt-in per field: `->showInRest()` |
+| **Admin UI** | Field groups, post types and taxonomies made with a form, exported to PHP when you want |
 
 ---
 
@@ -158,7 +158,7 @@ $tagline = ctrlf_option('site_tagline', 'theme_settings');
 
 ## Field Types
 
-Same Free/Pro split as ACF, plus extra Free fields ACF does not have. Full reference: `docs/fields/`.
+Most fields are Free; Repeater, Flexible Content, Gallery and Clone are Pro. Full reference: `docs/fields/`.
 
 | Category | Field | Factory | Plan |
 |---|---|---|---|
@@ -180,7 +180,7 @@ Pro factories need an active license. Without it they throw a clear error, and a
 
 ## Location rules
 
-Show a group only where it belongs — same rule set as ACF and Carbon Fields:
+Show a group only where it belongs:
 
 ```php
 ->where('post_type', '==', 'page')
@@ -196,7 +196,7 @@ Full list and OR groups (`whereAny()`): `docs/getting-started/location-rules.mdx
 
 ## Field groups without code
 
-**CtrlField → Field Groups** creates groups with a form, like ACF. Each group is saved as a JSON file in `<theme>/ctrlfield-json/` (or the database on read-only servers), so it is versioned and deployed with the theme. Groups defined in PHP take precedence and are listed read-only; any JSON group can be exported to PHP, or saved straight into your schema folder as a `.php` file.
+**CtrlField → Field Groups** creates groups with a form. Each group is saved as a JSON file in `<theme>/ctrlfield-json/` (or the database on read-only servers), so it is versioned and deployed with the theme. Groups defined in PHP take precedence and are listed read-only; any JSON group can be exported to PHP, or saved straight into your schema folder as a `.php` file.
 
 **Private by default, on any server.** Group files are saved as `<key>.json.php`: one `<?php return; ?>` line, then readable JSON. Opened in a browser, a file prints nothing, on Apache, nginx, LiteSpeed and IIS alike, with no server configuration. A `.htaccess`, a `web.config` and an `index.php` are added as a second layer, and **Schema Inspector → Health** and **Tools → Site Health** warn you if a file can still be downloaded. Exported PHP files start with `defined('ABSPATH') || exit;`, so opening one in a browser does nothing either.
 
@@ -206,11 +206,9 @@ Step by step: [Using CtrlField in the admin](docs/guides/using-ctrlfield-in-the-
 
 ---
 
-## Coming from ACF
+## Migration from ACF
 
-**CtrlField → Field Groups → Import from ACF** (or `wp ctrlfield acf-import --data`) converts ACF field groups and copies their values; ACF's data is only read. The importer is **Pro**. Free: with ACF deactivated, CtrlField provides `get_field()`, `the_field()`, `have_rows()` / `get_sub_field()`, `update_field()`, `acf_add_local_field_group()` and `acf_add_options_page()`, so ACF themes keep working.
-
-Details: `docs/getting-started/migrating-from-acf.mdx`.
+A migration from ACF and ACF PRO is available: field groups, values and themes. See [Migrating from ACF](docs/getting-started/migrating-from-acf.mdx).
 
 ---
 
@@ -369,7 +367,7 @@ wp ctrlfield scaffold post-type portfolio --label="Project,Projects" \
     --fields="client:text,cover:image" --write=ctrlfield/portfolio.php  # Also: taxonomy, field-group, options-page
 ```
 
-Pro adds `acf-import`, `export-schema`, `import-schema` and `generate-schema`. Full list: [`docs/api/cli-commands.mdx`](docs/api/cli-commands.mdx).
+Pro adds `acf-import` (migration), `export-schema`, `import-schema` and `generate-schema`. Full list: [`docs/api/cli-commands.mdx`](docs/api/cli-commands.mdx).
 
 ---
 
@@ -379,7 +377,7 @@ CtrlField is **one plugin**. Everything below ships in it; a Pro license (**Ctrl
 
 | Pro feature | Description |
 |---------|-------------|
-| **Repeater** | Rows of sub-fields (Pro in ACF too) |
+| **Repeater** | Rows of sub-fields |
 | **Flexible Content** | Page builder with named layouts, each with its own sub-fields |
 | **Gallery** | Multi-image field with drag-to-reorder |
 | **Clone Field** | Reuse field groups across multiple contexts without duplication |

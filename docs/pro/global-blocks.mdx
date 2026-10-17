@@ -14,7 +14,7 @@ Field::flexibleContent('components')
 
 In the Field Groups editor (JSON), set `"globalBlocks": true` on the flexible content field.
 
-For a field registered elsewhere — an ACF theme's field group, for instance:
+For a field registered elsewhere, such as a theme's own field group:
 
 ```php
 add_filter('ctrlfield/global_blocks/enable', fn (bool $on, string $key) => $on || $key === 'pageComponents', 10, 2);
@@ -66,7 +66,7 @@ A page stores a reference only:
 Nothing to change. When values are read, a global block row is replaced by the block's sections, so templates receive ordinary rows:
 
 - `ctrlfield_get()`, `ctrlfield_get_flexible()`, `@flexible`;
-- `get_field()` / `have_rows()` in themes built for ACF (Flynt works as is);
+- the template functions of a theme migrated from ACF ([Migrating from ACF](../getting-started/migrating-from-acf.mdx));
 - components rendered with `ctrlfield_render_component()`.
 
 Customized values replace the block's ones, each sanitized for its field type; only the overridable fields of that section are taken. Unpublished or missing blocks are skipped, and a block that would include itself is ignored.
