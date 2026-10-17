@@ -63,13 +63,18 @@ class FieldValueController
         $groups  = ContextRegistry::resolve($context);
 
         $schema = [];
+        $hidden = [];
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
+                if ($field->currentUserPermission() === 'hidden') {
+                    $hidden[$field->getKey()] = true; // field permissions: not for this user
+                    continue;
+                }
                 $schema[] = $field->getDefinition();
             }
         }
 
-        $values = FieldDataService::getInstance()->getAll($postId, 'post');
+        $values = array_diff_key(FieldDataService::getInstance()->getAll($postId, 'post'), $hidden);
 
         return new \WP_REST_Response([
             'schema' => $schema,

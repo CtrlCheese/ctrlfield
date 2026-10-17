@@ -20,6 +20,9 @@ class PipelineContext
     /** @var array<string, mixed> Fields with setIndex(true), written as individual meta rows. */
     public array $indexedFields = [];
 
+    /** @var list<string> Keys the current user may not change (field permissions): they keep their stored value. */
+    public array $locked = [];
+
     /**
      * @param array<string, mixed> $rawPost     Raw $_POST data.
      * @param FieldGroup[]         $fieldGroups Pre-resolved groups matching this post's context.

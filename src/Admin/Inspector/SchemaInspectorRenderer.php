@@ -319,7 +319,7 @@ final class SchemaInspectorRenderer
             . '<button type="button" role="tab" :aria-selected="lang === \'php\'" @click="lang = \'php\'">PHP</button>'
             . '<button type="button" role="tab" :aria-selected="lang === \'ts\'" @click="lang = \'ts\'">TypeScript</button></div>'
             . '<span class="ctrlf-insp-types__hint" x-show="lang === \'php\'">' . esc_html__('Put it above the template code — PhpStorm, PHPStan and Intelephense complete the keys.', 'ctrlfield') . '</span>'
-            . '<button type="button" class="button button-small" @click="navigator.clipboard.writeText($el.closest(\'.ctrlf-insp-types\').querySelector(\'pre:not([style*=none]) code\').textContent); $el.textContent = ' . esc_attr((string) wp_json_encode(__('Copied', 'ctrlfield'))) . '">' . esc_html__('Copy', 'ctrlfield') . '</button></div>';
+            . '<button type="button" class="button button-small" @click="navigator.clipboard.writeText($el.closest(\'.ctrlf-insp-types\').querySelector(\'pre:not([style*=none]) code\').textContent); $el.textContent = ' . esc_attr(\CtrlField\Admin\Js::json(__('Copied', 'ctrlfield'))) . '">' . esc_html__('Copy', 'ctrlfield') . '</button></div>';
         echo '<pre x-show="lang === \'php\'"><code>' . esc_html($types->php($group)) . '</code></pre>';
         echo '<pre x-show="lang === \'ts\'"><code>' . esc_html($types->typescript($group)) . '</code></pre>';
         echo '</div>';
@@ -369,7 +369,7 @@ final class SchemaInspectorRenderer
             . '<li x-show="loading" class="is-muted">%s</li>'
             . '<template x-for="item in results" :key="item.id"><li><a :href="link(item.id)"><strong x-text="item.title"></strong> <span x-text="item.meta"></span><span class="ctrlf-insp-post__date" x-text="item.date"></span></a></li></template>'
             . '</ul></div>',
-            esc_attr((string) wp_json_encode([
+            esc_attr(\CtrlField\Admin\Js::json([
                 'source' => 'post:' . implode(',', $types !== [] ? $types : ['post', 'page']),
                 'url'    => add_query_arg(['page' => 'ctrlfield', 'tab' => 'values'], admin_url('admin.php')),
             ])),
@@ -664,7 +664,7 @@ final class SchemaInspectorRenderer
         return '<p class="ctrlf-insp-issue__actions">'
             . '<a class="button button-small" href="' . esc_url(InspectorActions::url($action, $args)) . '">' . esc_html__('Preview (dry run)', 'ctrlfield') . '</a> '
             . '<a class="button button-small button-primary" href="' . esc_url(InspectorActions::url($action, $args + ['apply' => '1'])) . '"'
-            . ' onclick="return confirm(' . esc_attr((string) wp_json_encode(__('This changes stored data. Continue?', 'ctrlfield'))) . ')">' . esc_html($label) . '</a></p>';
+            . ' onclick="return confirm(' . esc_attr(\CtrlField\Admin\Js::json(__('This changes stored data. Continue?', 'ctrlfield'))) . ')">' . esc_html($label) . '</a></p>';
     }
 
     private function actionNotice(): void
@@ -722,9 +722,9 @@ final class SchemaInspectorRenderer
                 esc_html($type),
                 esc_url(InspectorActions::url('ctrlfield_export_csv', ['group' => (string) $key])),
                 esc_html__('Export CSV', 'ctrlfield'),
-                esc_attr((string) wp_json_encode(['group' => (string) $key, 'nonce' => wp_create_nonce('ctrlfield_csv_import_' . $key)])),
-                esc_attr((string) wp_json_encode(__('Importing…', 'ctrlfield'))),
-                esc_attr((string) wp_json_encode(__('Import CSV', 'ctrlfield')))
+                esc_attr(\CtrlField\Admin\Js::json(['group' => (string) $key, 'nonce' => wp_create_nonce('ctrlfield_csv_import_' . $key)])),
+                esc_attr(\CtrlField\Admin\Js::json(__('Importing…', 'ctrlfield'))),
+                esc_attr(\CtrlField\Admin\Js::json(__('Import CSV', 'ctrlfield')))
             );
         }
 

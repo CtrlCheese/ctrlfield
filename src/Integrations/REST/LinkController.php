@@ -264,7 +264,10 @@ final class LinkController
                 $out[$ref] = $ok ? ['exists' => true] + self::postResult($post) : ['exists' => false];
             } else {
                 $term      = get_term($id);
-                $out[$ref] = $term instanceof \WP_Term
+                // Names of private taxonomies' terms only for those who manage them.
+                $ok        = $term instanceof \WP_Term
+                    && (is_taxonomy_viewable($term->taxonomy) || current_user_can('edit_term', $id));
+                $out[$ref] = $ok
                     ? ['exists' => true, 'title' => $term->name, 'url' => self::termLink($term)]
                     : ['exists' => false];
             }

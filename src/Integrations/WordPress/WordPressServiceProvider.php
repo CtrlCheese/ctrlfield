@@ -250,20 +250,21 @@ class WordPressServiceProvider extends ServiceProvider
             $callback = function () use ($page): void {
                 $this->renderOptionsPage($page);
             };
+            $title = esc_html($page->getTitle()); // menu titles are printed as HTML
 
             if ($page->getParent() !== '') {
                 add_submenu_page(
                     $page->getParent(),
-                    $page->getTitle(),
-                    $page->getTitle(),
+                    $title,
+                    $title,
                     $page->getCapability(),
                     $slug,
                     $callback,
                 );
             } else {
                 add_menu_page(
-                    $page->getTitle(),
-                    $page->getTitle(),
+                    $title,
+                    $title,
                     $page->getCapability(),
                     $slug,
                     $callback,

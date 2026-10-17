@@ -58,7 +58,8 @@ class MetaBoxRegistrar
 
     private function registerGroupMetaBox(string $key, FieldGroup $group, string $postType): void
     {
-        $title    = $group->getTitle() ?: __('CtrlField Fields', 'ctrlfield');
+        // WordPress prints meta box titles as HTML.
+        $title    = esc_html($group->getTitle() ?: __('CtrlField Fields', 'ctrlfield'));
         $position = $group->getPosition(); // 'normal' | 'side' | 'after_title'
         $style    = $group->getStyle();    // 'default' | 'seamless'
 

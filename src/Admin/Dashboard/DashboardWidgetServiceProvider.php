@@ -54,7 +54,7 @@ final class DashboardWidgetServiceProvider extends ServiceProvider
 
             wp_add_dashboard_widget(
                 'ctrlfield_widget_' . $group->getKey(),
-                $config->title,
+                esc_html($config->title), // printed as HTML
                 function () use ($group): void {
                     $this->renderWidget($group);
                 },

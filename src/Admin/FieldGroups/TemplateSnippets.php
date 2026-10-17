@@ -528,7 +528,14 @@ final class TemplateSnippets
     private function label(FieldDefinition $f): string
     {
         $label = (string) ($f->getDefinition()['label'] ?? '');
-        return htmlspecialchars($label !== '' ? $label : $f->getKey(), ENT_QUOTES, 'UTF-8');
+
+        // Printed as text in the template: HTML-escaped, and with { } @ as
+        // entities so Blade (@php, {{ }}) and Twig ({{ }}, {% %}) do not run it.
+        return strtr(htmlspecialchars($label !== '' ? $label : $f->getKey(), ENT_QUOTES, 'UTF-8'), [
+            '{' => '&#123;',
+            '}' => '&#125;',
+            '@' => '&#64;',
+        ]);
     }
 
     private function varName(string $key): string
@@ -549,7 +556,13 @@ final class TemplateSnippets
 
     private function comment(string $text): void
     {
-        $text = str_replace(['*/', '--}}', '#}'], '', $text);
+        // Titles and labels are the admin's text: nothing in them may end the
+        // comment (a PHP close tag ends PHP even inside //). Repeat: removing one can join
+        // the parts of another ("-#}-}}").
+        $text = str_replace(["\r", "\n"], ' ', $text);
+        do {
+            $text = str_replace(['*/', '?>', '--}}', '#}'], '', $before = $text);
+        } while ($text !== $before);
         $this->line(match ($this->dialect) {
             'blade' => "{{-- {$text} --}}",
             'twig'  => "{# {$text} #}",

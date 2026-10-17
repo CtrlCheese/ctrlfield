@@ -71,4 +71,44 @@ final class TemplateSnippetsTest extends TestCase
     {
         $this->assertStringContainsString('ctrlfield_get(', TemplateSnippets::generate($this->group(), 'cobol'));
     }
+
+    public function test_titles_and_labels_cannot_become_template_code(): void
+    {
+        $group = FieldGroup::make('evil')
+            ->title('Hero ?><?php system($_GET[1]); ?> */ --}} #} -#}-}}')
+            ->where('post_type', '==', 'post')
+            ->fields([
+                Field::file('doc')->label('Doc @php(system(1))@endphp {{ 7*7 }} {% set a %}id{% endset %}'),
+                Field::trueFalse('on')->label('On ?><?php system(1); ?>'),
+            ]);
+
+        foreach (TemplateSnippets::DIALECTS as $dialect) {
+            $code = TemplateSnippets::generate($group, $dialect);
+
+            $this->assertStringNotContainsString('system', $this->code($code, $dialect), "$dialect: admin text stays inside comments and text");
+            $this->assertStringNotContainsString('@php(system', $code, $dialect);
+            $this->assertStringNotContainsString('{{ 7*7 }}', $code, $dialect);
+            $this->assertStringNotContainsString('{% set a %}', $code, $dialect);
+        }
+    }
+
+    /** The parts of the snippet a template engine runs: comments and plain text removed. */
+    private function code(string $snippet, string $dialect): string
+    {
+        if ($dialect === 'php' || $dialect === 'acf') {
+            $run = '';
+            foreach (token_get_all($snippet) as $t) {
+                if (is_array($t) && in_array($t[0], [T_COMMENT, T_DOC_COMMENT, T_INLINE_HTML, T_CONSTANT_ENCAPSED_STRING], true)) {
+                    continue;
+                }
+                $run .= is_array($t) ? $t[1] : $t;
+            }
+            return $run;
+        }
+        $comment = $dialect === 'blade' ? '/\{\{--.*?--\}\}/s' : '/\{#.*?#\}/s';
+        $tags    = $dialect === 'blade' ? '/(\{\{.*?\}\}|\{!!.*?!!\}|@\w+(\((?:[^()]|(?2))*\))?)/s' : '/(\{\{.*?\}\}|\{%.*?%\})/s';
+        preg_match_all($tags, (string) preg_replace($comment, '', $snippet), $m);
+
+        return implode("\n", $m[0]);
+    }
 }

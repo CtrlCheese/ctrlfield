@@ -25,7 +25,7 @@ final class RepeaterDirective
     {
         return sprintf(
             '<?php $__ctrlf_rows = (array)(ctrlfield_get(%s) ?? []); ' .
-            'foreach ($__ctrlf_rows as $__ctrlf_row) { extract($__ctrlf_row, EXTR_OVERWRITE); ?>',
+            'foreach ($__ctrlf_rows as $__ctrlf_row) { extract(\\CtrlField\\Integrations\\Blade\\RowVars::of($__ctrlf_row), EXTR_OVERWRITE); ?>',
             $expression
         );
     }

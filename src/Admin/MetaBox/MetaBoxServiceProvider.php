@@ -68,7 +68,7 @@ class MetaBoxServiceProvider extends ServiceProvider
         });
 
         // Notification dispatcher — registered once, reads from $preludeSavedFields
-        add_action('ctrlfield/after_save', [$this, 'dispatchNotifications'], 10, 2);
+        add_action('ctrlfield/after_save', [$this, 'dispatchNotifications'], 10, 3);
 
         // Revision snapshots (X-3)
         add_action('_wp_put_post_revision', [$this, 'onPutRevision']);
@@ -220,8 +220,11 @@ class MetaBoxServiceProvider extends ServiceProvider
         }
     }
 
-    public function dispatchNotifications(int $postId, array $newFields): void
+    public function dispatchNotifications(int $postId, array $newFields, string $entityType = 'post'): void
     {
+        if ($entityType !== 'post') {
+            return; // notifications are set on post fields; a user or term ID is not a post ID
+        }
         $oldFields = $this->preludeSavedFields[$postId] ?? [];
         unset($this->preludeSavedFields[$postId]);
 

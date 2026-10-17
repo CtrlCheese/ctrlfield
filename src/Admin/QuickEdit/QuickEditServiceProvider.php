@@ -102,7 +102,11 @@ final class QuickEditServiceProvider extends ServiceProvider
             '_ctrlfield_nonce'  => $_POST['_ctrlfield_nonce'] ?? '',
         ];
 
-        SavePipeline::run($postId, $rawPost, contextOverride: new AdminContext(postType: $postType));
+        try {
+            SavePipeline::run($postId, $rawPost, contextOverride: new AdminContext(postType: $postType));
+        } catch (\CtrlField\Core\Pipeline\PipelineException) {
+            // A value that does not validate keeps the stored one; the rest of the quick edit saves.
+        }
     }
 
     public function saveBulkEditFields(): void
@@ -126,6 +130,9 @@ final class QuickEditServiceProvider extends ServiceProvider
 
         $jsonPayload = (string) wp_json_encode($fields);
         $updated     = 0;
+        $failed      = [];
+        // This request is verified above (its own nonce); each post's capability below.
+        $nonce       = wp_create_nonce(\CtrlField\Core\Pipeline\Stages\NonceValidationStage::NONCE_ACTION);
 
         foreach ($postIds as $postId) {
             $postType = get_post_type($postId);
@@ -133,12 +140,16 @@ final class QuickEditServiceProvider extends ServiceProvider
                 continue;
             }
 
-            $rawPost = ['ctrlfield_payload' => $jsonPayload];
-            SavePipeline::run($postId, $rawPost, contextOverride: new AdminContext(postType: $postType));
-            $updated++;
+            $rawPost = ['ctrlfield_payload' => $jsonPayload, '_ctrlfield_nonce' => $nonce];
+            try {
+                SavePipeline::run($postId, $rawPost, contextOverride: new AdminContext(postType: $postType));
+                $updated++;
+            } catch (\CtrlField\Core\Pipeline\PipelineException $e) {
+                $failed[$postId] = $e->getMessage();
+            }
         }
 
-        wp_send_json_success(['updated' => $updated]);
+        wp_send_json_success(['updated' => $updated, 'failed' => $failed]);
     }
 
     // -------------------------------------------------------------------------

@@ -210,6 +210,7 @@ class CsvImporterTest extends TestCase
         $csv = "post_id,post_title,post_status,client_name\n";
         $csv .= "99,Some Post,publish,Blocked\n";
 
+        $GLOBALS['_wp_post_types'] = [99 => 'portfolio'];
         $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
         file_put_contents($tmpFile, $csv);
 
@@ -222,6 +223,41 @@ class CsvImporterTest extends TestCase
             $this->assertStringContainsString('insufficient permission', $stats['errors'][0]);
         } finally {
             unlink($tmpFile);
+            unset($GLOBALS['_wp_post_types']);
+        }
+    }
+
+    public function test_import_skips_a_post_of_another_post_type(): void
+    {
+        Field::group('portfolio_details')
+            ->where('post_type', '==', 'portfolio')
+            ->fields([Field::text('client_name')])
+            ->register();
+        $GLOBALS['_wp_post_types'] = [99 => 'page'];
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'ctrlf_csv_');
+        file_put_contents($tmpFile, "post_id,post_title,post_status,client_name\n99,About,publish,X\n");
+
+        try {
+            $stats = (new CsvImporter())->import($tmpFile, 'portfolio', false, true, false);
+
+            $this->assertSame(1, $stats['skipped']);
+            $this->assertStringContainsString('is not a portfolio', $stats['errors'][0]);
+        } finally {
+            unlink($tmpFile);
+            unset($GLOBALS['_wp_post_types']);
+        }
+    }
+
+    public function test_formula_cells_round_trip(): void
+    {
+        foreach (['=HYPERLINK("x")', '+1+1', '@SUM(A1)', "\tx", '-x'] as $cell) {
+            $this->assertSame("'" . $cell, \CtrlField\Data\CsvExporter::protect($cell));
+            $this->assertSame($cell, CsvImporter::unprotect(\CtrlField\Data\CsvExporter::protect($cell)));
+        }
+        foreach (['-5', '3.2', 'Plain', '', "'quoted"] as $cell) {
+            $this->assertSame($cell, \CtrlField\Data\CsvExporter::protect($cell), 'left alone');
+            $this->assertSame($cell, CsvImporter::unprotect($cell));
         }
     }
 

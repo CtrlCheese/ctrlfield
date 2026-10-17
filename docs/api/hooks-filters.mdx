@@ -8,12 +8,12 @@ All CtrlField action and filter hooks, in the order they fire.
 
 ### `ctrlfield/before_save`
 
-Fires before the save pipeline processes a post's fields.
+Fires before the save pipeline processes the fields of a post, user, term or comment. `$entityType` says which the ID is.
 
 ```php
-add_action('ctrlfield/before_save', function (int $postId, array $rawPost): void {
-    // $rawPost is the raw $_POST data
-}, 10, 2);
+add_action('ctrlfield/before_save', function (int $id, array $rawPost, string $entityType): void {
+    // $rawPost is the raw $_POST data; $entityType is 'post', 'user', 'term' or 'comment'
+}, 10, 3);
 ```
 
 ### `ctrlfield/after_save`
@@ -21,14 +21,17 @@ add_action('ctrlfield/before_save', function (int $postId, array $rawPost): void
 Fires after all fields have been persisted.
 
 ```php
-add_action('ctrlfield/after_save', function (int $postId, array $fields): void {
+add_action('ctrlfield/after_save', function (int $id, array $fields, string $entityType): void {
+    if ($entityType !== 'post') {
+        return; // the same hook fires for users, terms and comments
+    }
     // $fields is the sanitized+persisted field map
-}, 10, 2);
+}, 10, 3);
 ```
 
 ### `ctrlfield/pipeline/input_fields`
 
-Filter the incoming field payload before the pipeline validates and sanitizes it. Use to enforce field-level permissions or strip fields programmatically.
+Filter the incoming field payload before the pipeline validates and sanitizes it, e.g. to strip fields programmatically. Field permissions (`->permissions()`) are already enforced before this filter runs: a field a role may only read, or not see, keeps its stored value.
 
 ```php
 add_filter('ctrlfield/pipeline/input_fields', function (array $fields, int $postId): array {

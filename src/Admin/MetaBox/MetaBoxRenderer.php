@@ -146,6 +146,16 @@ class MetaBoxRenderer
             return;
         }
 
+        // Field permissions: not shown at all, or shown locked. The save
+        // pipeline enforces the same (FieldPermissionStage).
+        $permission = $field->currentUserPermission();
+        if ($permission === 'hidden') {
+            return;
+        }
+        if ($permission === 'read' && ! $field->isReadOnly()) {
+            $field = (clone $field)->readOnly();
+        }
+
         $key          = $field->getKey();
         $ui           = \CtrlField\Fields\Renderers\AbstractRenderer::prepare($field, $this->currentValues[$key] ?? null);
         if ($ui['hidden']) {
@@ -205,8 +215,9 @@ class MetaBoxRenderer
 
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
-                // UI-only fields are never stored — skip them.
-                if ($field->isUiOnly()) {
+                // UI-only fields are never stored — skip them. A field hidden from
+                // this user (field permissions) never reaches the browser.
+                if ($field->isUiOnly() || $field->currentUserPermission() === 'hidden') {
                     continue;
                 }
                 // Relationship values live in their pivot table, not in the JSON blob.
@@ -301,15 +312,17 @@ class MetaBoxRenderer
             }
         }
 
-        $json = static fn (mixed $v): string => (string) (wp_json_encode($v, JSON_UNESCAPED_UNICODE) ?: '{}');
+        // Stored values are the editors' text: Js::json keeps an "&quot;" in one
+        // from turning into a quote when the browser reads the attribute.
+        $json = static fn (mixed $v): string => \CtrlField\Admin\Js::json($v);
 
-        return esc_attr(sprintf(
+        return htmlspecialchars(sprintf(
             'ctrlFieldAdmin({ values: %s, conditions: %s, labels: %s, attachments: %s })',
             $json($values ?: new \stdClass()),
             $json($conditions ?: new \stdClass()),
             $json($labels ?: new \stdClass()),
             $json($attachments ?: new \stdClass()),
-        ));
+        ), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
     /**

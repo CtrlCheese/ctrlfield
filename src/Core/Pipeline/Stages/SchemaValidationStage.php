@@ -27,7 +27,11 @@ class SchemaValidationStage implements StageInterface
             );
         }
 
-        $allowedKeys = array_flip(array_keys(self::buildFieldMap($context->fieldGroups)));
+        // Layout-only fields (tab, accordion, message, separator) hold no value.
+        $allowedKeys = array_filter(
+            self::buildFieldMap($context->fieldGroups),
+            static fn ($field): bool => ! $field->isUiOnly()
+        );
 
         // Strip unknown keys — silently discard anything not in the registered schema.
         $context->fields = array_filter(

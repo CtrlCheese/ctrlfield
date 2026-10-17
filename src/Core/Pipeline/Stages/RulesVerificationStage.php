@@ -34,6 +34,9 @@ class RulesVerificationStage implements StageInterface
         $topScope = [$context->fields];
 
         foreach ($fieldMap as $key => $definition) {
+            if (in_array($key, $context->locked, true)) {
+                continue; // the user cannot change it (field permissions): nothing to require of them
+            }
             $value = $context->fields[$key] ?? null;
 
             // Hidden by its condition: the editor did not see it, nothing is required (C7.1).

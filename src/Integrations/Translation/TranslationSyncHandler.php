@@ -31,8 +31,11 @@ final class TranslationSyncHandler
      *
      * @param array<string, mixed> $savedFields  The flat fields array from PipelineContext::$fields.
      */
-    public function syncSharedFields(int $postId, array $savedFields): void
+    public function syncSharedFields(int $postId, array $savedFields, string $entityType = 'post'): void
     {
+        if ($entityType !== 'post') {
+            return;
+        }
         if (! TranslationBridge::isActive()) {
             return;
         }
