@@ -70,7 +70,7 @@ wp ctrlfield migrate --post-type=portfolio --dry-run
 
 Because schema is in code, every environment (local, staging, production) always has the same field structure as long as it runs the same git commit. There are no "did you sync the DB?" issues.
 
-**Staging environments never consume a Pro activation slot.** CtrlField automatically detects localhost, `*.local`, `*.dev`, `*.staging`, and `*.test` domains.
+**Local, dev and staging sites never use a Pro activation.** CtrlField detects them from `WP_ENVIRONMENT_TYPE` and from addresses such as `localhost`, `*.local`, `*.test`, `dev.…` and `staging.…` (full list in [Offline license](../pro/offline-license.mdx#local-dev-and-staging-sites)).
 
 ---
 

@@ -41,6 +41,15 @@ If validation fails, Pro features are disabled and the settings page shows the s
 
 ---
 
-## Staging bypass
+## Local, dev and staging sites
 
-Staging environments (`localhost`, `*.local`, `*.staging`, etc.) bypass both LemonSqueezy and offline validation entirely. Pro features are always active on staging, no token required.
+One license covers the live site **and** its local, dev and staging copies. On those, the key is checked with LemonSqueezy (it must be a real CtrlField Pro key) but no activation is used: only the live site counts.
+
+A site counts as non-production when:
+
+- `WP_ENVIRONMENT_TYPE` is `local`, `development` or `staging`, or
+- its address is `localhost`, `127.x.x.x`, `*.local`, `*.test`, `*.staging`, or starts with `dev.`, `stage.`, `staging.` or `test.` (`dev.example.com`, `stage.example.com`), or contains `.staging.`.
+
+Override with `define('CTRLFIELD_STAGING', true);` (or `false` to count a matching address as live) in `wp-config.php`.
+
+Deploying a staging database to the live site is fine: the live site activates itself once, the first time it checks the key.
