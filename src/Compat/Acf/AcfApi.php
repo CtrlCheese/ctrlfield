@@ -7,6 +7,7 @@ namespace CtrlField\Compat\Acf;
 use CtrlField\Builder\OptionsPage;
 use CtrlField\Data\FieldDataService;
 use CtrlField\Data\FieldWriter;
+use CtrlField\Data\FlexRows;
 use CtrlField\Enums\FieldType;
 use CtrlField\Fields\FieldDefinition;
 use CtrlField\Fields\Types\ImageField;
@@ -93,6 +94,9 @@ final class AcfApi
         }
 
         $value = FieldDataService::getInstance()->getAll($id, $type)[$key] ?? null;
+        if ($forReading) {
+            $value = FlexRows::strip($value, $def); // hidden sections, at any depth
+        }
         if ($forReading && $def->getType() === FieldType::FLEXIBLE_CONTENT && function_exists('apply_filters')) {
             $value = apply_filters('ctrlfield/flexible_rows', $value, $def); // get_field / have_rows see expanded rows
         }
@@ -111,6 +115,7 @@ final class AcfApi
         $out = [];
         foreach (FieldDataService::getInstance()->getAll($id, $type) as $key => $raw) {
             $def       = FieldWriter::findField((string) $key);
+            $raw       = $def !== null ? FlexRows::strip($raw, $def) : $raw; // get_fields(): no hidden sections either
             $out[$key] = $def !== null && $format ? AcfValues::format($raw, $def, self::acfPostId($postId, null)) : $raw;
         }
 

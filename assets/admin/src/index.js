@@ -7,7 +7,7 @@ import { fieldGroupEditor } from './groupEditor.js';
 import { registerSortable, itemKey } from './sortable.js';
 import { registerWysiwyg } from './wysiwyg.js';
 import { registerUiState, uiPath, uiGet, uiSet } from './uiState.js';
-import { rowSummary, newInstanceId, cloneRow, canAdd, canAddLayout } from './rows.js';
+import { rowSummary, newInstanceId, cloneRow, toggleHidden, canAdd, canAddLayout } from './rows.js';
 import { registerLink } from './link.js';
 import { registerIcons } from './icons.js';
 import { registerPicker } from './picker.js';
@@ -207,6 +207,10 @@ document.addEventListener('alpine:init', () => {
         duplicateRowIn(list, idx) {
             if (!Array.isArray(list) || !list[idx]) return;
             list.splice(idx + 1, 0, cloneRow(list[idx]));
+        },
+        /** The eye in a section header: hidden sections keep their values but are left out of the site. */
+        toggleRowHidden(row) {
+            toggleHidden(row);
         },
         canAdd(list, max) {
             return canAdd(list, max);

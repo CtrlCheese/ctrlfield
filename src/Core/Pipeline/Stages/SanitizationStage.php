@@ -7,6 +7,7 @@ namespace CtrlField\Core\Pipeline\Stages;
 use CtrlField\Core\Pipeline\Contracts\StageInterface;
 use CtrlField\Core\Pipeline\PipelineContext;
 use CtrlField\Core\Pipeline\Traits\BuildsFieldMap;
+use CtrlField\Data\FlexRows;
 use CtrlField\Fields\Contracts\FieldSanitizerInterface;
 use CtrlField\Fields\Contracts\FlexibleContentInterface;
 use CtrlField\Fields\Contracts\NestedFieldInterface;
@@ -212,6 +213,9 @@ class SanitizationStage implements StageInterface
             $clean  = ['_layout' => $layout];
             if (is_string($row['_instance_id'] ?? null) && preg_match('/^[A-Za-z0-9_-]{1,64}$/', $row['_instance_id'])) {
                 $clean['_instance_id'] = $row['_instance_id'];
+            }
+            if (FlexRows::isHidden($row)) {
+                $clean[FlexRows::HIDDEN] = true; // hidden on the site, values kept
             }
 
             $fields = $definition instanceof FlexibleContentInterface ? $definition->getLayoutFields($layout) : [];

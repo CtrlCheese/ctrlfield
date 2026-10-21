@@ -8,6 +8,7 @@ use CtrlField\Core\Pipeline\Contracts\StageInterface;
 use CtrlField\Core\Pipeline\PipelineContext;
 use CtrlField\Core\Pipeline\PipelineException;
 use CtrlField\Core\Pipeline\Traits\BuildsFieldMap;
+use CtrlField\Data\FlexRows;
 use CtrlField\Enums\FieldType;
 use CtrlField\Fields\Contracts\FlexibleContentInterface;
 use CtrlField\Fields\FieldDefinition;
@@ -275,6 +276,9 @@ class TypeCoercionStage implements StageInterface
 
             if (isset($instance['_instance_id']) && is_string($instance['_instance_id'])) {
                 $coercedInstance['_instance_id'] = $instance['_instance_id'];
+            }
+            if (FlexRows::isHidden($instance)) {
+                $coercedInstance[FlexRows::HIDDEN] = true;
             }
 
             foreach ($layoutFields as $subField) {
