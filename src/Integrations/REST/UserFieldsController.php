@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CtrlField\Integrations\REST;
 
 use CtrlField\Builder\AdminContext;
+use CtrlField\Data\FlexRows;
 use CtrlField\Registry\ContextRegistry;
 use CtrlField\Storage\UserMetaAdapter;
 
@@ -44,16 +45,18 @@ class UserFieldsController
         $groups  = ContextRegistry::resolve($context);
 
         $restKeys = [];
+        $exposed  = [];
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
                 if ($field->getDefinition()['rest_exposed'] === true) {
                     $restKeys[] = $field->getKey();
+                    $exposed[]  = $field;
                 }
             }
         }
 
         $stored   = (new UserMetaAdapter())->load($userId) ?? [];
-        $filtered = array_intersect_key($stored, array_flip($restKeys));
+        $filtered = FlexRows::stripAll(array_intersect_key($stored, array_flip($restKeys)), $exposed);
 
         return new \WP_REST_Response(['fields' => $filtered], 200);
     }

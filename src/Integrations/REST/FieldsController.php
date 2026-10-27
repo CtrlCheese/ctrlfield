@@ -8,6 +8,7 @@ use CtrlField\Builder\AdminContext;
 use CtrlField\Core\Pipeline\PipelineException;
 use CtrlField\Core\Pipeline\SavePipeline;
 use CtrlField\Data\FieldDataService;
+use CtrlField\Data\FlexRows;
 use CtrlField\Registry\ContextRegistry;
 
 /**
@@ -102,16 +103,18 @@ class FieldsController
         $groups  = ContextRegistry::resolve($context);
 
         $restKeys = [];
+        $exposed  = [];
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
                 if ($field->getDefinition()['rest_exposed'] === true && $field->currentUserPermission() !== 'hidden') {
                     $restKeys[] = $field->getKey();
+                    $exposed[]  = $field;
                 }
             }
         }
 
         $stored   = FieldDataService::getInstance()->getAll($postId, 'post');
-        $filtered = array_intersect_key($stored, array_flip($restKeys));
+        $filtered = FlexRows::stripAll(array_intersect_key($stored, array_flip($restKeys)), $exposed);
 
         return new \WP_REST_Response(['fields' => $filtered], 200);
     }
@@ -344,15 +347,17 @@ class FieldsController
     {
         $groups   = ContextRegistry::resolve($context);
         $restKeys = [];
+        $exposed  = [];
 
         foreach ($groups as $group) {
             foreach ($group->getFields() as $field) {
                 if ($field->getDefinition()['rest_exposed'] === true && $field->currentUserPermission() !== 'hidden') {
                     $restKeys[] = $field->getKey();
+                    $exposed[]  = $field;
                 }
             }
         }
 
-        return array_intersect_key($stored, array_flip($restKeys));
+        return FlexRows::stripAll(array_intersect_key($stored, array_flip($restKeys)), $exposed);
     }
 }

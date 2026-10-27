@@ -45,6 +45,13 @@ export function cloneRow(row) {
     return copy;
 }
 
+/** Hides a flexible section on the site, or shows it again (its values stay). */
+export function toggleHidden(row) {
+    if (!row || typeof row !== 'object') return;
+    if (row._hidden === true) delete row._hidden;
+    else row._hidden = true;
+}
+
 /** Whether one more row fits under `max` (null / undefined = no limit). */
 export function canAdd(list, max) {
     return max === null || max === undefined || (Array.isArray(list) ? list.length : 0) < max;

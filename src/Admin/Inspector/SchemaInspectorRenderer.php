@@ -24,7 +24,8 @@ use CtrlField\Schema\SchemaErrors;
  *   Overview       summary, search / filters, one card per group with its whole field tree,
  *                  how often each field is filled in, and PHP / TypeScript types for templates
  *   Post values    one post's stored values next to what ctrlfield_get() returns
- *   Components     what ComponentRegistry discovered, and the posts using each one
+ *   Components     what ComponentRegistry discovered: files, screenshot, fields, the posts
+ *                  using each one and its problems (ComponentReport)
  *   Health         problems of the schema and of the stored data, with their fixes
  *   Import/Export  CSV per post type
  *
@@ -93,7 +94,7 @@ final class SchemaInspectorRenderer
             'health'     => $this->health($issues, $schema, $stale, $orphans, $exposed),
             'io'         => $this->importExport(),
             'values'     => $this->values(),
-            'components' => $this->components($schema),
+            'components' => $this->components($schema, $issues),
             default  => $this->overview($problems),
         };
 
@@ -483,54 +484,132 @@ final class SchemaInspectorRenderer
 
     // ── Components ───────────────────────────────────────────────────────────
 
-    /** @param array<string, string> $schema file => error */
-    private function components(array $schema): void
+    /**
+     * @param array<string, string>       $schema file => error
+     * @param list<array<string, string>> $issues SchemaAnalyzer::issues()
+     */
+    private function components(array $schema, array $issues): void
     {
-        $components = ComponentRegistry::all();
-        if ($components === []) {
+        $report = (new ComponentReport($this->groups, $schema, $issues))->all();
+        if ($report === []) {
             echo '<p class="ctrlf-insp__empty">' . esc_html__('No components discovered. A theme registers them with ComponentRegistry::discover( get_template_directory() . \'/components\' ) on init.', 'ctrlfield') . '</p>';
             return;
         }
 
-        $usedBy = $this->data->layoutUsage();
-        echo '<p class="ctrlf-insp__lead">' . esc_html__('Components found by ComponentRegistry::discover(): their files, and the posts whose flexible content uses them.', 'ctrlfield') . '</p>';
-        echo '<table class="wp-list-table widefat striped ctrlf-insp-comp"><thead><tr><th>' . esc_html__('Component', 'ctrlfield') . '</th><th>'
-            . esc_html__('Files', 'ctrlfield') . '</th><th>' . esc_html__('Used on', 'ctrlfield') . '</th></tr></thead><tbody>';
-        foreach ($components as $key => $c) {
-            $errors = array_filter($schema, static fn (string $file): bool => str_starts_with($file, rtrim($c->path, '/') . '/'), ARRAY_FILTER_USE_KEY);
-            $files  = array_filter([
-                $c->fieldsFile !== '' ? basename($c->fieldsFile) : '',
-                $c->templatePath !== null ? basename($c->templatePath) : '',
-                $c->hasScript ? 'script.js' : '',
-                $c->hasFunctions ? 'functions.php' : '',
-            ]);
-            $posts  = $usedBy[$key] ?? [];
-            $links  = array_map(static function (int $id): string {
+        $usedBy     = $this->data->layoutUsage();
+        $categories = [];
+        foreach ($report as $item) {
+            $category = $item['component']->category;
+            if ($category !== '') {
+                $categories[$category] = ucfirst($category);
+            }
+        }
+        ksort($categories);
+
+        echo '<p class="ctrlf-insp__lead">' . esc_html__('Components found by ComponentRegistry::discover(): their files, their fields, the posts whose flexible content uses them, and what is wrong with them.', 'ctrlfield') . '</p>';
+        echo '<div class="ctrlf-insp__list" x-data="{ q: \'\', category: \'\', state: \'\', shown(el) { const q = this.q.trim().toLowerCase(); return (!q || el.dataset.search.includes(q)) && (!this.category || el.dataset.category === this.category) && (!this.state || el.dataset.state.split(\' \').includes(this.state)); } }">';
+        echo '<div class="ctrlf-insp__filters">';
+        printf('<input type="search" class="ctrlf-input" x-model="q" placeholder="%1$s" aria-label="%1$s">', esc_attr__('Search components and fields (key or label)…', 'ctrlfield'));
+        if ($categories !== []) {
+            $this->select('category', __('All categories', 'ctrlfield'), $categories);
+        }
+        $this->select('state', __('All components', 'ctrlfield'), [
+            'problem' => __('With problems', 'ctrlfield'),
+            'unused'  => __('Not used', 'ctrlfield'),
+        ]);
+        echo '</div>';
+
+        foreach ($report as $key => $item) {
+            $this->componentCard($key, $item, $usedBy[$key] ?? []);
+        }
+        echo '<p class="ctrlf-insp__empty" x-show="![...$el.parentElement.querySelectorAll(\'.ctrlf-insp-group\')].some((g) => shown(g))">' . esc_html__('No component matches.', 'ctrlfield') . '</p>';
+        echo '</div>';
+    }
+
+    /**
+     * @param array{component: \CtrlField\Components\ComponentDefinition, files: list<string>, screenshot: string, fields: list<array<string, mixed>>, issues: list<array{level: string, message: string}>} $item
+     * @param list<int> $posts
+     */
+    private function componentCard(string $key, array $item, array $posts): void
+    {
+        $c      = $item['component'];
+        $errors = count(array_filter($item['issues'], static fn (array $i): bool => $i['level'] === 'error'));
+        $warns  = count($item['issues']) - $errors;
+        $count  = SchemaAnalyzer::count($item['fields']);
+        $label  = $c->label !== '' ? $c->label : $key;
+        $state  = array_filter([$item['issues'] !== [] ? 'problem' : '', $posts === [] ? 'unused' : '']);
+        $thumb  = $item['screenshot'] !== '' && defined('WP_CONTENT_DIR') && str_starts_with($item['screenshot'], WP_CONTENT_DIR)
+            ? content_url(substr($item['screenshot'], strlen(WP_CONTENT_DIR)))
+            : '';
+
+        printf(
+            '<details class="ctrlf-insp-group ctrlf-insp-comp%s" data-search="%s" data-category="%s" data-state="%s" x-show="shown($el)">',
+            $errors > 0 ? ' is-error' : '',
+            esc_attr(strtolower($label . ' ' . $key . ' ' . $c->folder . ' ' . $c->description . ' ' . $this->searchText($item['fields']))),
+            esc_attr($c->category),
+            esc_attr(implode(' ', $state))
+        );
+        echo '<summary class="ctrlf-insp-group__head ctrlf-insp-comp__head">';
+        echo $thumb !== ''
+            ? '<img class="ctrlf-insp-comp__thumb" src="' . esc_url($thumb) . '" alt="" loading="lazy">'
+            : '<span class="ctrlf-insp-comp__thumb is-empty" aria-hidden="true"></span>';
+        echo '<span class="ctrlf-insp-comp__main"><span class="ctrlf-insp-group__title"><strong>' . esc_html($label) . '</strong> <code>' . esc_html($key) . '</code>';
+        if ($c->category !== '') {
+            echo ' <span class="ctrlf-badge">' . esc_html($c->category) . '</span>';
+        }
+        if ($errors > 0) {
+            /* translators: %d: number of errors */
+            echo ' <span class="ctrlf-badge ctrlf-badge--error">' . esc_html(sprintf(_n('%d error', '%d errors', $errors, 'ctrlfield'), $errors)) . '</span>';
+        }
+        if ($warns > 0) {
+            /* translators: %d: number of warnings */
+            echo ' <span class="ctrlf-badge ctrlf-badge--warning">' . esc_html(sprintf(_n('%d warning', '%d warnings', $warns, 'ctrlfield'), $warns)) . '</span>';
+        }
+        echo '</span>';
+        if ($c->description !== '') {
+            echo '<span class="ctrlf-insp-group__where">' . esc_html($c->description) . '</span>';
+        }
+        echo '<span class="ctrlf-insp-comp__files">' . esc_html($this->shortPath($c->path)) . ' '
+            . implode(' ', array_map(static fn (string $f): string => '<span class="ctrlf-badge">' . esc_html($f) . '</span>', $item['files'])) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
+            . '</span></span>';
+        echo '<span class="ctrlf-insp-group__meta"><span class="ctrlf-insp-group__count">'
+            /* translators: %d: number of fields */
+            . esc_html(sprintf(_n('%d field', '%d fields', $count, 'ctrlfield'), $count)) . ' · '
+            . ($posts === []
+                ? '<span class="ctrlf-insp-value is-missing">' . esc_html__('not used', 'ctrlfield') . '</span>'
+                /* translators: %d: number of posts */
+                : esc_html(sprintf(_n('used on %d post', 'used on %d posts', count($posts), 'ctrlfield'), count($posts))))
+            . '</span></span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
+        echo '</summary>';
+
+        echo '<div class="ctrlf-insp-group__body">';
+        if ($item['issues'] !== []) {
+            echo '<ul class="ctrlf-insp-comp__issues">';
+            foreach ($item['issues'] as $issue) {
+                echo '<li class="is-' . esc_attr($issue['level']) . '">' . esc_html($issue['message']) . '</li>';
+            }
+            echo '</ul>';
+        }
+        if ($posts !== []) {
+            $links = array_map(static function (int $id): string {
                 $title = get_the_title($id);
                 return '<a href="' . esc_url((string) get_edit_post_link($id)) . '">' . esc_html($title !== '' ? $title : '#' . $id) . '</a>';
-            }, array_slice($posts, 0, 5));
-
-            // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- every part is escaped where it is built
-            printf(
-                '<tr%s><td><strong>%s</strong> <code>%s</code>%s%s</td><td class="ctrlf-insp-comp__files"><span title="%s">%s</span>%s%s</td><td>%s</td></tr>',
-                $errors !== [] ? ' class="is-error"' : '',
-                esc_html($c->label !== '' ? $c->label : (string) $key),
-                esc_html((string) $key),
-                $c->category !== '' ? ' <span class="ctrlf-badge">' . esc_html($c->category) . '</span>' : '',
-                $c->description !== '' ? '<p class="description">' . esc_html($c->description) . '</p>' : '',
-                esc_attr($this->shortPath($c->path)),
-                esc_html($this->shortPath($c->path)),
-                '<br>' . implode(' ', array_map(static fn (string $f): string => '<span class="ctrlf-badge">' . esc_html($f) . '</span>', $files)),
-                ($c->templatePath === null ? ' <span class="ctrlf-badge ctrlf-badge--warning">' . esc_html__('no template', 'ctrlfield') . '</span>' : '')
-                    . implode('', array_map(static fn (string $e): string => '<p class="ctrlf-insp-comp__error">' . esc_html($e) . '</p>', $errors)),
-                $posts === []
-                    ? '<span class="ctrlf-insp-value is-missing">' . esc_html__('not used', 'ctrlfield') . '</span>'
-                    /* translators: %d: number of posts */
-                    : esc_html(sprintf(_n('%d post', '%d posts', count($posts), 'ctrlfield'), count($posts))) . ': ' . implode(', ', $links) . (count($posts) > 5 ? ' …' : '')
-            );
-            // phpcs:enable
+            }, array_slice($posts, 0, 10));
+            echo '<p class="ctrlf-insp-comp__posts">' . esc_html__('Used on:', 'ctrlfield') . ' ' . implode(', ', $links) . (count($posts) > 10 ? ' …' : '') . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped parts
         }
-        echo '</tbody></table>';
+        if ($item['fields'] === []) {
+            echo '<p class="ctrlf-insp__empty">' . esc_html__('No fields.', 'ctrlfield') . '</p>';
+        } else {
+            echo '<table class="ctrlf-insp-fields"><thead><tr>'
+                . '<th>' . esc_html__('Field', 'ctrlfield') . '</th>'
+                . '<th>' . esc_html__('Key', 'ctrlfield') . '</th>'
+                . '<th>' . esc_html__('Type', 'ctrlfield') . '</th>'
+                . '<th>' . esc_html__('Settings', 'ctrlfield') . '</th>'
+                . '</tr></thead><tbody>';
+            $this->rows($item['fields'], 0);
+            echo '</tbody></table>';
+        }
+        echo '</div></details>';
     }
 
     // ── Health ───────────────────────────────────────────────────────────────

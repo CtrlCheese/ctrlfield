@@ -604,6 +604,56 @@ body.ctrlf-is-sorting * {
     &[disabled] { opacity: .4; cursor: default; }
 }
 
+/* Eye in a section header: show or hide the section on the site. */
+.ctrlf-row__visibility {
+    display: inline-flex;
+    flex: none;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--ctrlf-muted);
+    cursor: pointer;
+
+    svg { width: 17px; height: 17px; }
+    .ctrlf-row__eye { display: inline-flex; }
+    &:hover { color: var(--ctrlf-accent-strong); background: var(--ctrlf-accent-soft); }
+    &:focus-visible { outline: 2px solid var(--ctrlf-accent); outline-offset: 0; }
+    &[aria-pressed="true"] { color: var(--ctrlf-ink); }
+}
+
+/* "Hidden" next to the summary of a hidden section. */
+.ctrlf-row__hidden-tag {
+    flex: none;
+    padding: 1px 6px;
+    border: 1px solid var(--ctrlf-line);
+    border-radius: 3px;
+    background: var(--ctrlf-surface);
+    color: var(--ctrlf-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+}
+
+/* A hidden section: dashed card on a striped background, content faded. */
+.ctrlf-row.is-hidden {
+    border-style: dashed;
+    background: repeating-linear-gradient(-45deg, var(--ctrlf-surface) 0 8px, #fff 8px 16px);
+    transition: background-color .2s, border-color .2s;
+
+    > .ctrlf-row__head .ctrlf-row__badge,
+    > .ctrlf-row__head .ctrlf-row__summary,
+    > .ctrlf-row__head .ctrlf-row__index { opacity: .55; transition: opacity .2s; }
+    > .ctrlf-row__body { opacity: .75; }
+    > .ctrlf-row__head .ctrlf-row__badge { text-decoration: line-through; text-decoration-color: var(--ctrlf-faint); }
+}
+
 .ctrlf-row__head {
     display: flex;
     align-items: stretch;
@@ -2498,14 +2548,33 @@ a.ctrlf-insp__card:hover { border-color: var(--ctrlf-accent-strong); }
 }
 
 /* Components */
-.ctrlf-insp-comp { td { vertical-align: top; } .description { margin: 4px 0 0; } tr.is-error td:first-child { box-shadow: inset 3px 0 #d63638; } }
-.ctrlf-insp-comp__files { font-size: 12px; .ctrlf-badge { margin: 4px 4px 0 0; } }
-.ctrlf-insp-comp__error { margin: 6px 0 0; color: #b32d2e; }
+.ctrlf-insp-comp.is-error { border-left: 3px solid #d63638; }
+.ctrlf-insp-comp__head { grid-template-columns: 96px 1fr auto; align-items: start; }
+.ctrlf-insp-comp__thumb {
+    display: block;
+    width: 96px;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--ctrlf-line-soft);
+    border-radius: 4px;
+    background: var(--ctrlf-surface);
+    object-fit: cover;
+}
+.ctrlf-insp-comp__main { display: grid; gap: 4px; min-width: 0; }
+.ctrlf-insp-comp__files { color: var(--ctrlf-muted); font-size: 12px; .ctrlf-badge { margin: 0 4px 0 0; } }
+.ctrlf-insp-comp__issues {
+    margin: 10px 0;
+    li { margin: 0 0 4px; padding-left: 10px; border-left: 3px solid #dba617; }
+    li.is-error { border-left-color: #d63638; color: #b32d2e; }
+}
+.ctrlf-insp-comp__posts { margin: 10px 0; font-size: 12px; }
 
 @media (max-width: 782px) {
     .ctrlf-insp-group__head { grid-template-columns: 1fr; }
     .ctrlf-insp-group__meta { justify-content: flex-start; }
     .ctrlf-insp-issue { grid-template-columns: 1fr; }
+    .ctrlf-insp-comp__head { grid-template-columns: 64px 1fr; }
+    .ctrlf-insp-comp__thumb { width: 64px; }
+    .ctrlf-insp-comp__head .ctrlf-insp-group__meta { grid-column: 1 / -1; }
 }
 
 /* ── CtrlField violet wherever the plugin draws its own UI: meta boxes,

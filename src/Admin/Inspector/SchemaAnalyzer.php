@@ -224,7 +224,8 @@ final class SchemaAnalyzer
      *  - conditions on a field that is not a sibling (and no context key);
      *  - fields without a label.
      *
-     * @return list<array<string, string>> level ('error'|'warning'|'info'), code, group, field, message
+     * @return list<array<string, string>> level ('error'|'warning'|'info'), code, group, field, message,
+     *                                     layout (the flexible content layout the field is in, '' for none)
      */
     public function issues(): array
     {
@@ -250,6 +251,7 @@ final class SchemaAnalyzer
                         'code'    => 'duplicate_key',
                         'group'   => implode(', ', $groupKeys),
                         'field'   => (string) $fieldKey,
+                        'layout'  => '',
                         'message' => sprintf(__('The key "%1$s" is used by %2$s on %3$s: they share one stored value, so saving one changes the other.', 'ctrlfield'), $fieldKey, implode(' + ', $groupKeys), $type),
                     ];
                 }
@@ -270,8 +272,9 @@ final class SchemaAnalyzer
      * @param list<string>          $context
      * @param list<array<string, string>> $issues
      * @param list<string>          $outer  keys of the levels around (a row's condition may look up)
+     * @param string                $layout the layout these fields are in ('' outside flexible content)
      */
-    private function walk(array $fields, string $groupKey, array $context, array &$issues, array $outer = []): void
+    private function walk(array $fields, string $groupKey, array $context, array &$issues, array $outer = [], string $layout = ''): void
     {
         $siblings = [...array_map(static fn (FieldDefinition $f): string => $f->getKey(), $fields), ...$outer];
         foreach ($fields as $field) {
@@ -283,6 +286,7 @@ final class SchemaAnalyzer
                         'code'    => 'condition_target',
                         'group'   => $groupKey,
                         'field'   => $field->getKey(),
+                        'layout'  => $layout,
                         'message' => sprintf(__('"%1$s" is shown depending on "%2$s", which is not a field next to it: the condition never changes.', 'ctrlfield'), $field->getKey(), $target),
                     ];
                 }
@@ -293,15 +297,16 @@ final class SchemaAnalyzer
                     'code'    => 'no_label',
                     'group'   => $groupKey,
                     'field'   => $field->getKey(),
+                    'layout'  => $layout,
                     'message' => sprintf(__('"%s" has no label: editors see its key.', 'ctrlfield'), $field->getKey()),
                 ];
             }
             if ($field instanceof FlexibleContentInterface) {
                 foreach ($field->getLayoutKeys() as $layoutKey) {
-                    $this->walk(array_values($field->getLayoutFields($layoutKey)), $groupKey, $context, $issues, $siblings);
+                    $this->walk(array_values($field->getLayoutFields($layoutKey)), $groupKey, $context, $issues, $siblings, (string) $layoutKey);
                 }
             } elseif ($field instanceof NestedFieldInterface) {
-                $this->walk(array_values($field->getFields()), $groupKey, $context, $issues, $siblings);
+                $this->walk(array_values($field->getFields()), $groupKey, $context, $issues, $siblings, $layout);
             }
         }
     }

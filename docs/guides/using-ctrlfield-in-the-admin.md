@@ -1,6 +1,6 @@
 # Using CtrlField in the admin — step by step
 
-This guide builds a complete content type without writing code: a **post type**, a **taxonomy** and a **field group**, all from **WP Admin → CtrlField**. Two steps, like in ACF:
+This guide builds a complete content type without writing code: a **post type**, a **taxonomy** and a **field group**, all from **WP Admin → CtrlField**. Two steps:
 
 1. **Post Types**: create the content type ("Examples").
 2. **Field Groups**: create its fields and assign them to that post type.
@@ -84,6 +84,7 @@ Open **Examples → Add New**: your fields are there. Back in **Post Types → E
 - **CtrlField → Schema Inspector**:
   - **Overview** lists every field group, where it shows and how often each field is filled in.
   - **Post values** shows exactly what is saved for one entry.
+  - **Components** lists the theme's page builder components: screenshot, files, fields, the pages using each one and what is wrong with it. Filter by category, or show only the components with problems or those no page uses.
   - **Health** lists problems, each with a fix you can preview first.
   - **Import / Export** moves entries to and from CSV, so you can edit them in a spreadsheet.
 - **Field Groups → Template code** shows what a developer writes to display the fields.

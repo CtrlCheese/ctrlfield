@@ -204,7 +204,7 @@ jobs:
         run: npx @wordpress/env stop
 
   # ─────────────────────────────────────────────────────────────────
-  # 6. Build distribution zip (artifact — baixe para subir no LemonSqueezy)
+  # 6. Build distribution zip (artifact — download it and upload it to LemonSqueezy)
   # ─────────────────────────────────────────────────────────────────
   build:
     name: Build zip

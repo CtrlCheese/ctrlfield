@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CtrlField\Integrations\CLI;
 
 use CtrlField\Bootstrap\ServiceProvider;
+use CtrlField\Integrations\CLI\Commands\ComponentsCommand;
 use CtrlField\Integrations\CLI\Commands\ExportCommand;
 use CtrlField\Integrations\CLI\Commands\ExportCsvCommand;
 use CtrlField\Integrations\CLI\Commands\ImportCommand;
@@ -33,5 +34,6 @@ class CliServiceProvider extends ServiceProvider
         \WP_CLI::add_command('ctrlfield scaffold',   ScaffoldCommand::class);
         \WP_CLI::add_command('ctrlfield export-csv', ExportCsvCommand::class);
         \WP_CLI::add_command('ctrlfield import-csv', ImportCsvCommand::class);
+        \WP_CLI::add_command('ctrlfield components', ComponentsCommand::class);
     }
 }

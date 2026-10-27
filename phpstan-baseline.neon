@@ -204,7 +204,7 @@ parameters:
 		-
 			message: '#^Call to static method add_command\(\) on an unknown class WP_CLI\.$#'
 			identifier: class.notFound
-			count: 7
+			count: 8
 			path: src/Integrations/CLI/CliServiceProvider.php
 
 		-

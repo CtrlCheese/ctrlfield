@@ -1,6 +1,6 @@
 # Field groups in the admin
 
-Not everyone writes PHP. **CtrlField → Field Groups** creates field groups with a form, like ACF — and still keeps the schema in files you can commit to git.
+Not everyone writes PHP. **CtrlField → Field Groups** creates field groups with a form — and still keeps the schema in files you can commit to git.
 
 ---
 
@@ -60,7 +60,7 @@ Groups registered in PHP load first. If a JSON group uses the same key as a PHP 
 - **PHP** — `ctrlfield_get()`;
 - **Blade** — `{{ }}` / `{!! !!}`;
 - **Twig (Timber)** — `ctrlf()` (Timber does not escape by default, so the code escapes with `|e`);
-- **ACF functions** — `get_field()` / `have_rows()`, for themes written for ACF.
+- **ACF functions** — for themes migrated from ACF ([Migrating from ACF](./migrating-from-acf.mdx)).
 
 Each field is escaped for where it is printed (text, URL, attribute, rich text through `wp_kses_post`), images use `wp_get_attachment_image()` or the return format you chose, links use `ctrlfield_link_attrs()`, and repeaters / flexible content come with their loops. Values are read from where the group is shown: a post, a term, a user or an options page. **Copy** puts the code on the clipboard.
 
