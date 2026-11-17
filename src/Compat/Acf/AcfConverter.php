@@ -134,6 +134,7 @@ final class AcfConverter
         $shown   = $label !== '' ? $label : $name;
 
         if (! isset(self::TYPES[$acfType])) {
+            // translators: 1: field label, 2: the unsupported ACF field type.
             $this->warnings[] = sprintf(__('Field "%1$s": the ACF type "%2$s" is not supported and was skipped.', 'ctrlfield'), $shown, $acfType);
             return null;
         }
@@ -147,6 +148,7 @@ final class AcfConverter
         $key = self::keyFor($name !== '' ? $name : ($type . '_' . substr(md5((string) ($f['key'] ?? $label)), 0, 6)));
         if ($name !== '' && $key !== $name) {
             $names[$name]     = $key;
+            // translators: 1: field label, 2: old field key, 3: new field key.
             $this->warnings[] = sprintf(__('Field "%1$s" was renamed from "%2$s" to "%3$s"; update templates that use the old name.', 'ctrlfield'), $shown, $name, $key);
         }
         if (is_string($f['key'] ?? null)) {
@@ -217,6 +219,7 @@ final class AcfConverter
             case 'select':
                 if (! empty($f['multiple'])) {
                     $out['type']      = 'checkbox';
+                    // translators: %s: field label.
                     $this->warnings[] = sprintf(__('Field "%s": a multiple select became checkboxes.', 'ctrlfield'), $shown);
                 }
                 // no break
@@ -282,10 +285,12 @@ final class AcfConverter
                 if ($types !== []) {
                     $out['relatedPostType'] = $types[0];
                     if (count($types) > 1) {
+                        // translators: 1: field label, 2: the kept post type.
                         $this->warnings[] = sprintf(__('Field "%1$s": CtrlField relationships hold one post type; kept "%2$s".', 'ctrlfield'), $shown, $types[0]);
                     }
                 } else {
                     $out['relatedPostType'] = 'post';
+                    // translators: %s: field label.
                     $this->warnings[] = sprintf(__('Field "%s": the relationship allowed every post type; it now uses "post".', 'ctrlfield'), $shown);
                 }
                 self::copyCount($f, $out, 'min', 'minItems');
@@ -412,6 +417,7 @@ final class AcfConverter
                 && isset($this->fieldKeys[$rule['field'] ?? ''], $ops[$rule['operator'] ?? '']);
 
             if (! $ok) {
+                // translators: %s: field label.
                 $this->warnings[] = sprintf(__('Field "%s": its conditional logic has several rules; only simple conditions are imported, so it is always shown.', 'ctrlfield'), $field['label'] ?: $field['key']);
                 continue;
             }
@@ -478,6 +484,7 @@ final class AcfConverter
         $value = is_scalar($rule['value'] ?? null) ? (string) $rule['value'] : '';
 
         if (! array_key_exists($param, self::PARAMS)) {
+            // translators: %s: the unsupported location rule.
             $this->warnings[] = sprintf(__('Location rule "%s" is not supported and was skipped.', 'ctrlfield'), $param);
             return null;
         }

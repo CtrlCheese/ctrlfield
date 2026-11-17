@@ -21,10 +21,7 @@
     "autoload": {
         "psr-4": {
             "CtrlField\\": "src/"
-        },
-        "files": [
-            "src/Integrations/Blade/helpers.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {

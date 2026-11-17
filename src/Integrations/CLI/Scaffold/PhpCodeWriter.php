@@ -11,7 +11,7 @@ final class PhpCodeWriter
 {
     public function writeCpt(CptScaffoldDef $def): string
     {
-        $date    = date('Y-m-d');
+        $date    = gmdate('Y-m-d');
         $slug    = $def->slug;
         $lines   = [];
 
@@ -70,7 +70,7 @@ final class PhpCodeWriter
 
     public function writeTaxonomy(TaxonomyScaffoldDef $def): string
     {
-        $date  = date('Y-m-d');
+        $date  = gmdate('Y-m-d');
         $slug  = $def->slug;
         $lines = [];
 
@@ -130,7 +130,7 @@ final class PhpCodeWriter
 
     public function writeOptionsPage(OptionsPageScaffoldDef $def): string
     {
-        $date  = date('Y-m-d');
+        $date  = gmdate('Y-m-d');
         $slug  = $def->slug;
         $lines = [];
 
@@ -185,7 +185,7 @@ final class PhpCodeWriter
 
     public function writeFieldGroup(FieldGroupScaffoldDef $def): string
     {
-        $date  = date('Y-m-d');
+        $date  = gmdate('Y-m-d');
         $slug  = $def->slug;
         $lines = [];
 
@@ -237,7 +237,7 @@ final class PhpCodeWriter
 
     public function writeContentTable(ContentTableScaffoldDef $def): string
     {
-        $date  = date('Y-m-d');
+        $date  = gmdate('Y-m-d');
         $slug  = $def->slug;
         $lines = [];
 

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use CtrlField\Data\FieldDataService;
 
+if (! defined('ABSPATH')) {
+    exit;
+}
+
 if (! function_exists('ctrlfield_get')) {
     function ctrlfield_get(string $key, ?int $postId = null): mixed
     {
@@ -263,7 +267,7 @@ if (! function_exists('ctrlfield_render_component')) {
      */
     function ctrlfield_render_component(array $section): void
     {
-        echo \CtrlField\Components\ComponentRenderer::render($section);
+        echo \CtrlField\Components\ComponentRenderer::render($section); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Returns rendered component markup.
     }
 }
 
@@ -290,7 +294,7 @@ if (! function_exists('ctrlfield_render')) {
      */
     function ctrlfield_render(string $componentName, array $data = []): void
     {
-        echo \CtrlField\Components\ComponentRenderer::renderByName($componentName, $data);
+        echo \CtrlField\Components\ComponentRenderer::renderByName($componentName, $data); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Returns rendered component markup.
     }
 }
 

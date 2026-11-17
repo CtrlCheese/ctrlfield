@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+if (! defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * ACF's template API on top of CtrlField. Loaded only when ACF itself is not
  * active (AcfServiceProvider), so code written for ACF keeps working after

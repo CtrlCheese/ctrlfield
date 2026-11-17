@@ -2,7 +2,7 @@
 Contributors: ctrlcheese
 Tags: custom fields, custom post types, taxonomies, acf, developer
 Requires at least: 6.5
-Tested up to: 6.8
+Tested up to: 7.1
 Requires PHP: 8.2
 Stable tag: 1.0.1
 License: GPLv2 or later

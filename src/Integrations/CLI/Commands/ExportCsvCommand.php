@@ -42,7 +42,7 @@ class ExportCsvCommand
         $count    = 0;
 
         foreach ($exporter->export($postType, $fieldKeys, $postStatus) as $row) {
-            echo $row;
+            echo $row; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CLI stdout; CSV output must not be HTML-escaped.
             $count++;
         }
 

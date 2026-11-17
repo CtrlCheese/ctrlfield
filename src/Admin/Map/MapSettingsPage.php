@@ -28,7 +28,7 @@ final class MapSettingsPage
     public function render(): void
     {
         if (! current_user_can('manage_options')) {
-            wp_die(__('You do not have permission to access this page.', 'ctrlfield'));
+            wp_die(esc_html__('You do not have permission to access this page.', 'ctrlfield'));
         }
 
         if (isset($_POST['ctrlfield_map_settings_nonce'])

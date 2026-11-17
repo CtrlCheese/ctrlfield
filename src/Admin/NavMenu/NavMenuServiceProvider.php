@@ -70,7 +70,7 @@ final class NavMenuServiceProvider extends ServiceProvider
                     . '<input type="text" id="ctrlf_nav_%1$s_%2$d" name="ctrlf_nav[%2$d][%1$s]" value="%4$s" class="widefat">'
                     . '</label></p>',
                     esc_attr($key),
-                    $itemId,
+                    (int) $itemId,
                     esc_html($label),
                     esc_attr((string) $value),
                 );

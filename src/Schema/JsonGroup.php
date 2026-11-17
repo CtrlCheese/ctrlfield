@@ -231,6 +231,7 @@ final class JsonGroup
             $op    = in_array($rule['operator'] ?? null, self::OPERATORS, true) ? $rule['operator'] : '==';
             $value = self::text($rule['value'] ?? '', 200);
             if (! ContextRegistry::isValidKey($rKey)) {
+                // translators: %s: the unknown location rule key.
                 $errors[] = sprintf(__('Unknown location rule "%s".', 'ctrlfield'), $rKey);
                 continue;
             }
@@ -254,6 +255,7 @@ final class JsonGroup
             return [];
         }
         if ($depth > self::MAX_DEPTH) {
+            // translators: %d: the maximum nesting depth.
             $errors[] = sprintf(__('Sub-fields can be nested at most %d levels deep.', 'ctrlfield'), self::MAX_DEPTH);
             return [];
         }
@@ -266,6 +268,7 @@ final class JsonGroup
                 continue;
             }
             if (++$count > self::MAX_FIELDS) {
+                // translators: %d: the maximum number of fields.
                 $errors[] = sprintf(__('A field group can have at most %d fields.', 'ctrlfield'), self::MAX_FIELDS);
                 break;
             }
@@ -276,14 +279,17 @@ final class JsonGroup
             $name  = $label !== '' ? $label : $key;
 
             if (! isset(self::TYPES[$type])) {
+                // translators: 1: field name, 2: the unknown field type.
                 $errors[] = sprintf(__('Field "%1$s": unknown type "%2$s".', 'ctrlfield'), $name, $type);
                 continue;
             }
             if (! preg_match(self::KEY_PATTERN, $key)) {
+                // translators: %s: field name.
                 $errors[] = sprintf(__('Field "%s": the key must use lowercase letters, numbers and underscores, starting with a letter.', 'ctrlfield'), $name);
                 continue;
             }
             if (isset($seen[$key])) {
+                // translators: %s: the duplicate field key.
                 $errors[] = sprintf(__('Two fields use the key "%s". Keys must be unique.', 'ctrlfield'), $key);
                 continue;
             }
@@ -336,6 +342,7 @@ final class JsonGroup
         foreach (is_array($raw) ? $raw : [] as $l) {
             $key = is_array($l) && is_string($l['key'] ?? null) ? trim($l['key']) : '';
             if (! preg_match(self::KEY_PATTERN, $key) || isset($seen[$key])) {
+                // translators: %s: the layout key.
                 $errors[] = sprintf(__('Layout "%s": the key must be unique and use lowercase letters, numbers and underscores.', 'ctrlfield'), $key);
                 continue;
             }

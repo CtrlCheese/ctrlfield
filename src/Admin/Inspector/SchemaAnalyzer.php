@@ -213,6 +213,7 @@ final class SchemaAnalyzer
         }
 
         return sprintf(
+            // translators: %s: the condition under which the field is shown.
             __('Shown when %s', 'ctrlfield'),
             implode($group->getType() === 'any' ? ' ' . __('or', 'ctrlfield') . ' ' : ' ' . __('and', 'ctrlfield') . ' ', $parts)
         );
@@ -252,6 +253,7 @@ final class SchemaAnalyzer
                         'group'   => implode(', ', $groupKeys),
                         'field'   => (string) $fieldKey,
                         'layout'  => '',
+                        // translators: 1: field key, 2: the groups sharing it, 3: the context type.
                         'message' => sprintf(__('The key "%1$s" is used by %2$s on %3$s: they share one stored value, so saving one changes the other.', 'ctrlfield'), $fieldKey, implode(' + ', $groupKeys), $type),
                     ];
                 }
@@ -287,6 +289,7 @@ final class SchemaAnalyzer
                         'group'   => $groupKey,
                         'field'   => $field->getKey(),
                         'layout'  => $layout,
+                        // translators: 1: field key, 2: the referenced field key.
                         'message' => sprintf(__('"%1$s" is shown depending on "%2$s", which is not a field next to it: the condition never changes.', 'ctrlfield'), $field->getKey(), $target),
                     ];
                 }
@@ -298,6 +301,7 @@ final class SchemaAnalyzer
                     'group'   => $groupKey,
                     'field'   => $field->getKey(),
                     'layout'  => $layout,
+                    // translators: %s: field key.
                     'message' => sprintf(__('"%s" has no label: editors see its key.', 'ctrlfield'), $field->getKey()),
                 ];
             }

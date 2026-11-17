@@ -759,10 +759,14 @@ final class SchemaInspectorRenderer
         /* translators: %d: number of posts */
         $message = match ($done) {
             'migrate' => $dry
+                // translators: %d: number of posts.
                 ? sprintf(_n('Dry run: %d post would be migrated.', 'Dry run: %d posts would be migrated.', $n, 'ctrlfield'), $n)
+                // translators: %d: number of posts.
                 : sprintf(_n('%d post migrated.', '%d posts migrated.', $n, 'ctrlfield'), $n),
             'clean'   => $dry
+                // translators: %d: number of posts.
                 ? sprintf(_n('Dry run: %d post would be cleaned up.', 'Dry run: %d posts would be cleaned up.', $n, 'ctrlfield'), $n)
+                // translators: %d: number of posts.
                 : sprintf(_n('%d post cleaned up.', '%d posts cleaned up.', $n, 'ctrlfield'), $n),
             default   => '',
         };
