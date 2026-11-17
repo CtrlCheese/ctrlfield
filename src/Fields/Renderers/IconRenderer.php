@@ -24,19 +24,17 @@ final class IconRenderer extends AbstractRenderer
         $change = $this->esc((string) json_encode(__('Change icon', 'ctrlfield')));
         $remove = $this->esc(__('Remove icon', 'ctrlfield'));
 
-        return <<<HTML
-<div class="ctrlf-icon-field">
-    <input type="hidden" id="{$id}" x-model="{$sp}">
-    <button type="button" class="ctrlf-icon-chip" :class="{ 'is-empty': !{$sp} }"
-            :title="{$sp} ? {$change} : ''"
-            @click="\$ctrlfIconPicker({$sp}, (v) => { {$sp} = v; }, {$config}, \$el)">
-        <span class="ctrlf-icon-chip__glyph" x-html="\$ctrlfIcon({$sp}, 20)"></span>
-        <span class="ctrlf-icon-chip__name" x-text="{$sp} ? {$sp}.replace(/^(lucide:|dashicons-)/, '') : {$choose}"></span>
+        return "<div class=\"ctrlf-icon-field\">
+    <input type=\"hidden\" id=\"{$id}\" x-model=\"{$sp}\">
+    <button type=\"button\" class=\"ctrlf-icon-chip\" :class=\"{ 'is-empty': !{$sp} }\"
+            :title=\"{$sp} ? {$change} : ''\"
+            @click=\"\$ctrlfIconPicker({$sp}, (v) => { {$sp} = v; }, {$config}, \$el)\">
+        <span class=\"ctrlf-icon-chip__glyph\" x-html=\"\$ctrlfIcon({$sp}, 20)\"></span>
+        <span class=\"ctrlf-icon-chip__name\" x-text=\"{$sp} ? {$sp}.replace(/^(lucide:|dashicons-)/, '') : {$choose}\"></span>
     </button>
-    <button type="button" class="ctrlf-icon-clear" x-show="{$sp}" x-cloak @click="{$sp} = ''" title="{$remove}" aria-label="{$remove}">
-        <svg viewBox="0 0 20 20" width="12" height="12" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    <button type=\"button\" class=\"ctrlf-icon-clear\" x-show=\"{$sp}\" x-cloak @click=\"{$sp} = ''\" title=\"{$remove}\" aria-label=\"{$remove}\">
+        <svg viewBox=\"0 0 20 20\" width=\"12\" height=\"12\" aria-hidden=\"true\"><path d=\"M5 5l10 10M15 5L5 15\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"/></svg>
     </button>
-</div>
-HTML;
+</div>";
     }
 }

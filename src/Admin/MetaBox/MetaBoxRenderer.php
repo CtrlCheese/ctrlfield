@@ -62,18 +62,18 @@ class MetaBoxRenderer
         $containerClass  = 'ctrlfield-container ctrlf-label-' . $labelPlacement;
 
         ?>
-        <div class="<?= esc_attr($containerClass) ?>"
-             x-data="<?= esc_attr($initJs) ?>"
+        <div class="<?php echo esc_attr($containerClass); ?>"
+             x-data="<?php echo esc_attr($initJs); ?>"
              x-cloak>
 
             <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
 
             <div class="ctrlf-group-section">
-                <?= $this->renderFields($group->getFields(), $labelPlacement, $instrPlacement) // phpcs:ignore WordPress.Security.EscapeOutput -- escaped per field ?>
+                <?php echo $this->renderFields($group->getFields(), $labelPlacement, $instrPlacement); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped per field ?>
             </div>
 
             <input type="hidden"
-                   name="ctrlfield_payload[<?= esc_attr($groupKey) ?>]"
+                   name="ctrlfield_payload[<?php echo esc_attr($groupKey); ?>]"
                    :value="JSON.stringify(adminState)">
         </div>
         <?php
@@ -102,7 +102,7 @@ class MetaBoxRenderer
 
         ?>
         <div class="ctrlfield-container ctrlf-label-top"
-             x-data="<?= esc_attr($initJs) ?>"
+             x-data="<?php echo esc_attr($initJs); ?>"
              x-cloak>
 
             <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
@@ -111,10 +111,10 @@ class MetaBoxRenderer
                 <?php if (! empty($group->getFields())): ?>
                 <div class="ctrlf-group-section">
                     <?php if ($group->getTitle()): ?>
-                    <h4 class="ctrlf-group-title"><?= esc_html($group->getTitle()) ?></h4>
+                    <h4 class="ctrlf-group-title"><?php echo esc_html($group->getTitle()); ?></h4>
                     <?php endif; ?>
 
-                    <?= $this->renderFields($group->getFields(), 'top', 'label') // phpcs:ignore WordPress.Security.EscapeOutput ?>
+                    <?php echo $this->renderFields($group->getFields(), 'top', 'label'); // phpcs:ignore WordPress.Security.EscapeOutput ?>
                 </div>
                 <?php endif; ?>
             <?php endforeach; ?>
@@ -168,19 +168,19 @@ class MetaBoxRenderer
         $renderer     = RendererRegistry::resolve($field->getType());
 
         ?>
-        <div class="ctrlf-field<?= \CtrlField\Fields\Renderers\AbstractRenderer::widthAttrs($field) // phpcs:ignore WordPress.Security.EscapeOutput -- a number ?> x-show="isVisible('<?= esc_js($key) ?>')" x-cloak>
-            <label class="ctrlf-label" for="ctrlf-<?= esc_attr($key) ?>">
-                <?= esc_html($label) ?>
+        <div class="ctrlf-field<?php echo \CtrlField\Fields\Renderers\AbstractRenderer::widthAttrs($field); // phpcs:ignore WordPress.Security.EscapeOutput -- a number ?> x-show="isVisible('<?php echo esc_js($key); ?>')" x-cloak>
+            <label class="ctrlf-label" for="ctrlf-<?php echo esc_attr($key); ?>">
+                <?php echo esc_html($label); ?>
                 <?php if ($required): ?>
                     <span class="ctrlf-required" aria-hidden="true">*</span>
                 <?php endif; ?>
                 <?php if ($instructions !== '' && $instrPlacement === 'label'): ?>
-                    <span class="ctrlf-instructions"><?= \CtrlField\Fields\Renderers\AbstractRenderer::instructionsHtml($instructions) // phpcs:ignore WordPress.Security.EscapeOutput -- wp_kses_post ?></span>
+                    <span class="ctrlf-instructions"><?php echo \CtrlField\Fields\Renderers\AbstractRenderer::instructionsHtml($instructions); // phpcs:ignore WordPress.Security.EscapeOutput -- wp_kses_post ?></span>
                 <?php endif; ?>
             </label>
-            <?= $renderer->render($field, $statePath) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer returns field markup. ?>
+            <?php echo $renderer->render($field, $statePath); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer returns field markup. ?>
             <?php if ($instructions !== '' && $instrPlacement === 'field'): ?>
-                <p class="ctrlf-instructions"><?= \CtrlField\Fields\Renderers\AbstractRenderer::instructionsHtml($instructions) // phpcs:ignore WordPress.Security.EscapeOutput -- wp_kses_post ?></p>
+                <p class="ctrlf-instructions"><?php echo \CtrlField\Fields\Renderers\AbstractRenderer::instructionsHtml($instructions); // phpcs:ignore WordPress.Security.EscapeOutput -- wp_kses_post ?></p>
             <?php endif; ?>
         </div>
         <?php
