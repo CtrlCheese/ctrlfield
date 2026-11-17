@@ -3,7 +3,7 @@
  * Plugin Name:       CtrlField
  * Plugin URI:        https://ctrlcheese.de
  * Description:       Code-first custom fields, CPTs and taxonomies for WordPress. A Pro license unlocks flexible content, relational fields, the visual builder and more.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 6.5
  * Requires PHP:      8.2
  * Author:            CtrlCheese
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-define('CTRLFIELD_VERSION', '1.0.0');
+define('CTRLFIELD_VERSION', '1.0.1');
 define('CTRLFIELD_MIN_PHP', '8.2');
 define('CTRLFIELD_MIN_WP', '6.5');
 define('CTRLFIELD_PATH', plugin_dir_path(__FILE__));

@@ -4,7 +4,7 @@ Tags: custom fields, custom post types, taxonomies, acf, developer
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -86,10 +86,10 @@ Repeater, Gallery, Flexible Content and Clone fields, relational fields, Content
 
 == Changelog ==
 
-= 1.0.0 =
-* Initial public release.
+= 1.0.1 =
+* First wordpress.org release.
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-Initial public release of CtrlField.
+= 1.0.1 =
+First wordpress.org release of CtrlField.
