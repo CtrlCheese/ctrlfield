@@ -45,7 +45,11 @@ final class ReturnFormatDecorator
             $link = static fn (mixed $id): string => (string) (
                 function_exists('get_permalink') ? get_permalink((int) $id) : ''
             );
-            return is_array($value) ? array_map($link, $value) : $link($value);
+            if (is_array($value)) {
+                self::primePosts($value);
+                return array_map($link, $value);
+            }
+            return $link($value);
         }
 
         // GALLERY stores an array of IDs — return an array of URLs
@@ -53,6 +57,7 @@ final class ReturnFormatDecorator
             if (! is_array($value)) {
                 return [];
             }
+            self::primePosts($value, true); // one query for every attachment + its meta
             return array_values(array_filter(array_map(
                 static fn(mixed $id): string => (string) (
                     function_exists('wp_get_attachment_url') ? wp_get_attachment_url((int) $id) : ''
@@ -109,6 +114,7 @@ final class ReturnFormatDecorator
         if ($type === FieldType::USER || $type === FieldType::TAXONOMY_TERM) {
             $one = $type === FieldType::USER ? self::userArray(...) : self::termArray(...);
             if (is_array($value)) {
+                $type === FieldType::USER ? self::primeUsers($value) : self::primeTerms($value);
                 return array_values(array_filter(array_map($one, $value)));
             }
             return $one($value) ?? [];
@@ -173,6 +179,7 @@ final class ReturnFormatDecorator
             }
             // POST_OBJECT may store a single ID or an array of IDs
             if (is_array($value)) {
+                self::primePosts($value);
                 return array_map(static fn(mixed $id) => get_post((int) $id), $value);
             }
             return get_post((int) $value);
@@ -184,6 +191,7 @@ final class ReturnFormatDecorator
             }
             // RELATIONSHIP always stores an array of IDs
             $ids = is_array($value) ? $value : [$value];
+            self::primePosts($ids);
             return array_values(
                 array_filter(
                     array_map(static fn(mixed $id) => get_post((int) $id), $ids),
@@ -198,10 +206,45 @@ final class ReturnFormatDecorator
                     $term = function_exists('get_term') ? get_term((int) $id) : null;
                     return is_object($term) && ! (function_exists('is_wp_error') && is_wp_error($term)) ? $term : null;
                 };
-            return is_array($value) ? array_values(array_filter(array_map($one, $value))) : $one($value);
+            if (is_array($value)) {
+                $type === FieldType::USER ? self::primeUsers($value) : self::primeTerms($value);
+                return array_values(array_filter(array_map($one, $value)));
+            }
+            return $one($value);
         }
 
         return $value;
+    }
+
+    /**
+     * Load every post/attachment, user or term in one query before the per-ID
+     * accessors run, so an array field with N references costs one query, not N.
+     * Each primer is a WordPress core function and a no-op outside WordPress
+     * (e.g. in unit tests), so behaviour is unchanged — only the query count.
+     *
+     * @param array<int|string, mixed> $ids
+     */
+    private static function primePosts(array $ids, bool $withMeta = false): void
+    {
+        if ($ids !== [] && function_exists('_prime_post_caches')) {
+            _prime_post_caches(array_map('intval', array_values($ids)), false, $withMeta);
+        }
+    }
+
+    /** @param array<int|string, mixed> $ids */
+    private static function primeUsers(array $ids): void
+    {
+        if ($ids !== [] && function_exists('cache_users')) {
+            cache_users(array_map('intval', array_values($ids)));
+        }
+    }
+
+    /** @param array<int|string, mixed> $ids */
+    private static function primeTerms(array $ids): void
+    {
+        if ($ids !== [] && function_exists('_prime_term_caches')) {
+            _prime_term_caches(array_map('intval', array_values($ids)));
+        }
     }
 
     private static function toDateTime(mixed $value): ?\DateTime
