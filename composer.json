@@ -56,7 +56,15 @@
             "parallel": false,
             "exclude_from_copy": {
                 "packages": [
-                    "composer/installers"
+                    "composer/installers",
+                    "psr/container",
+                    "psr/clock",
+                    "psr/simple-cache"
+                ]
+            },
+            "exclude_from_prefix": {
+                "namespaces": [
+                    "Psr\\"
                 ]
             }
         }
