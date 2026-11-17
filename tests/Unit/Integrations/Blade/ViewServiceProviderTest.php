@@ -6,7 +6,7 @@ namespace CtrlField\Tests\Unit\Integrations\Blade;
 
 use CtrlField\Bootstrap\ServiceContainer;
 use CtrlField\Integrations\Blade\ViewServiceProvider;
-use Illuminate\View\Compilers\BladeCompiler;
+use CtrlField\Vendor\Illuminate\View\Compilers\BladeCompiler;
 use PHPUnit\Framework\TestCase;
 
 class ViewServiceProviderTest extends TestCase

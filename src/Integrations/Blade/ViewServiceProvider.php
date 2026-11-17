@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace CtrlField\Integrations\Blade;
 
 use CtrlField\Bootstrap\ServiceProvider;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\View\Compilers\BladeCompiler;
+use CtrlField\Vendor\Illuminate\Filesystem\Filesystem;
+use CtrlField\Vendor\Illuminate\View\Compilers\BladeCompiler;
 
 /**
  * Bootstraps a standalone Blade compiler and registers CtrlField directives.

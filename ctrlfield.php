@@ -75,6 +75,14 @@ if (file_exists($autoloader)) {
   require_once $autoloader;
 }
 
+// Prefixed third-party dependencies (illuminate/*, symfony/*, carbon, …) are
+// scoped under CtrlField\Vendor\ so they can't clash with another plugin's copy.
+// Present in the built zip; absent when running from source before `composer scope`.
+$prefixedAutoloader = CTRLFIELD_PATH . 'vendor-prefixed/autoload.php';
+if (file_exists($prefixedAutoloader)) {
+  require_once $prefixedAutoloader;
+}
+
 add_action('init', static function (): void {
   load_plugin_textdomain('ctrlfield', false, dirname(plugin_basename(CTRLFIELD_FILE)) . '/languages');
 }, 0);
