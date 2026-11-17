@@ -31,16 +31,14 @@ final class LinkRenderer extends AbstractRenderer
         $open = "\$ctrlfLink({$p}, (v) => {$p} = v, {$config}, \$el)";
         $line = $this->line($p, $styles, $open, "{$p} = { url: '', title: '', target: '_self' }", $disabled);
 
-        return <<<HTML
-<div class="ctrlf-linkfield">
-    <template x-if="{$p} && {$p}.url">
+        return "<div class=\"ctrlf-linkfield\">
+    <template x-if=\"{$p} && {$p}.url\">
         {$line}
     </template>
-    <template x-if="!({$p} && {$p}.url)">
-        <button type="button" class="ctrlf-btn ctrlf-btn--add ctrlf-linkfield__select" @click="{$open}"{$disabled}>{$select}</button>
+    <template x-if=\"!({$p} && {$p}.url)\">
+        <button type=\"button\" class=\"ctrlf-btn ctrlf-btn--add ctrlf-linkfield__select\" @click=\"{$open}\"{$disabled}>{$select}</button>
     </template>
-</div>
-HTML;
+</div>";
     }
 
     /** Several links: one line each, dragged to reorder, "Add link" until ->max(). */
@@ -60,19 +58,17 @@ HTML;
         $limit  = $this->esc(sprintf(_n('Maximum of %d link reached', 'Maximum of %d links reached', $max, 'ctrlfield'), $max));
         $open   = "\$ctrlfLink(null, (v) => {$p} = [...{$list}, v], {$config}, \$el, {$list}.length)";
 
-        return <<<HTML
-<div class="ctrlf-linkfield ctrlf-linkfield--multiple">
-    <div class="ctrlf-linklist" x-ctrlf-sort="{$p}" x-show="{$list}.length">
-        <template x-for="({$item}, {$idx}) in {$list}" :key="\$ctrlfKey({$item})">
+        return "<div class=\"ctrlf-linkfield ctrlf-linkfield--multiple\">
+    <div class=\"ctrlf-linklist\" x-ctrlf-sort=\"{$p}\" x-show=\"{$list}.length\">
+        <template x-for=\"({$item}, {$idx}) in {$list}\" :key=\"\$ctrlfKey({$item})\">
             {$line}
         </template>
     </div>
-    <div class="ctrlf-linkfield__foot">
-        <button type="button" class="ctrlf-btn ctrlf-btn--add ctrlf-linkfield__select" x-show="{$list}.length < {$max}" @click="{$open}"{$disabled}>+ {$add}</button>
-        <span class="ctrlf-rows__limit" x-show="{$list}.length >= {$max}">{$limit}</span>
+    <div class=\"ctrlf-linkfield__foot\">
+        <button type=\"button\" class=\"ctrlf-btn ctrlf-btn--add ctrlf-linkfield__select\" x-show=\"{$list}.length < {$max}\" @click=\"{$open}\"{$disabled}>+ {$add}</button>
+        <span class=\"ctrlf-rows__limit\" x-show=\"{$list}.length >= {$max}\">{$limit}</span>
     </div>
-</div>
-HTML;
+</div>";
     }
 
     /**
@@ -91,24 +87,22 @@ HTML;
             : '';
         $item = $sortable ? ' data-ctrlf-item' : '';
 
-        return <<<HTML
-<div class="ctrlf-linkfield__set" :class="{ 'is-missing': \$ctrlfLinkState({$v}).missing }"{$item}>
+        return "<div class=\"ctrlf-linkfield__set\" :class=\"{ 'is-missing': \$ctrlfLinkState({$v}).missing }\"{$item}>
             {$handle}
-            <span class="ctrlf-linkfield__icon" x-show="{$v}.icon" x-html="\$ctrlfIcon({$v}.icon, 18)"></span>
-            <div class="ctrlf-linkfield__text">
-                <strong class="ctrlf-linkfield__title" x-text="{$v}.title || \$ctrlfLinkState({$v}).title || {$v}.url"></strong>
-                <span class="ctrlf-linkfield__meta">
-                    <span x-text="\$ctrlfLinkState({$v}).kind"></span>
-                    <span class="ctrlf-linkfield__url" x-text="\$ctrlfLinkState({$v}).url || {$v}.url"></span>
-                    <span class="ctrlf-linkfield__badge" x-show="{$v}.style" x-text="({$styles})[{$v}.style] ?? {$v}.style"></span>
-                    <span class="ctrlf-linkfield__badge" x-show="{$v}.target === '_blank'">{$newTab}</span>
+            <span class=\"ctrlf-linkfield__icon\" x-show=\"{$v}.icon\" x-html=\"\$ctrlfIcon({$v}.icon, 18)\"></span>
+            <div class=\"ctrlf-linkfield__text\">
+                <strong class=\"ctrlf-linkfield__title\" x-text=\"{$v}.title || \$ctrlfLinkState({$v}).title || {$v}.url\"></strong>
+                <span class=\"ctrlf-linkfield__meta\">
+                    <span x-text=\"\$ctrlfLinkState({$v}).kind\"></span>
+                    <span class=\"ctrlf-linkfield__url\" x-text=\"\$ctrlfLinkState({$v}).url || {$v}.url\"></span>
+                    <span class=\"ctrlf-linkfield__badge\" x-show=\"{$v}.style\" x-text=\"({$styles})[{$v}.style] ?? {$v}.style\"></span>
+                    <span class=\"ctrlf-linkfield__badge\" x-show=\"{$v}.target === '_blank'\">{$newTab}</span>
                 </span>
-                <span class="ctrlf-linkfield__warning" x-show="\$ctrlfLinkState({$v}).missing">{$missing}</span>
+                <span class=\"ctrlf-linkfield__warning\" x-show=\"\$ctrlfLinkState({$v}).missing\">{$missing}</span>
             </div>
-            <button type="button" class="ctrlf-linkfield__action" @click="{$edit}"{$disabled}>{$editTxt}</button>
-            <button type="button" class="ctrlf-linkfield__action ctrlf-linkfield__action--remove" @click="{$remove}"{$disabled}>{$remTxt}</button>
-        </div>
-HTML;
+            <button type=\"button\" class=\"ctrlf-linkfield__action\" @click=\"{$edit}\"{$disabled}>{$editTxt}</button>
+            <button type=\"button\" class=\"ctrlf-linkfield__action ctrlf-linkfield__action--remove\" @click=\"{$remove}\"{$disabled}>{$remTxt}</button>
+        </div>";
     }
 
     /**

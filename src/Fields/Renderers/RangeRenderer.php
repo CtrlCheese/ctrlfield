@@ -27,18 +27,16 @@ final class RangeRenderer extends AbstractRenderer
         [$lo, $hi, $st] = [$this->esc($fmt($min)), $this->esc($fmt($max)), $this->esc($fmt($step))];
         $unit   = static fn (string $t): string => $t !== '' ? '<span class="ctrlf-affix__text">' . htmlspecialchars($t, ENT_QUOTES, 'UTF-8') . '</span>' : '';
 
-        return <<<HTML
-<div class="ctrlf-range">
-    <div class="ctrlf-range__track">
-        <input type="range" id="{$id}" x-model.number="{$p}" min="{$lo}" max="{$hi}" step="{$st}" class="ctrlf-range__slider"{$off}
-               :style="{ '--ctrlf-fill': ((({$p} ?? {$lo}) - {$lo}) / ({$hi} - {$lo}) * 100) + '%' }">
-        <span class="ctrlf-range__ends" aria-hidden="true"><span>{$lo}</span><span>{$hi}</span></span>
+        return "<div class=\"ctrlf-range\">
+    <div class=\"ctrlf-range__track\">
+        <input type=\"range\" id=\"{$id}\" x-model.number=\"{$p}\" min=\"{$lo}\" max=\"{$hi}\" step=\"{$st}\" class=\"ctrlf-range__slider\"{$off}
+               :style=\"{ '--ctrlf-fill': ((({$p} ?? {$lo}) - {$lo}) / ({$hi} - {$lo}) * 100) + '%' }\">
+        <span class=\"ctrlf-range__ends\" aria-hidden=\"true\"><span>{$lo}</span><span>{$hi}</span></span>
     </div>
-    <div class="ctrlf-affix ctrlf-range__value">
-        {$unit($before)}<input type="number" class="ctrlf-input ctrlf-input--number" min="{$lo}" max="{$hi}" step="{$st}" inputmode="decimal"{$off}
-               :value="{$p} ?? ''" @change="{$p} = \$event.target.value === '' ? null : Math.min({$hi}, Math.max({$lo}, Number(\$event.target.value))); \$event.target.value = {$p} ?? ''">{$unit($after)}
+    <div class=\"ctrlf-affix ctrlf-range__value\">
+        {$unit($before)}<input type=\"number\" class=\"ctrlf-input ctrlf-input--number\" min=\"{$lo}\" max=\"{$hi}\" step=\"{$st}\" inputmode=\"decimal\"{$off}
+               :value=\"{$p} ?? ''\" @change=\"{$p} = \$event.target.value === '' ? null : Math.min({$hi}, Math.max({$lo}, Number(\$event.target.value))); \$event.target.value = {$p} ?? ''\">{$unit($after)}
     </div>
-</div>
-HTML;
+</div>";
     }
 }

@@ -635,23 +635,21 @@ final class FieldGroupsPage
         $add    = esc_html__('Add layout', 'ctrlfield');
         $none   = esc_html__('No layouts yet.', 'ctrlfield');
 
-        return <<<HTML
-<div class="ctrlf-ge-layouts">
-    <p class="description" x-show="!(field.layouts ?? []).length">{$none}</p>
-    <template x-for="(layout, l) in field.layouts ?? []" :key="layout._uid">
-        <div class="ctrlf-ge-layout">
-            <input type="text" class="regular-text" placeholder="{$label}" aria-label="{$label}" x-model="layout.label" @input="layoutLabelChanged(layout)">
-            <input type="text" class="code" placeholder="{$key}" aria-label="{$key}" x-model="layout.key" @input="layout._keyTouched = true" pattern="[A-Za-z][A-Za-z0-9_]*">
-            <input type="number" min="0" class="small-text" placeholder="{$max}" aria-label="{$max}" title="{$max}" x-model="layout.max">
-            <button type="button" class="button" @click="enterLayout(index, l)">{$edit} (<span x-text="layout.fields.length"></span>)</button>
-            <button type="button" class="button-link" @click="moveLayout(field, l, -1)" aria-label="{$up}" title="{$up}">&uarr;</button>
-            <button type="button" class="button-link" @click="moveLayout(field, l, 1)" aria-label="{$down}" title="{$down}">&darr;</button>
-            <button type="button" class="button-link button-link-delete" @click="removeLayout(field, l)">{$remove}</button>
+        return "<div class=\"ctrlf-ge-layouts\">
+    <p class=\"description\" x-show=\"!(field.layouts ?? []).length\">{$none}</p>
+    <template x-for=\"(layout, l) in field.layouts ?? []\" :key=\"layout._uid\">
+        <div class=\"ctrlf-ge-layout\">
+            <input type=\"text\" class=\"regular-text\" placeholder=\"{$label}\" aria-label=\"{$label}\" x-model=\"layout.label\" @input=\"layoutLabelChanged(layout)\">
+            <input type=\"text\" class=\"code\" placeholder=\"{$key}\" aria-label=\"{$key}\" x-model=\"layout.key\" @input=\"layout._keyTouched = true\" pattern=\"[A-Za-z][A-Za-z0-9_]*\">
+            <input type=\"number\" min=\"0\" class=\"small-text\" placeholder=\"{$max}\" aria-label=\"{$max}\" title=\"{$max}\" x-model=\"layout.max\">
+            <button type=\"button\" class=\"button\" @click=\"enterLayout(index, l)\">{$edit} (<span x-text=\"layout.fields.length\"></span>)</button>
+            <button type=\"button\" class=\"button-link\" @click=\"moveLayout(field, l, -1)\" aria-label=\"{$up}\" title=\"{$up}\">&uarr;</button>
+            <button type=\"button\" class=\"button-link\" @click=\"moveLayout(field, l, 1)\" aria-label=\"{$down}\" title=\"{$down}\">&darr;</button>
+            <button type=\"button\" class=\"button-link button-link-delete\" @click=\"removeLayout(field, l)\">{$remove}</button>
         </div>
     </template>
-    <p><button type="button" class="button" @click="addLayout(field)">+ {$add}</button></p>
-</div>
-HTML;
+    <p><button type=\"button\" class=\"button\" @click=\"addLayout(field)\">+ {$add}</button></p>
+</div>";
     }
 
     /** @param array<string, mixed> $group */

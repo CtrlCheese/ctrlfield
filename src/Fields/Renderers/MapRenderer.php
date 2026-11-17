@@ -28,44 +28,42 @@ final class MapRenderer extends AbstractRenderer
         $coords      = $this->esc(__('Coordinates', 'ctrlfield'));
         $openOsm     = $this->esc(__('Open in OpenStreetMap', 'ctrlfield'));
 
-        return <<<HTML
-<div class="ctrlf-map" x-data="{ q: '', results: [], searched: false, busy: false }">
-    <div class="ctrlf-map__search">
-        <input type="search" id="{$id}" class="ctrlf-input" placeholder="{$searchLabel}" x-model="q"
-               @keydown.enter.prevent="busy = true; results = await geocode(q); searched = true; busy = false">
-        <button type="button" class="button" :disabled="busy"
-                @click="busy = true; results = await geocode(q); searched = true; busy = false">{$searchBtn}</button>
+        return "<div class=\"ctrlf-map\" x-data=\"{ q: '', results: [], searched: false, busy: false }\">
+    <div class=\"ctrlf-map__search\">
+        <input type=\"search\" id=\"{$id}\" class=\"ctrlf-input\" placeholder=\"{$searchLabel}\" x-model=\"q\"
+               @keydown.enter.prevent=\"busy = true; results = await geocode(q); searched = true; busy = false\">
+        <button type=\"button\" class=\"button\" :disabled=\"busy\"
+                @click=\"busy = true; results = await geocode(q); searched = true; busy = false\">{$searchBtn}</button>
     </div>
-    <ul class="ctrlf-picker__dropdown ctrlf-map__results" x-show="results.length">
-        <template x-for="(r, i) in results" :key="i">
-            <li><button type="button" class="ctrlf-picker__option"
-                @click="{$p} = { lat: r.lat, lng: r.lng, zoom: {$zoom}, address: r.address }; results = []; q = ''; searched = false"
-                x-text="r.address"></button></li>
+    <ul class=\"ctrlf-picker__dropdown ctrlf-map__results\" x-show=\"results.length\">
+        <template x-for=\"(r, i) in results\" :key=\"i\">
+            <li><button type=\"button\" class=\"ctrlf-picker__option\"
+                @click=\"{$p} = { lat: r.lat, lng: r.lng, zoom: {$zoom}, address: r.address }; results = []; q = ''; searched = false\"
+                x-text=\"r.address\"></button></li>
         </template>
     </ul>
-    <p class="description" x-show="searched && !busy && !results.length">{$none}</p>
-    <p class="ctrlf-map__address" x-show="{$p} && {$p}.address" x-text="{$p} ? {$p}.address : ''"></p>
-    <details class="ctrlf-map__coords-toggle">
+    <p class=\"description\" x-show=\"searched && !busy && !results.length\">{$none}</p>
+    <p class=\"ctrlf-map__address\" x-show=\"{$p} && {$p}.address\" x-text=\"{$p} ? {$p}.address : ''\"></p>
+    <details class=\"ctrlf-map__coords-toggle\">
     <summary>{$coords}</summary>
-    <div class="ctrlf-map__coords">
+    <div class=\"ctrlf-map__coords\">
         <label>{$latLabel}
-            <input type="number" step="any" class="ctrlf-input" :value="{$p} && {$p}.lat !== null ? {$p}.lat : ''"
-                   @change="{$p} = mapWith({$p}, 'lat', \$event.target.value, {$zoom})"></label>
+            <input type=\"number\" step=\"any\" class=\"ctrlf-input\" :value=\"{$p} && {$p}.lat !== null ? {$p}.lat : ''\"
+                   @change=\"{$p} = mapWith({$p}, 'lat', \$event.target.value, {$zoom})\"></label>
         <label>{$lngLabel}
-            <input type="number" step="any" class="ctrlf-input" :value="{$p} && {$p}.lng !== null ? {$p}.lng : ''"
-                   @change="{$p} = mapWith({$p}, 'lng', \$event.target.value, {$zoom})"></label>
+            <input type=\"number\" step=\"any\" class=\"ctrlf-input\" :value=\"{$p} && {$p}.lng !== null ? {$p}.lng : ''\"
+                   @change=\"{$p} = mapWith({$p}, 'lng', \$event.target.value, {$zoom})\"></label>
     </div>
     </details>
-    <template x-if="hasCoords({$p})">
+    <template x-if=\"hasCoords({$p})\">
         <div>
-            <iframe class="ctrlf-map__preview" :src="osmEmbedUrl({$p})" width="100%" height="260" loading="lazy" title="Map"></iframe>
-            <p class="ctrlf-map__actions">
-                <a :href="'https://www.openstreetmap.org/?mlat=' + {$p}.lat + '&mlon=' + {$p}.lng + '#map=' + ({$p}.zoom || {$zoom}) + '/' + {$p}.lat + '/' + {$p}.lng" target="_blank" rel="noopener">{$openOsm}</a>
-                <button type="button" class="button-link button-link-delete" @click="{$p} = null">{$clear}</button>
+            <iframe class=\"ctrlf-map__preview\" :src=\"osmEmbedUrl({$p})\" width=\"100%\" height=\"260\" loading=\"lazy\" title=\"Map\"></iframe>
+            <p class=\"ctrlf-map__actions\">
+                <a :href=\"'https://www.openstreetmap.org/?mlat=' + {$p}.lat + '&mlon=' + {$p}.lng + '#map=' + ({$p}.zoom || {$zoom}) + '/' + {$p}.lat + '/' + {$p}.lng\" target=\"_blank\" rel=\"noopener\">{$openOsm}</a>
+                <button type=\"button\" class=\"button-link button-link-delete\" @click=\"{$p} = null\">{$clear}</button>
             </p>
         </div>
     </template>
-</div>
-HTML;
+</div>";
     }
 }
