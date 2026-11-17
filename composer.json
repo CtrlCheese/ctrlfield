@@ -45,8 +45,43 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
+    "extra": {
+        "strauss": {
+            "target_directory": "vendor-prefixed",
+            "namespace_prefix": "CtrlField\\Vendor\\",
+            "classmap_prefix": "CtrlField_Vendor_",
+            "constant_prefix": "CTRLFIELD_VENDOR_",
+            "update_call_sites": false,
+            "delete_vendor_packages": true,
+            "parallel": false,
+            "exclude_from_copy": {
+                "packages": [
+                    "composer/installers",
+                    "psr/container",
+                    "psr/clock",
+                    "psr/simple-cache"
+                ]
+            },
+            "exclude_from_prefix": {
+                "namespaces": [
+                    "Psr\\"
+                ]
+            }
+        }
+    },
     "scripts": {
         "test": "phpunit",
-        "test:pro": "phpunit -c pro/phpunit.xml"
+        "test:pro": "phpunit -c pro/phpunit.xml",
+        "scope": [
+            "bash -c 'test -f .tooling/strauss.phar || { mkdir -p .tooling && curl -sfL -o .tooling/strauss.phar https://github.com/BrianHenryIE/strauss/releases/download/0.31.1/strauss.phar; }'",
+            "@php -d memory_limit=-1 .tooling/strauss.phar",
+            "@php -r \"array_map('unlink', array_filter(['vendor/composer/autoload_aliases.php', 'vendor/composer/autoload_alias.php'], 'file_exists'));\""
+        ],
+        "post-install-cmd": [
+            "@scope"
+        ],
+        "post-update-cmd": [
+            "@scope"
+        ]
     }
 }

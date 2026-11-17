@@ -1,5 +1,7 @@
 # Dependencies
 /vendor/
+/vendor-prefixed/
+/.tooling/
 node_modules/
 
 # Build outputs

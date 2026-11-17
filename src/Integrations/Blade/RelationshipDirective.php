@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CtrlField\Integrations\Blade;
 
-use Illuminate\View\Compilers\BladeCompiler;
+use CtrlField\Vendor\Illuminate\View\Compilers\BladeCompiler;
 
 /**
  * Registers @relationship / @endrelationship Blade directives.

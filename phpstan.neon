@@ -6,6 +6,9 @@ parameters:
     level: 8
     bootstrapFiles:
         - phpstan-bootstrap.php
+        # Registers the autoloader for the scoped CtrlField\Vendor\* dependencies
+        # (illuminate/*, …) so their classes resolve. Built by `composer install`.
+        - vendor-prefixed/autoload.php
     paths:
         - src
 
