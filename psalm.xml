@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <psalm
     errorLevel="8"
-    autoloader="vendor-prefixed/autoload.php"
     findUnusedCode="false"
     findUnusedBaselineEntry="false"
     resolveFromConfigFile="true"
@@ -18,6 +17,13 @@
         <ignoreFiles allowMissingFiles="true">
             <directory name="vendor"/>
             <directory name="vendor-prefixed"/>
+            <!-- Blade setup glue that references the scoped CtrlField\Vendor\Illuminate
+                 classes (not in the composer classmap). No superglobal handling, so
+                 nothing for taint analysis to follow. -->
+            <file name="src/Integrations/Blade/ViewServiceProvider.php"/>
+            <file name="src/Integrations/Blade/RelationshipDirective.php"/>
+            <file name="pro/src/Integrations/Blade/GalleryDirective.php"/>
+            <file name="pro/src/Integrations/Blade/FlexDirective.php"/>
         </ignoreFiles>
     </projectFiles>
     <stubs>
