@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <psalm
     errorLevel="8"
+    autoloader="vendor-prefixed/autoload.php"
     findUnusedCode="false"
     findUnusedBaselineEntry="false"
     resolveFromConfigFile="true"
@@ -16,6 +17,7 @@
         <directory name="pro/src"/>
         <ignoreFiles allowMissingFiles="true">
             <directory name="vendor"/>
+            <directory name="vendor-prefixed"/>
         </ignoreFiles>
     </projectFiles>
     <stubs>
