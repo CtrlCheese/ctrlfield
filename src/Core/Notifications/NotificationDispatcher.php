@@ -78,7 +78,7 @@ final class NotificationDispatcher
         $post       = function_exists('get_post') ? get_post($postId) : null;
         $postTitle  = $post?->post_title ?? '';
         $adminUrl   = function_exists('get_edit_post_link') ? (string) get_edit_post_link($postId) : '';
-        $date       = function_exists('date_i18n') ? date_i18n('Y-m-d H:i') : date('Y-m-d H:i');
+        $date       = function_exists('date_i18n') ? date_i18n('Y-m-d H:i') : gmdate('Y-m-d H:i');
 
         return [
             '{post_title}' => $postTitle,

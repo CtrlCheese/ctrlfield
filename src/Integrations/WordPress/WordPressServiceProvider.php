@@ -441,12 +441,12 @@ class WordPressServiceProvider extends ServiceProvider
 
             if ($termId === null) {
                 echo '<div class="form-field">';
-                echo "<label>{$label}</label>";
+                echo "<label>{$label}</label>"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $label is esc_html() above.
                 $this->renderBasicField($field, $value ?: null, 'ctrlfield_term');
                 echo '</div>';
             } else {
                 echo '<tr class="form-field">';
-                echo "<th scope=\"row\"><label>{$label}</label></th>";
+                echo "<th scope=\"row\"><label>{$label}</label></th>"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $label is esc_html() above.
                 echo '<td>';
                 $this->renderBasicField($field, $value ?: null, 'ctrlfield_term');
                 echo '</td>';
@@ -542,7 +542,7 @@ class WordPressServiceProvider extends ServiceProvider
                     ? wp_get_attachment_image_url($attachmentId, 'thumbnail')
                     : false;
 
-                printf('<input type="hidden" id="%s" name="%s" value="%d">', esc_attr($id), esc_attr($name), $attachmentId);
+                printf('<input type="hidden" id="%s" name="%s" value="%d">', esc_attr($id), esc_attr($name), absint($attachmentId));
 
                 if ($src) {
                     printf(

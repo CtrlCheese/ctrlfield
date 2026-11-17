@@ -240,6 +240,7 @@ final class FieldGroupsPage
         ?>
         <h1><?php echo $isNew
             ? esc_html__('Add New Field Group', 'ctrlfield')
+            // translators: %s: field group title.
             : esc_html(sprintf(__('Edit Field Group: %s', 'ctrlfield'), $group['title'])); ?></h1>
         <p><a href="<?php echo esc_url($this->url()); ?>">&larr; <?php esc_html_e('All field groups', 'ctrlfield'); ?></a></p>
 
@@ -434,7 +435,7 @@ final class FieldGroupsPage
                 '<tr x-show="has(field, \'%1$s\')"><th scope="row">%2$s</th><td>%3$s%4$s</td></tr>',
                 esc_attr($setting),
                 esc_html($label),
-                $input, // built below from escaped parts
+                $input, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Assembled from esc_attr()/esc_html() parts above.
                 $help !== '' ? '<p class="description">' . esc_html($help) . '</p>' : ''
             );
         };
@@ -601,7 +602,9 @@ final class FieldGroupsPage
         ];
         $code = TemplateSnippets::generate($group, $dialect);
         ?>
-        <h1><?php echo esc_html(sprintf(__('Template code: %s', 'ctrlfield'), $group->getTitle() !== '' ? $group->getTitle() : $key)); ?></h1>
+        <h1><?php
+        /* translators: %s: field group title or key. */
+        echo esc_html(sprintf(__('Template code: %s', 'ctrlfield'), $group->getTitle() !== '' ? $group->getTitle() : $key)); ?></h1>
         <p><a href="<?php echo esc_url($this->url()); ?>">&larr; <?php esc_html_e('All field groups', 'ctrlfield'); ?></a></p>
         <nav class="nav-tab-wrapper" aria-label="<?php esc_attr_e('Template language', 'ctrlfield'); ?>">
             <?php foreach ($dialects as $d => $label): ?>
@@ -664,7 +667,9 @@ HTML;
         $saved   = isset($_GET['php_saved']);
         // phpcs:enable
         ?>
-        <h1><?php echo esc_html(sprintf(__('Export PHP: %s', 'ctrlfield'), $group['title'])); ?></h1>
+        <h1><?php
+        /* translators: %s: field group title. */
+        echo esc_html(sprintf(__('Export PHP: %s', 'ctrlfield'), $group['title'])); ?></h1>
         <p><a href="<?php echo esc_url($this->url()); ?>">&larr; <?php esc_html_e('All field groups', 'ctrlfield'); ?></a></p>
         <?php
         if ($saved) {
@@ -766,8 +771,10 @@ HTML;
 
         if ($errors === [] && $key !== $previousKey) {
             if ($this->repo->get($key) !== null) {
+                // translators: %s: the duplicate field group key.
                 $errors[] = sprintf(__('Another field group already uses the key "%s".', 'ctrlfield'), $key);
             } elseif (FieldRegistry::has($key) && ! in_array($key, FieldGroupsServiceProvider::registered(), true)) {
+                // translators: %s: the duplicate field group key.
                 $errors[] = sprintf(__('A field group defined in code already uses the key "%s".', 'ctrlfield'), $key);
             }
         }

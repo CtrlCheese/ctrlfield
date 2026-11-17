@@ -35,8 +35,8 @@ if (version_compare(PHP_VERSION, CTRLFIELD_MIN_PHP, '<')) {
       sprintf(
         /* translators: 1: required PHP version, 2: current PHP version */
         esc_html__('CtrlField requires PHP %1$s or higher. Your server is running PHP %2$s.', 'ctrlfield'),
-        CTRLFIELD_MIN_PHP,
-        PHP_VERSION
+        esc_html(CTRLFIELD_MIN_PHP),
+        esc_html(PHP_VERSION)
       )
     );
   });
@@ -50,8 +50,8 @@ if (version_compare($GLOBALS['wp_version'], CTRLFIELD_MIN_WP, '<')) {
       sprintf(
         /* translators: 1: required WP version, 2: current WP version */
         esc_html__('CtrlField requires WordPress %1$s or higher. Your installation is running %2$s.', 'ctrlfield'),
-        CTRLFIELD_MIN_WP,
-        $GLOBALS['wp_version']
+        esc_html(CTRLFIELD_MIN_WP),
+        esc_html($GLOBALS['wp_version'])
       )
     );
   });
@@ -82,6 +82,12 @@ $prefixedAutoloader = CTRLFIELD_PATH . 'vendor-prefixed/autoload.php';
 if (file_exists($prefixedAutoloader)) {
   require_once $prefixedAutoloader;
 }
+
+// Global template helper functions (ctrlfield_get(), ctrlfield_render(), …).
+// Required here, inside WordPress, rather than via Composer's files autoload: the
+// file guards against direct access with exit, which would abort Composer-based
+// tooling (phpunit, phpstan) that loads the autoloader outside WordPress.
+require_once CTRLFIELD_PATH . 'src/Integrations/Blade/helpers.php';
 
 add_action('init', static function (): void {
   load_plugin_textdomain('ctrlfield', false, dirname(plugin_basename(CTRLFIELD_FILE)) . '/languages');

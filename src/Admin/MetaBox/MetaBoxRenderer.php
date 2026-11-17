@@ -63,7 +63,7 @@ class MetaBoxRenderer
 
         ?>
         <div class="<?= esc_attr($containerClass) ?>"
-             x-data="<?= $initJs ?>"
+             x-data="<?= esc_attr($initJs) ?>"
              x-cloak>
 
             <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
@@ -102,7 +102,7 @@ class MetaBoxRenderer
 
         ?>
         <div class="ctrlfield-container ctrlf-label-top"
-             x-data="<?= $initJs ?>"
+             x-data="<?= esc_attr($initJs) ?>"
              x-cloak>
 
             <?php wp_nonce_field('ctrlfield_save', '_ctrlfield_nonce'); ?>
@@ -178,7 +178,7 @@ class MetaBoxRenderer
                     <span class="ctrlf-instructions"><?= \CtrlField\Fields\Renderers\AbstractRenderer::instructionsHtml($instructions) // phpcs:ignore WordPress.Security.EscapeOutput -- wp_kses_post ?></span>
                 <?php endif; ?>
             </label>
-            <?= $renderer->render($field, $statePath) ?>
+            <?= $renderer->render($field, $statePath) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer returns field markup. ?>
             <?php if ($instructions !== '' && $instrPlacement === 'field'): ?>
                 <p class="ctrlf-instructions"><?= \CtrlField\Fields\Renderers\AbstractRenderer::instructionsHtml($instructions) // phpcs:ignore WordPress.Security.EscapeOutput -- wp_kses_post ?></p>
             <?php endif; ?>

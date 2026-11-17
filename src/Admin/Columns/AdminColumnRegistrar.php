@@ -178,7 +178,7 @@ final class AdminColumnRegistrar
         $format = $field instanceof DateField ? $field->getFormat() : 'Y-m-d';
         $ts     = strtotime($value);
         return $ts !== false
-            ? esc_html(function_exists('date_i18n') ? date_i18n($format, $ts) : date($format, $ts))
+            ? esc_html(function_exists('date_i18n') ? date_i18n($format, $ts) : gmdate($format, $ts))
             : esc_html($value);
     }
 
@@ -190,7 +190,7 @@ final class AdminColumnRegistrar
         $format = $field instanceof DateTimeField ? $field->getFormat() : 'Y-m-d H:i';
         $ts     = strtotime($value);
         return $ts !== false
-            ? esc_html(function_exists('date_i18n') ? date_i18n($format, $ts) : date($format, $ts))
+            ? esc_html(function_exists('date_i18n') ? date_i18n($format, $ts) : gmdate($format, $ts))
             : esc_html($value);
     }
 
