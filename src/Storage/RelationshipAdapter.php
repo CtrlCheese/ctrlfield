@@ -34,6 +34,14 @@ final class RelationshipAdapter
      */
     public static function ensureTable(string $tableName): void
     {
+        // Defence-in-depth: the name is built from code-defined field keys, never
+        // request input, but save()/load()/loadReverse() interpolate it into SQL —
+        // never let through anything that isn't a bare identifier. (deleteForPost
+        // guards the same way.)
+        if (! preg_match('/^[A-Za-z0-9_]+$/', $tableName)) {
+            throw new \InvalidArgumentException('Unsafe relationship table name.');
+        }
+
         if (isset(self::$ensured[$tableName])) {
             return;
         }

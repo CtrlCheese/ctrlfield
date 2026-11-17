@@ -103,7 +103,9 @@ final class FieldGroupRepository
             $this->delete($previousKey);
         }
 
-        if ($this->canWriteFiles() && $this->writeFile($key, $group)) {
+        // Backstop: only ever build a file path from a validated key (traversal is
+        // already blocked upstream by JsonGroup::normalize, but never rely on that).
+        if ($this->canWriteFiles() && $this->isValidKey($key) && $this->writeFile($key, $group)) {
             // Moved to a file: drop the old database copy.
             $this->deleteOption($key);
             return self::SOURCE_FILE;
