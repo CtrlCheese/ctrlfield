@@ -175,7 +175,9 @@ final class PickerController
             'order'   => $search === '' ? 'DESC' : 'ASC',
         ];
         if ($search !== '') {
-            $args['search']         = '*' . $search . '*';
+            // Prefix match (trailing * only) so the index on the user columns can
+            // be used instead of a full scan; '*' . $search would force one.
+            $args['search']         = $search . '*';
             $args['search_columns'] = ['display_name', 'user_nicename']; // never email / login
         }
         if ($roles !== []) {
